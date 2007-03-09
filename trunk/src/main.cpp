@@ -6,15 +6,20 @@
 
 QSystemTrayIcon *trayicon;
 
+void beenden(QObject * obj){
+	//Programm Ende!
+	
+}
+
+
 int main(int argc,char** argv){
 	QApplication app(argc,argv);
-	//trayicon = new QSystemTrayIcon(QIcon("bilder/connect_no.png"),&app);
-	//trayicon->setvisible();
-	
 
-	HauptFenster mw;
-	trayicon = new Callmonitor(&app);
 	
+	Callmonitor temp(&app);
+	trayicon = &temp;
+	
+	HauptFenster mw;
 	mw.show();
 	
 	return app.exec();

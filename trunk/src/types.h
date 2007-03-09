@@ -13,7 +13,8 @@
 #define TYPES_H
 
 #include <QtCore>
-
+#include <QtGui>
+		
 class Anruf{
 	//TrCall(type, datum, name, rufnummer, port, route, routetype, dauer)
 	//TrCall("1", "11.02.07 13:52", "", "03305680127", "4", "0", "1", "0:15"));
@@ -31,9 +32,18 @@ public:
 };
 
 class FBMessage{
+public:
+	FBMessage();
+	FBMessage(const QString &nachricht);
+	FBMessage(const FBMessage &input);
+	QString toString();
+	QString CmdtoString();
+	bool isDisconnect(){return command == DISCONNECT;}
+	void Disconnect(){command = UNSET;}
+	enum eCommand {CALL,RING,DISCONNECT,CONNECT,UNSET};
 	QDateTime marke;
-	QString command;
+	eCommand command;
 	int id;
-	
+	QVector<QString> message;
 };
 #endif /*TYPES_H*/

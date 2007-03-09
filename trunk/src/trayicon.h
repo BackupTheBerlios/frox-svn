@@ -15,13 +15,14 @@
 #include <QSystemTrayIcon>
 #include <QtNetwork>
 #include <QIcon>
+#include "types.h"
 
 
 class Callmonitor :public QSystemTrayIcon{
 	Q_OBJECT
 public:
 	Callmonitor(QApplication * parent);
-	
+	~Callmonitor();
 public slots:
 	void neuedaten();
 	void verbunden();
@@ -32,6 +33,7 @@ private:
 	QTcpSocket *netz;
 	bool verbindung;
 	QString datenbuffer;
+	QVector<FBMessage> schlange;//Daraus soll ein Modell werden!!
 };
 
 #endif /*TRAYICON_H*/

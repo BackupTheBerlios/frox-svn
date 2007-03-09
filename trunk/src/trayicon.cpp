@@ -36,13 +36,25 @@ Callmonitor::Callmonitor(QApplication * parent)
 	connect(netz, SIGNAL(readyRead()), this, SLOT(neuedaten()));
 }
 
+Callmonitor::~Callmonitor(){
+	delete netz;
+}
+
 void Callmonitor::neuedaten()
 {
 	QTextStream input(netz);
 	//Zwischenspeichern?? oder gleich hier verarbeiten?
-	datenbuffer = input.readLine();
-	//QStringList list1 = datenbuffer.last().split(";");
-	showMessage("Debug",datenbuffer);
+	FBMessage nachricht(input.readLine());
+	if (nachricht.isDisconnect()){
+		schlange[nachricht.id].Disconnect();
+	}else{
+		if (schlange.size() <= nachricht.id){
+			schlange.resize(nachricht.id+1);
+		}
+		schlange[nachricht.id]=nachricht;
+		
+	}
+	showMessage("Debug",nachricht.toString());
 }
 
 void Callmonitor::onclick(QSystemTrayIcon::ActivationReason reason ){

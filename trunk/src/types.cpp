@@ -42,3 +42,73 @@ QString Anruf::ueberschrift(int spalte)
 			return QString("unbekannt");
 	}
 }
+
+//FBMessage
+
+FBMessage::FBMessage()
+	:command(UNSET)
+{
+}
+
+FBMessage::FBMessage(const FBMessage &input)
+:marke(input.marke),command(input.command),id(input.id),message(input.message)
+{
+}
+
+FBMessage::FBMessage(const QString &nachricht)
+{
+	QList<QString> tempstlst(nachricht.split(';'));
+	//09.03.07 08:51:10
+	marke = QDateTime::fromString(tempstlst.first(),"dd.MM.yy hh:mm:ss").addYears(100);
+	tempstlst.removeFirst();
+	
+	switch (tempstlst.first().at(0).toAscii ()){
+		case 'C':
+			if (tempstlst.first().at(1).toAscii () == 'A'){
+				command = CALL;
+			}else{
+				command = CONNECT;
+			}
+			tempstlst.removeFirst();
+			break;
+		case 'R':
+			command = RING;
+			tempstlst.removeFirst();
+			break;
+		case 'D':
+			command = DISCONNECT;
+			tempstlst.removeFirst();
+			break;
+		default:
+			command = UNSET;
+			tempstlst.removeFirst();
+	}
+	//Holen der id
+	id = tempstlst.first().toInt();
+	tempstlst.removeFirst();
+	//der rest
+	message = QVector<QString>::fromList(tempstlst);
+	
+}
+
+QString FBMessage::CmdtoString(){
+	switch (command){
+		case CALL:
+			return QString("Anruf");
+		case RING:
+			return QString("Klingeln");
+		case DISCONNECT:
+			return QString("Beendet");
+		case CONNECT:
+			return QString("Verbunden");
+		default:
+			return QString("unset");
+	}
+}
+
+QString FBMessage::toString(){
+	if (command == UNSET){
+		return CmdtoString();
+	}
+	return marke.toString()+" "+CmdtoString()+ QString(" %1").arg(id);
+}
