@@ -14,7 +14,10 @@ void beenden(QObject * obj){
 
 int main(int argc,char** argv){
 	QApplication app(argc,argv);
-
+	
+	QCoreApplication::setOrganizationName("frox");
+	QCoreApplication::setOrganizationDomain("frox.berlios.com");
+	QCoreApplication::setApplicationName("frox");
 	
 	Callmonitor temp(&app);
 	trayicon = &temp;
@@ -25,3 +28,4 @@ int main(int argc,char** argv){
 	return app.exec();
 
 }
+

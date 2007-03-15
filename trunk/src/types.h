@@ -21,11 +21,11 @@ class Anruf{
 	int richtung;
 	QDateTime datum;
 	QString name;
-	QString rufnr;
-	int nebenstelle,anschluss,intern;
+	QString rufnr, nebenstelle,anschluss,intern;
 	QTime dauer;
 public:
 	Anruf();
+	Anruf(QStringList zeile);
 	QVariant operator[](int index)const;
 	static QString ueberschrift(int spalte);
 	static int spaltenAnzahl(){return 8;}

@@ -13,6 +13,7 @@
 #define MODELL_H
 
 #include <QtCore>
+#include <iostream>
 #include "types.h"
 
 class AnrufModell:public QAbstractTableModel{
@@ -20,6 +21,8 @@ class AnrufModell:public QAbstractTableModel{
 private:
 	QList<Anruf> liste;
 	QString header;
+public slots:
+	void neue_liste(QString daten, QChar seperator = ';');
 public:
 	AnrufModell(QWidget *parent);
 	int rowCount(const QModelIndex &/*parent*/) const;

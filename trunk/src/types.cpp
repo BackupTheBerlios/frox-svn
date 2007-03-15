@@ -10,10 +10,28 @@
 //
 //
 #include "types.h"
+#include <iostream>
 Anruf::Anruf()
 :richtung(-1),datum(),name("name"),rufnr("unbekannt"),
-nebenstelle(-2),anschluss(-3),intern(-4),dauer()
+nebenstelle(""),anschluss(""),intern(""),dauer()
 {}
+
+Anruf::Anruf(QStringList zeile)
+:richtung(-1),datum(),name("name"),rufnr("unbekannt"),
+nebenstelle(""),anschluss(""),intern(""),dauer()
+{
+	if (spaltenAnzahl()-1==zeile.count()){
+		richtung = zeile.takeFirst().toInt();
+		datum = QDateTime::fromString(zeile.takeFirst(),"dd.MM.yy hh:mm").addYears(100);
+		name = zeile.takeFirst();
+		rufnr = zeile.takeFirst();
+		nebenstelle= zeile.takeFirst();
+		QStringList anschluss_intern= zeile.takeFirst().split(':');
+		anschluss = anschluss_intern.takeFirst();
+		intern = anschluss_intern.takeFirst();
+		dauer = QTime::fromString(zeile.takeFirst(),"m:ss");
+	}
+}
 
 QVariant Anruf::operator[](int index) const
 {
@@ -28,6 +46,8 @@ QVariant Anruf::operator[](int index) const
 			return QString("unbekannt");
 	}
 }
+
+
 
 QString Anruf::ueberschrift(int spalte)
 {

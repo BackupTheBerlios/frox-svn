@@ -12,8 +12,11 @@
 #include "hauptfenster.h"
 
 HauptFenster::HauptFenster()
+:settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName())
 {
 	createActions();
+	readSettings();
+	
 	//ToolBars
 	hauptToolBar = addToolBar(tr("default"));
 	hauptToolBar->addAction(refreshAct);
@@ -31,7 +34,15 @@ HauptFenster::HauptFenster()
 	this->setCentralWidget(tabelle);
 	this->statusBar()->show();
 	
-// 	http = new QHttp("fritz.box",80,&app);
+	//Wird im Klartext abgespeichert!!
+	fritzbox = new FritzBox(settings.value("common/password", "").toString());
+	
+	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));
+	
+}
+
+HauptFenster::~HauptFenster(){
+	writeSettings();
 }
 
 void HauptFenster::createActions()
@@ -49,5 +60,24 @@ void HauptFenster::createActions()
 
 void HauptFenster::refreshFritz()
 {
+	fritzbox->hole_anrufliste();
 	statusBar()->showMessage(tr("Fertig"));
 }
+
+ void HauptFenster::readSettings()
+ {
+	settings.beginGroup("HauptFenster");
+	QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
+	QSize size = settings.value("size", QSize(400, 400)).toSize();
+	settings.endGroup();
+	resize(size);
+	move(pos);
+ }
+ 
+  void HauptFenster::writeSettings()
+ {
+	settings.beginGroup("HauptFenster");
+	settings.setValue("pos", pos());
+	settings.setValue("size", size());
+	settings.endGroup();
+ }

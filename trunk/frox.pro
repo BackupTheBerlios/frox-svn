@@ -9,9 +9,14 @@ INCLUDEPATH += . src
 QT += network
 
 # Input
-HEADERS += src/hauptfenster.h src/modell.h src/trayicon.h src/types.h
+HEADERS += 	src/hauptfenster.h \
+			src/modell.h \
+			src/trayicon.h \
+			src/types.h \
+			fritzbox.h
 SOURCES += src/hauptfenster.cpp \
            src/main.cpp \
            src/modell.cpp \
            src/trayicon.cpp \
-           src/types.cpp
+           src/types.cpp \
+           fritzbox.cpp
