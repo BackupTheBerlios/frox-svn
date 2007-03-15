@@ -16,13 +16,6 @@ class FritzBox:public QObject{
 	QHttp *http;
 	QHttpRequestHeader postheader;//geht nicht??
 	
-	enum REQUEST_TYPE{R_CSV,R_PHONE,R_IGNORE};
-	struct Request{
-		REQUEST_TYPE type;
-		int id;
-		bool operator==(Request &request);
-	};
-	QList<Request> requestliste;
 signals:
 	void neue_anrufliste(QString daten,QChar seperator);
 	void neues_telefonbuch();
@@ -31,9 +24,10 @@ public slots:
 public:
 	FritzBox(const QString &_passwort,const QString &_host = "fritz.box",int _port = 80);
 	~FritzBox();
-	void holeSeite(const QByteArray &postdaten, REQUEST_TYPE requesttype);
-	void verarbeite_csv(QByteArray daten);
+	void holeSeite(const QByteArray &postdaten);
+	void verarbeite_csv(QByteArray &daten);
 	void hole_anrufliste();
+	void hole_telefonbuch();
 };
 
 #endif /*FRITZBOX_H_*/

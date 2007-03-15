@@ -32,5 +32,7 @@ private:
 	QAction *exitAct;
 	QHttp *http;
 	FritzBox *fritzbox;
+	AnrufModell *modell;
+	QTableView *tabelle;
 	QSettings settings;
 };

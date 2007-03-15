@@ -47,8 +47,8 @@ AnrufModell::flags( const QModelIndex& index ) const
 AnrufModell::AnrufModell(QWidget *parent)
 :liste()
 {
-	liste.push_back(Anruf());
-	liste.push_back(Anruf());
+	//liste.push_back(Anruf());
+	//liste.push_back(Anruf());
 }
 
 int AnrufModell::rowCount(const QModelIndex &/*parent*/) const
@@ -63,14 +63,36 @@ int AnrufModell::columnCount(const QModelIndex &/*parent*/) const
 
 QVariant AnrufModell::data ( const QModelIndex & index, int role ) const
 {
-	if (role == Qt::DisplayRole)
+	if (role == Qt::DisplayRole && index.column() !=0)
 		return liste[index.row()][index.column()];
+	if (role == Qt::DecorationRole && index.column() == 0){
+		switch(liste[index.row()][index.column()].toInt()){
+			case 1:
+				//Angenommen
+				return QIcon("bilder/Callin.gif");
+			case 2:
+				//Abwesend
+				return QIcon("bilder/Callinfailed.gif");
+			case 3:
+				//Ausgehend
+				return QIcon("bilder/Callout.gif");
+			default:
+				break;
+		}
+	}
+	if (role == Qt::SizeHintRole && index.column() == 0){
+		return QSize(20,0);
+	}
 	return QVariant();
 }
 
 QVariant AnrufModell::headerData ( int section, Qt::Orientation orientation, int role ) const 
 {
+	if (role == Qt::SizeHintRole && orientation == Qt::Horizontal && section == 0){
+		return QSize(20,0);
+	}
 	if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
-		return Anruf::ueberschrift( section);
+		if (section !=0)
+			return Anruf::ueberschrift( section);
 	return QVariant();
 }

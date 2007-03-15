@@ -14,7 +14,7 @@ FritzBox::FritzBox(const QString &_passwort,const QString &_host,int _port)
   	
   	postheader.setValue("Host", "fritz.box"); 
   	postheader.setContentType("application/x-www-form-urlencoded");
-  	std::cout <<"fritzbox erzeugt "<<std::endl;
+  	
 	connect(http,SIGNAL(done(bool)),this,SLOT(Seite_geladen(bool)));
 }
 	
@@ -23,8 +23,7 @@ FritzBox::~FritzBox(){
 }
 
 void FritzBox::Seite_geladen(bool error){
-	std::cout << "In Requestliste: "<<requestliste.count()<<std::endl;
-	Request request = requestliste.takeFirst();
+	//reagiert nur auf die letzte Anfrage!!
 	if (error){
 		QMessageBox::critical( NULL, tr("Fritz Box Fehler"), http->errorString ());
 	}else{
@@ -33,34 +32,26 @@ void FritzBox::Seite_geladen(bool error){
 		if (temp.isWritable ()){
 				temp.write();
 		}*/
-		std::cout <<"geladen "<< request.type <<std::endl;
+		QHttpResponseHeader antwort = http->lastResponse();
+		std::cout <<"geladen "<< antwort.toString().toStdString()<<std::endl;
+		QByteArray daten(http->readAll());
+		std::cout << "Inhalt: "<< daten.data()<<std::endl;
 		
-		switch (request.type){
-			case R_CSV:
-				verarbeite_csv(http->readAll());
-				break;
-			case R_IGNORE:
-			default:
-				break;
-		}
+		if (antwort.value("content-disposition").contains("FRITZ!Box_Anrufliste.csv"))
+			verarbeite_csv(daten);
+		
 	}
 }
 
-bool FritzBox::Request::operator==(Request &request){
-	return this->id == request.id;
-}
+void FritzBox::holeSeite(const QByteArray &postdaten){
 
-void FritzBox::holeSeite(const QByteArray &postdaten, REQUEST_TYPE requesttype){
-	Request temp;
-	temp.type =requesttype;
 	if (!passwort.isEmpty())
-		temp.id = http->request(postheader,postdaten + POSTDATA_LOGIN + QUrl::toPercentEncoding(passwort));
+		http->request(postheader,postdaten + POSTDATA_LOGIN + QUrl::toPercentEncoding(passwort));
 	else
-  		temp.id = http->request(postheader, postdaten);
-  	requestliste.push_back(temp);
+  		http->request(postheader, postdaten);
 }
 
-void FritzBox::verarbeite_csv(QByteArray daten){
+void FritzBox::verarbeite_csv(QByteArray &daten){
 	QTextStream input(&daten);
 	//Seperator
 	QChar seperator(';');
@@ -76,7 +67,12 @@ void FritzBox::verarbeite_csv(QByteArray daten){
 }
 
 void FritzBox::hole_anrufliste(){
-	holeSeite(POSTDATA_CALL_LIST,R_IGNORE);
-	requestliste.pop_front();
-	holeSeite(POSTDATA_CSV,R_CSV);
+	http->clearPendingRequests();
+	holeSeite(POSTDATA_CALL_LIST);
+	holeSeite(POSTDATA_CSV);
+}
+
+void FritzBox::hole_telefonbuch(){
+	http->clearPendingRequests();
+	holeSeite(POSTDATA_PHONE_BOOK);
 }

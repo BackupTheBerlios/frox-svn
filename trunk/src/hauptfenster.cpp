@@ -28,9 +28,10 @@ HauptFenster::HauptFenster()
 	fileMenu->addAction(exitAct);
 	
 	
-	AnrufModell *modell = new AnrufModell(this);
-	QTableView *tabelle = new QTableView(this);
+	modell = new AnrufModell(this);
+	tabelle = new QTableView(this);
 	tabelle->setModel(modell);
+	tabelle->resizeColumnsToContents();
 	this->setCentralWidget(tabelle);
 	this->statusBar()->show();
 	
@@ -61,6 +62,8 @@ void HauptFenster::createActions()
 void HauptFenster::refreshFritz()
 {
 	fritzbox->hole_anrufliste();
+
+	//fritzbox->hole_telefonbuch();
 	statusBar()->showMessage(tr("Fertig"));
 }
 

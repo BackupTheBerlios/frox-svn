@@ -42,6 +42,16 @@ QVariant Anruf::operator[](int index) const
 			return datum;
 		case 2:
 			return name;
+		case 3:
+			return rufnr;
+		case 4:
+			return nebenstelle;
+		case 5:
+			return anschluss;
+		case 6:
+			return intern;
+		case 7:
+			return dauer;
 		default: 
 			return QString("unbekannt");
 	}
@@ -53,11 +63,21 @@ QString Anruf::ueberschrift(int spalte)
 {
 	switch (spalte){
 		case 0:
-			return QString("");
+			return QString("Type");
 		case 1:
 			return QString("Datum");
 		case 2:
 			return QString("Name");
+		case 3:
+			return QString("Nummer");
+		case 4:
+			return QString("Telefon");
+		case 5:
+			return QString("Anschluss");
+		case 6:
+			return QString("Ex.RufNr.");
+		case 7:
+			return QString("Dauer");
 		default:
 			return QString("unbekannt");
 	}
