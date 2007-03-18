@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QtGui>
+#include <QModelIndex>
 #include <iostream>
 
 
@@ -24,7 +25,7 @@
 
 	private slots:
 		void CloseWindow();
-
+		void ItemClicked(const QModelIndex index); 
 	private:
 		QPushButton *closeButton;
 		QTableView  *tabelle;

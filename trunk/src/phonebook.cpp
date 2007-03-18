@@ -16,7 +16,12 @@ PhonebookWindow::PhonebookWindow(QWidget *parent, QString password)
 
 	tabelle->setModel(PhoneBookModell);
 	tabelle->resizeColumnsToContents();
+	tabelle->setSortingEnabled(true);
+	tabelle->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents); 
+	tabelle->horizontalHeader()->setClickable(true);
 
+	connect(tabelle, SIGNAL(clicked(QModelIndex)), this, SLOT(ItemClicked(QModelIndex)));
+// 	connect(tabelle, SIGNAL(clicked(int)), this, SLOT(std::cout << "clicked"));
 	layout->addWidget(tabelle);
 
 	closeButton = new QPushButton(tr("&Close"));
@@ -35,6 +40,11 @@ void PhonebookWindow::CloseWindow(){
 	close();	
 	emit OnCloseWindow();
 	delete this;
+}
+
+void PhonebookWindow::ItemClicked(const QModelIndex index){
+	std::cout << "clicked : " ;
+	
 }
 
 

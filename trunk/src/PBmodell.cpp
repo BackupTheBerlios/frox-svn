@@ -15,10 +15,10 @@ void PBModell::neue_liste(QString daten){
 	phonebook.clear();
 	
 	//Ausgabe der Daten von der Fritzbox auf der Konsole
-	QFile file;
-	file.open(stderr, QIODevice::WriteOnly);
-	QTextStream output(&file);
- 	output << daten;
+// 	QFile file;
+// 	file.open(stderr, QIODevice::WriteOnly);
+// 	QTextStream output(&file);
+//  	output << daten;
 
   // <script type="text/javascript">document.write(TrFon("Karow", "0309432232", "06", ""));</script>
 
@@ -27,13 +27,14 @@ void PBModell::neue_liste(QString daten){
 	do{
 		QString zeile = temp.readLine();
 		if (!zeile.isEmpty() && zeile.contains("document.write(TrFon(", Qt::CaseSensitive)){
-			output << zeile << "\n";
+// 			output << zeile << "\n";
 			zeile.replace(1,55,"");
 			zeile.chop(12);
  			phonebook.push_back(Person(zeile.split("\", "))); //push_back() ist gleich append() 
 		}
 	}while(!temp.atEnd());
-	file.close();		
+	
+// file.close();		
 
 	//Änderung den Views bekanntgeben
 	reset ();
@@ -41,14 +42,13 @@ void PBModell::neue_liste(QString daten){
 }
 
 //Wird nur zum Editieren gebraucht
-/*Qt::ItemFlags
-AnrufModell::flags( const QModelIndex& index ) const
+Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 {
 	if ( ! index.isValid() )
 		return Qt::ItemIsEnabled;
 
 	return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
-}*/
+}
 
 PBModell::PBModell(QWidget *parent)
 :phonebook()
@@ -82,3 +82,5 @@ QVariant PBModell::headerData ( int section, Qt::Orientation orientation, int ro
 
 	return QVariant();
 }
+
+

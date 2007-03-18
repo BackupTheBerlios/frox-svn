@@ -27,28 +27,33 @@ void FritzBox::Seite_geladen(bool error){
 	//reagiert nur auf die letzte Anfrage!!
 	if (error){
 		QMessageBox::critical( NULL, tr("Fritz Box Fehler"), http->errorString ());
-	}else{
+	}
+	else{
 		//QFile temp("test.html");
 		/*temp.open(QIODevice::WriteOnly);
 		if (temp.isWritable ()){
 				temp.write();
 		}*/
 		QHttpResponseHeader antwort = http->lastResponse();
-
-		std::cout <<"geladen "<< antwort.toString().toStdString()<<std::endl;
-
+// Debug Code
+// 		std::cout <<"geladen "<< antwort.toString().toStdString()<<std::endl;
+/*
 		{ int i;
  		for (i=0; i< antwort.values().count(); i++)
 		std::cout << antwort.values().takeAt(i).first.toStdString() << " : " << antwort.values().takeAt(i).second.toStdString() << std::endl;
-		}
-
+		}*/
+// 
 		QByteArray daten(http->readAll());
- 		std::cout << "Inhalt: "<< daten.data()<<std::endl;
+
+// Debug Code
+//  		std::cout << "Inhalt: "<< daten.data()<<std::endl;
+// 
 
 		if (antwort.value("content-disposition").contains("FRITZ!Box_Anrufliste.csv"))
 			verarbeite_csv(daten);
 		else
-		if (RequestStr == POSTDATA_PHONE_BOOK){
+		if (daten.contains("<title>Telefonbuch - Druckansicht</title>")){
+// 		if (RequestStr == POSTDATA_PHONE_BOOK){
 	 		QTextStream input(daten);
 			emit neues_telefonbuch(input.readAll());
 		}

@@ -13,6 +13,7 @@
 #define PBMODELL_H
 
 #include <QtCore>
+#include <QModelIndex>
 #include <iostream>
 #include "types.h"
 
@@ -23,8 +24,10 @@ private:
 	QString header;
 public slots:
 	void neue_liste(QString daten);
+
 public:
 	PBModell(QWidget *parent);
+	Qt::ItemFlags flags( const QModelIndex& index ) const;
 	int rowCount(const QModelIndex &/*parent*/) const;
 	int columnCount(const QModelIndex &/*parent*/) const;
 	QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const;
