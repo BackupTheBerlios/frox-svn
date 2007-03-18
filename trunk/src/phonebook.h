@@ -19,10 +19,15 @@
 	public:
 		PhonebookWindow(QWidget *parent = 0);
 
+	signals:
+		void OnCloseWindow();
+
+	private slots:
+		void CloseWindow();
+
 	private:
 		QPushButton *closeButton;
 		QTableView  *tabelle;
-// 		QStandardItemModel *PBmodell;
  		PBModell *PhoneBookModell;
 		FritzBox *fritzbox;
 };

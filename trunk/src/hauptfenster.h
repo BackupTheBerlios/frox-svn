@@ -25,7 +25,9 @@ public:
 private slots:
 	void refreshFritz();
 	void OpenPhoneBook();
+	void PhoneBookClosed();
 private:
+	QSettings settings;
 	void createActions();
 	void readSettings();
 	void writeSettings();
@@ -38,6 +40,7 @@ private:
 	FritzBox *fritzbox;
 	AnrufModell *modell;
 	QTableView *tabelle;
-	QSettings settings;
 	PhonebookWindow *PbWindow;
 };
+
+

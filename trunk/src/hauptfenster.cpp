@@ -12,7 +12,7 @@
 #include "hauptfenster.h"
 
 HauptFenster::HauptFenster()
-:settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName())
+:settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName()), PbWindow(NULL)
 {
 	createActions();
 	readSettings();
@@ -39,12 +39,12 @@ HauptFenster::HauptFenster()
 	//Wird im Klartext abgespeichert!!
 	fritzbox = new FritzBox(settings.value("common/password", "").toString());
 	
-	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));
-	PbWindow = NULL;
+	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));	
 }
 
 HauptFenster::~HauptFenster(){
 	writeSettings();
+	if (PbWindow != NULL) delete PbWindow;
 }
 
 void HauptFenster::createActions()
@@ -68,8 +68,6 @@ void HauptFenster::createActions()
 void HauptFenster::refreshFritz()
 {
 	fritzbox->hole_anrufliste();
-
-	//fritzbox->hole_telefonbuch();
 	statusBar()->showMessage(tr("Fertig"));
 }
 
@@ -77,8 +75,14 @@ void HauptFenster::OpenPhoneBook()
 {
 	if (PbWindow == NULL) {
 		PbWindow = new PhonebookWindow(this);
+		connect(PbWindow,SIGNAL(OnCloseWindow()),this,SLOT(PhoneBookClosed()));
 	}
 	PbWindow->show();
+}
+
+void HauptFenster::PhoneBookClosed()
+{
+ PbWindow = NULL;
 }
 
  void HauptFenster::readSettings()
@@ -98,3 +102,5 @@ void HauptFenster::OpenPhoneBook()
 	settings.setValue("size", size());
 	settings.endGroup();
  }
+
+

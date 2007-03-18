@@ -14,7 +14,7 @@
 
 #include <QtCore>
 #include <QtGui>
-		
+
 class Anruf{
 	//TrCall(type, datum, name, rufnummer, port, route, routetype, dauer)
 	//TrCall("1", "11.02.07 13:52", "", "03305680127", "4", "0", "1", "0:15"));

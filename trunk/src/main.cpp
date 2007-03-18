@@ -1,6 +1,5 @@
 #include <QApplication>
 
-
 #include "hauptfenster.h"
 #include "trayicon.h"
 
@@ -17,7 +16,7 @@ int main(int argc,char** argv){
 	QCoreApplication::setOrganizationName("frox");
 	QCoreApplication::setOrganizationDomain("frox.berlios.com");
 	QCoreApplication::setApplicationName("frox");
-	
+
 	Callmonitor temp(&app);
 	trayicon = &temp;
 	

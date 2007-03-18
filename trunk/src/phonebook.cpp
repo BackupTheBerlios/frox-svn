@@ -20,7 +20,7 @@ PhonebookWindow::PhonebookWindow(QWidget *parent)
 	layout->addWidget(tabelle);
 
 	closeButton = new QPushButton(tr("&Close"));
-	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
+	connect(closeButton, SIGNAL(clicked()), this, SLOT(CloseWindow()));
 	layout->addWidget(closeButton);
 
 	setLayout(layout);
@@ -29,4 +29,11 @@ PhonebookWindow::PhonebookWindow(QWidget *parent)
  	connect(fritzbox,SIGNAL(neues_telefonbuch(QString)),PhoneBookModell,SLOT(neue_liste(QString)));
 	fritzbox->hole_telefonbuch();
 }
+
+void PhonebookWindow::CloseWindow(){
+	close();	
+	emit OnCloseWindow();
+	delete this;
+}
+
 
