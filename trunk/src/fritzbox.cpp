@@ -33,22 +33,34 @@ void FritzBox::Seite_geladen(bool error){
 				temp.write();
 		}*/
 		QHttpResponseHeader antwort = http->lastResponse();
+
 		std::cout <<"geladen "<< antwort.toString().toStdString()<<std::endl;
+
+		{ int i;
+ 		for (i=0; i< antwort.values().count(); i++)
+		std::cout << antwort.values().takeAt(i).first.toStdString() << " : " << antwort.values().takeAt(i).second.toStdString() << std::endl;
+		}
+
 		QByteArray daten(http->readAll());
-		std::cout << "Inhalt: "<< daten.data()<<std::endl;
-		
+ 		std::cout << "Inhalt: "<< daten.data()<<std::endl;
+
 		if (antwort.value("content-disposition").contains("FRITZ!Box_Anrufliste.csv"))
 			verarbeite_csv(daten);
+		else
+		if (RequestStr == POSTDATA_PHONE_BOOK){
+	 		QTextStream input(daten);
+			emit neues_telefonbuch(input.readAll());
+		}
 		
 	}
 }
 
 void FritzBox::holeSeite(const QByteArray &postdaten){
-
+	RequestStr = postdaten;
 	if (!passwort.isEmpty())
-		http->request(postheader,postdaten + POSTDATA_LOGIN + QUrl::toPercentEncoding(passwort));
+		RequestID = http->request(postheader,postdaten + POSTDATA_LOGIN + QUrl::toPercentEncoding(passwort));
 	else
-  		http->request(postheader, postdaten);
+  		RequestID = http->request(postheader, postdaten);
 }
 
 void FritzBox::verarbeite_csv(QByteArray &daten){

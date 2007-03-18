@@ -18,7 +18,7 @@ class FritzBox:public QObject{
 	
 signals:
 	void neue_anrufliste(QString daten,QChar seperator);
-	void neues_telefonbuch();
+	void neues_telefonbuch(QString daten);
 public slots:
 	void Seite_geladen(bool error);
 public:
@@ -28,6 +28,9 @@ public:
 	void verarbeite_csv(QByteArray &daten);
 	void hole_anrufliste();
 	void hole_telefonbuch();
+private:	
+	int RequestID;
+	QByteArray RequestStr;
 };
 
 #endif /*FRITZBOX_H_*/

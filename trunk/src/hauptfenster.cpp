@@ -20,6 +20,7 @@ HauptFenster::HauptFenster()
 	//ToolBars
 	hauptToolBar = addToolBar(tr("default"));
 	hauptToolBar->addAction(refreshAct);
+	hauptToolBar->addAction(PhoneBookOpen);
 	
 	//Menü
 	fileMenu = menuBar()->addMenu(tr("&Datei"));
@@ -39,7 +40,7 @@ HauptFenster::HauptFenster()
 	fritzbox = new FritzBox(settings.value("common/password", "").toString());
 	
 	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));
-	
+	PbWindow = NULL;
 }
 
 HauptFenster::~HauptFenster(){
@@ -53,6 +54,11 @@ void HauptFenster::createActions()
 	refreshAct->setStatusTip(tr("Refresh"));
 	connect(refreshAct, SIGNAL(triggered()), this, SLOT(refreshFritz()));
 	
+	PhoneBookOpen = new QAction(QIcon("bilder/phonebook.png"), tr("&Phonebook"), this);
+	PhoneBookOpen->setShortcut(tr("Ctrl+P"));
+	PhoneBookOpen->setStatusTip(tr("Phonebook"));
+	connect(PhoneBookOpen, SIGNAL(triggered()), this, SLOT(OpenPhoneBook()));
+	
 	exitAct = new QAction(QIcon("bilder/application-exit.png"), tr("&Beenden"), this);
 	exitAct->setShortcut(tr("Alt+F4"));
 	exitAct->setStatusTip(tr("Beenden"));
@@ -65,6 +71,14 @@ void HauptFenster::refreshFritz()
 
 	//fritzbox->hole_telefonbuch();
 	statusBar()->showMessage(tr("Fertig"));
+}
+
+void HauptFenster::OpenPhoneBook()
+{
+	if (PbWindow == NULL) {
+		PbWindow = new PhonebookWindow(this);
+	}
+	PbWindow->show();
 }
 
  void HauptFenster::readSettings()

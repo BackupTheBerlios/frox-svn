@@ -31,6 +31,19 @@ public:
 	static int spaltenAnzahl(){return 8;}
 };
 
+class Person{
+	QString name;
+	QString rufnr;
+	QString kurzwahl;
+	QString vanity;
+public:
+	Person();
+	Person(QStringList zeile);
+	QVariant operator[](int index)const;
+	static QString ueberschrift(int spalte);
+	static int spaltenAnzahl(){return 4;}
+};
+
 class FBMessage{
 public:
 	FBMessage();

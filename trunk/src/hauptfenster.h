@@ -13,6 +13,7 @@
 #include <QtNetwork>
 #include "modell.h"
 #include "fritzbox.h"
+#include "phonebook.h"
 		
 
 class HauptFenster :public QMainWindow{
@@ -20,8 +21,10 @@ class HauptFenster :public QMainWindow{
 public:
 	HauptFenster();
 	~HauptFenster();
+
 private slots:
 	void refreshFritz();
+	void OpenPhoneBook();
 private:
 	void createActions();
 	void readSettings();
@@ -29,10 +32,12 @@ private:
 	QToolBar *hauptToolBar;
 	QMenu *fileMenu;
 	QAction *refreshAct;
+	QAction *PhoneBookOpen;
 	QAction *exitAct;
 	QHttp *http;
 	FritzBox *fritzbox;
 	AnrufModell *modell;
 	QTableView *tabelle;
 	QSettings settings;
+	PhonebookWindow *PbWindow;
 };

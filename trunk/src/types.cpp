@@ -57,8 +57,6 @@ QVariant Anruf::operator[](int index) const
 	}
 }
 
-
-
 QString Anruf::ueberschrift(int spalte)
 {
 	switch (spalte){
@@ -82,6 +80,69 @@ QString Anruf::ueberschrift(int spalte)
 			return QString("unbekannt");
 	}
 }
+
+//Person (Telefonbuch)
+Person::Person()
+:name("name"),rufnr("unbekannt"),kurzwahl(-1),vanity("")
+{}
+
+Person::Person(QStringList zeile)
+:name("name"),rufnr("unbekannt"),kurzwahl(-1),vanity("")
+{
+ 	if (spaltenAnzahl() == zeile.count()){
+		name		= zeile.takeFirst().trimmed();
+		rufnr		= zeile.takeFirst().trimmed();
+		kurzwahl	= zeile.takeFirst().trimmed();
+		vanity		= zeile.takeFirst().trimmed();	
+
+		name.remove("\"");
+		name.replace("&auml;","ä");
+		name.replace("&ouml;","ö");
+		name.replace("&uuml;","ü");
+		name.replace("&Auml;","Ä");
+		name.replace("&Ouml;","Ö");
+		name.replace("&Uuml;","Ü");
+		name.replace("&szlig;","ß");
+
+		rufnr.remove("\"");
+		kurzwahl.remove("\"");
+		vanity.remove("\"");
+ 	}
+}
+
+QVariant Person::operator[](int index) const
+{
+	switch (index){
+		case 0:
+			return name;
+		case 1:
+			return rufnr;
+		case 2:
+			return kurzwahl;
+		case 3:
+			return vanity;
+		default: 
+			return QString("unbekannt");
+	}
+}
+
+QString Person::ueberschrift(int spalte)
+{
+	switch (spalte){
+		case 0:
+			return QString("Name");
+		case 1:
+			return QString("Nummer");
+		case 2:
+			return QString("Kurzwahl");
+		case 3:
+			return QString("Vanity");
+		default:
+			return QString("unbekannt");
+	}
+}
+
+
 
 //FBMessage
 
