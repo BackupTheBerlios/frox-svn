@@ -21,13 +21,14 @@ class HauptFenster :public QMainWindow{
 public:
 	HauptFenster();
 	~HauptFenster();
+	QSettings settings;
 
 private slots:
 	void refreshFritz();
 	void OpenPhoneBook();
 	void PhoneBookClosed();
 private:
-	QSettings settings;
+
 	void createActions();
 	void readSettings();
 	void writeSettings();

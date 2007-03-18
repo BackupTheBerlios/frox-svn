@@ -17,7 +17,7 @@
 	Q_OBJECT
 
 	public:
-		PhonebookWindow(QWidget *parent = 0);
+	PhonebookWindow(QWidget *parent = 0, QString password = "");
 
 	signals:
 		void OnCloseWindow();

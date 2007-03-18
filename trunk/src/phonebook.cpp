@@ -3,7 +3,7 @@
 #include "phonebook.h"
 
 //der Konstruktor
-PhonebookWindow::PhonebookWindow(QWidget *parent)
+PhonebookWindow::PhonebookWindow(QWidget *parent, QString password)
 	: QWidget(parent)
 {
 	setWindowFlags(Qt::Tool);
@@ -25,8 +25,9 @@ PhonebookWindow::PhonebookWindow(QWidget *parent)
 
 	setLayout(layout);
 
- 	fritzbox = new FritzBox("password");
- 	connect(fritzbox,SIGNAL(neues_telefonbuch(QString)),PhoneBookModell,SLOT(neue_liste(QString)));
+//  	fritzbox = new FritzBox("password");
+	fritzbox = new FritzBox(password);
+	connect(fritzbox,SIGNAL(neues_telefonbuch(QString)),PhoneBookModell,SLOT(neue_liste(QString)));
 	fritzbox->hole_telefonbuch();
 }
 
