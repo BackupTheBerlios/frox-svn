@@ -7,15 +7,18 @@ HEADERS += src/hauptfenster.h \
            src/modell.h \
            src/trayicon.h \
            src/types.h \
-           fritzbox.h \
-           phonebook.h 
+           src/fritzbox.h \
+           src/phonebook.h \
+           src/PBmodell.h
+           
 SOURCES += src/hauptfenster.cpp \
            src/main.cpp \
            src/modell.cpp \
            src/trayicon.cpp \
            src/types.cpp \
            fritzbox.cpp \
-           src/phonebook.cpp 
+           src/phonebook.cpp \
+           src/PBmodell.cpp
 TEMPLATE = app
 TARGET =
 DEPENDPATH += . src

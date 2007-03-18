@@ -5,6 +5,7 @@ const QByteArray FritzBox::POSTDATA_LOGIN = "&login%3Acommand%2Fpassword=";
 const QByteArray FritzBox::POSTDATA_PHONE_BOOK = "getpage=..%2Fhtml%2Fde%2Ffon%2FppFonbuch.html&var%3Alang=de";
 const QByteArray FritzBox::POSTDATA_CALL_LIST = "getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Alang=de&var%3Amenu=fon&var%3Apagename=foncalls";
 const QByteArray FritzBox::POSTDATA_CALL_LIST_ALL = "getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Alang=de&var%3Amenu=fon&var%3Apagename=foncalls&var%3Ashowall";
+const QByteArray FritzBox::POSTDATA_CALL = "";
 
 FritzBox::FritzBox(const QString &_passwort,const QString &_host,int _port)
 :host(_host),passwort(_passwort),port(_port),postheader("POST", "/cgi-bin/webcm")
