@@ -74,7 +74,7 @@ void HauptFenster::refreshFritz()
 void HauptFenster::OpenPhoneBook()
 {
 	if (PbWindow == NULL) {
-		PbWindow = new PhonebookWindow(this, settings.value("common/password", "").toString());
+		PbWindow = new PhonebookWindow( settings, this);
 		connect(PbWindow,SIGNAL(OnCloseWindow()),this,SLOT(PhoneBookClosed()));
 	}
 	PbWindow->show();
@@ -82,6 +82,7 @@ void HauptFenster::OpenPhoneBook()
 
 void HauptFenster::PhoneBookClosed()
 {
+ delete PbWindow;
  PbWindow = NULL;
 }
 

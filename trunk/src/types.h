@@ -37,11 +37,16 @@ class Person{
 	QString kurzwahl;
 	QString vanity;
 public:
+	static Qt::SortOrder order;
+	static int sort_column;
 	Person();
 	Person(QStringList zeile);
 	QVariant operator[](int index)const;
+	QString & operator[](int index);
 	static QString ueberschrift(int spalte);
 	static int spaltenAnzahl(){return 4;}
+	
+	friend bool operator<(Person & lvalue, Person & rvalue);
 };
 
 class FBMessage{

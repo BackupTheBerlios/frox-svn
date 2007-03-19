@@ -82,8 +82,12 @@ QString Anruf::ueberschrift(int spalte)
 }
 
 //Person (Telefonbuch)
+
+Qt::SortOrder Person::order = Qt::AscendingOrder;
+int Person::sort_column =0;
+
 Person::Person()
-:name("name"),rufnr("unbekannt"),kurzwahl(-1),vanity("")
+:name("Neu"),rufnr(""),kurzwahl(""),vanity("")
 {}
 
 Person::Person(QStringList zeile)
@@ -126,6 +130,21 @@ QVariant Person::operator[](int index) const
 	}
 }
 
+QString &  Person::operator[](int index){
+	switch (index){
+		case 0:
+			return name;
+		case 1:
+			return rufnr;
+		case 2:
+			return kurzwahl;
+		case 3:
+			return vanity;
+	/*	default: 
+			return QString("unbekannt");*/
+	}
+}
+
 QString Person::ueberschrift(int spalte)
 {
 	switch (spalte){
@@ -139,6 +158,14 @@ QString Person::ueberschrift(int spalte)
 			return QString("Vanity");
 		default:
 			return QString("unbekannt");
+	}
+}
+
+bool operator<(Person & lvalue, Person & rvalue){
+	if (Person::order == Qt::AscendingOrder){
+		return lvalue[Person::sort_column] < rvalue[Person::sort_column];
+	}else{
+		return !(lvalue[Person::sort_column] < rvalue[Person::sort_column]);
 	}
 }
 

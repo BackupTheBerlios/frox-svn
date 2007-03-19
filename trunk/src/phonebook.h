@@ -1,24 +1,20 @@
 #ifndef PHONEBOOKWINDOW_H
 #define PHONEBOOKWINDOW_H
 
-#include <QWidget>
 #include <QtGui>
-#include <QModelIndex>
 #include <iostream>
 
 
 #include "fritzbox.h"
 #include "PBmodell.h"
 
- class QPushButton;
- class QTextEdit;
 
  class PhonebookWindow : public QWidget
 {
 	Q_OBJECT
 
 	public:
-	PhonebookWindow(QWidget *parent = 0, QString password = "");
+	PhonebookWindow( QSettings& _settings,QWidget *parent = 0);
 
 	signals:
 		void OnCloseWindow();
@@ -31,6 +27,7 @@
 		QTableView   *tabelle;
 		QTableWidget *tableWid;
 		QHeaderView  *tabhead;
+		QSettings& settings;
  		PBModell *PhoneBookModell;
 		FritzBox *fritzbox;
 };

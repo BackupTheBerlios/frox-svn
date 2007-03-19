@@ -50,23 +50,16 @@ Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 {
      if (index.isValid() && role == Qt::EditRole) {
-
+			
 	//Ausgabe der Daten auf der Konsole
- 		{ 	QFile file;
- 			QString dat;
-			QString Str;
- 			dat = value.toString();
-  			file.open(stderr, QIODevice::WriteOnly);
-  			QTextStream output(&file);
-			Str = "edit: ";
-			Str += value.toString();
-
-  			output << "edit :";// << dat.toStdString() << "\n";
-// warum geht das nicht ?
-// 			output << Str.toStdString();
-// 	value.toString.toStdString();
+ 			QFile file;
+ 			file.open(stderr, QIODevice::WriteOnly);
+ 			QTextStream output(&file);
+ 			
+ 			output << "Ausgabe: " <<value.toString() << endl;//<<std::endl;
+ 			phonebook[index.row()][index.column()] = value.toString();
 			file.close();
-			}
+		
 
 //   		 phonebook[index.row()][0] = value.toString;
 //          phonebook.replace(index.row(), value.toString());
@@ -77,11 +70,18 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
      }
      return false;
  }
+ 
+ void  PBModell::sort ( int column, Qt::SortOrder order ){
+ 	//qSort(phonebook);
+ }
 
 PBModell::PBModell(QWidget *parent)
 :phonebook()
 {
-	//liste.push_back(Anruf());
+	for(int i=0;i<20;i++){
+		phonebook.push_back(Person());
+		phonebook[i][0] += QString("%1").arg(i); 
+	}
 	//liste.push_back(Anruf());
 }
 
