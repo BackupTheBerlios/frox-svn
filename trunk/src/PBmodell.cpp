@@ -20,8 +20,6 @@ void PBModell::neue_liste(QString daten){
 // 	QTextStream output(&file);
 //  	output << daten;
 
-  // <script type="text/javascript">document.write(TrFon("Karow", "0309432232", "06", ""));</script>
-
     //Einlesen der Daten und Schreiben der Liste
 	QTextStream temp(&daten);
 	do{
@@ -49,6 +47,36 @@ Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 
 	return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
+bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
+{
+     if (index.isValid() && role == Qt::EditRole) {
+
+	//Ausgabe der Daten auf der Konsole
+ 		{ 	QFile file;
+ 			QString dat;
+			QString Str;
+ 			dat = value.toString();
+  			file.open(stderr, QIODevice::WriteOnly);
+  			QTextStream output(&file);
+			Str = "edit: ";
+			Str += value.toString();
+
+  			output << "edit :";// << dat.toStdString() << "\n";
+// warum geht das nicht ?
+// 			output << Str.toStdString();
+// 	value.toString.toStdString();
+			file.close();
+			}
+
+//   		 phonebook[index.row()][0] = value.toString;
+//          phonebook.replace(index.row(), value.toString());
+         emit dataChanged(index, index);
+		//Änderung den Views bekanntgeben
+		reset ();
+         return true;
+     }
+     return false;
+ }
 
 PBModell::PBModell(QWidget *parent)
 :phonebook()
@@ -82,5 +110,6 @@ QVariant PBModell::headerData ( int section, Qt::Orientation orientation, int ro
 
 	return QVariant();
 }
+
 
 

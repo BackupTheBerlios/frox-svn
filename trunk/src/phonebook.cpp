@@ -4,7 +4,7 @@
 
 //der Konstruktor
 PhonebookWindow::PhonebookWindow(QWidget *parent, QString password)
-	: QWidget(parent)
+	: QWidget(parent),tabhead(NULL)
 {
 	setWindowFlags(Qt::Tool);
 	setWindowTitle(tr("Phonebook"));
@@ -13,16 +13,22 @@ PhonebookWindow::PhonebookWindow(QWidget *parent, QString password)
 
 	PhoneBookModell 	= new PBModell(this);
 	tabelle				= new QTableView(this);
+	tabhead				= tabelle->horizontalHeader();
+	tableWid			= new QTableWidget(3,4,this);
 
 	tabelle->setModel(PhoneBookModell);
 	tabelle->resizeColumnsToContents();
 	tabelle->setSortingEnabled(true);
-	tabelle->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents); 
-	tabelle->horizontalHeader()->setClickable(true);
+	tabhead->setResizeMode(QHeaderView::ResizeToContents); 
+	tabhead->setClickable(true);
 
-	connect(tabelle, SIGNAL(clicked(QModelIndex)), this, SLOT(ItemClicked(QModelIndex)));
+// 	connect(tabhead, SIGNAL(sectionClicked(int)), tabelle, SLOT(sortByColumn(int,Qt::SortOrder)));
+	connect(tabhead, SIGNAL(sectionClicked(int)), this, SLOT(ItemClicked(int)));
+
+// 	connect(tabelle, SIGNAL(clicked(QModelIndex)), this, SLOT(ItemClicked(QModelIndex)));
 // 	connect(tabelle, SIGNAL(clicked(int)), this, SLOT(std::cout << "clicked"));
 	layout->addWidget(tabelle);
+	layout->addWidget(tableWid);
 
 	closeButton = new QPushButton(tr("&Close"));
 	connect(closeButton, SIGNAL(clicked()), this, SLOT(CloseWindow()));
@@ -42,9 +48,17 @@ void PhonebookWindow::CloseWindow(){
 	delete this;
 }
 
-void PhonebookWindow::ItemClicked(const QModelIndex index){
-	std::cout << "clicked : " ;
-	
+void PhonebookWindow::ItemClicked(int index){
+// 	std::cout << "clicked : " ;
+	tabelle->sortByColumn(index, Qt::AscendingOrder);
+	PhoneBookModell->sort(1,Qt::AscendingOrder);
+// 	//Ausgabe der Daten von der Fritzbox auf der Konsole
+{ 	QFile file;
+ 	file.open(stderr, QIODevice::WriteOnly);
+ 	QTextStream output(&file);
+  	output << "clicked\n" ;
+	file.close();
+}
 }
 
 

@@ -25,10 +25,12 @@
 
 	private slots:
 		void CloseWindow();
-		void ItemClicked(const QModelIndex index); 
+		void ItemClicked(int index); 
 	private:
-		QPushButton *closeButton;
-		QTableView  *tabelle;
+		QPushButton  *closeButton;
+		QTableView   *tabelle;
+		QTableWidget *tableWid;
+		QHeaderView  *tabhead;
  		PBModell *PhoneBookModell;
 		FritzBox *fritzbox;
 };
