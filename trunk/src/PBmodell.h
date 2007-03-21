@@ -22,8 +22,11 @@ class PBModell:public QAbstractTableModel{
 private:
 	QList<Person> phonebook;
 	QString header;
-public slots:
-	void neue_liste(QString daten);
+	
+public	slots:
+	 void neue_liste(QString daten);
+	signals:
+	 void liste_geladen();
 
 public:
 	PBModell(QWidget *parent);

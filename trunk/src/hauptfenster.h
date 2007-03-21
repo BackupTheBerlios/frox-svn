@@ -27,6 +27,8 @@ private slots:
 	void refreshFritz();
 	void OpenPhoneBook();
 	void PhoneBookClosed();
+	void Calls_loaded();
+	
 private:
 
 	void createActions();
@@ -42,6 +44,7 @@ private:
 	AnrufModell *modell;
 	QTableView *tabelle;
 	PhonebookWindow *PbWindow;
+	QTabWidget *tabWidget;
 };
 
 

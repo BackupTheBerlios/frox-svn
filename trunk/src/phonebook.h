@@ -15,6 +15,8 @@
 
 	public:
 	PhonebookWindow( QSettings& _settings,QWidget *parent = 0);
+	
+	FritzBox *fritzbox;
 
 	signals:
 		void OnCloseWindow();
@@ -22,14 +24,15 @@
 	private slots:
 		void CloseWindow();
 		void ItemClicked(int index); 
+		void Phonebook_loaded();
 	private:
-		QPushButton  *closeButton;
+// 		QPushButton  *closeButton;
 		QTableView   *tabelle;
 		QTableWidget *tableWid;
 		QHeaderView  *tabhead;
 		QSettings& settings;
  		PBModell *PhoneBookModell;
-		FritzBox *fritzbox;
+
 };
 
 #endif

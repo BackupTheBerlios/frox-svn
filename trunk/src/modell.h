@@ -21,8 +21,12 @@ class AnrufModell:public QAbstractTableModel{
 private:
 	QList<Anruf> liste;
 	QString header;
-public slots:
-	void neue_liste(QString daten, QChar seperator = ';');
+	
+public	slots:
+	 void neue_liste(QString daten, QChar seperator = ';');
+	
+	signals:
+	 void liste_geladen();	
 public:
 	AnrufModell(QWidget *parent);
 	int rowCount(const QModelIndex &/*parent*/) const;

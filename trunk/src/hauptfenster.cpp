@@ -29,11 +29,26 @@ HauptFenster::HauptFenster()
 	fileMenu->addAction(exitAct);
 	
 	
-	modell = new AnrufModell(this);
+	//Anrufliste
+	modell  = new AnrufModell(this);
+	connect(modell,SIGNAL(liste_geladen()), this, SLOT(Calls_loaded()));
 	tabelle = new QTableView(this);
 	tabelle->setModel(modell);
 	tabelle->resizeColumnsToContents();
-	this->setCentralWidget(tabelle);
+	
+	//Telefonbuch
+	PbWindow = new PhonebookWindow( settings, this);
+	
+	//Tabbing
+	tabWidget = new QTabWidget;
+// 	QTabBar *tBar;
+// 	tBar = tabWidget->tabBar();
+// 	tabWidget->tabBar()->setVisible(false);
+	tabWidget->addTab(tabelle,  tr("List of Calls"));	
+	tabWidget->addTab(PbWindow, tr("Phonebook"));	
+	
+	this->setCentralWidget(tabWidget);
+// 	this->setCentralWidget(tabelle);
 	this->statusBar()->show();
 	
 	//Wird im Klartext abgespeichert!!
@@ -73,17 +88,21 @@ void HauptFenster::refreshFritz()
 
 void HauptFenster::OpenPhoneBook()
 {
-	if (PbWindow == NULL) {
-		PbWindow = new PhonebookWindow( settings, this);
-		connect(PbWindow,SIGNAL(OnCloseWindow()),this,SLOT(PhoneBookClosed()));
+// 	if (PbWindow == NULL) {
+// 		PbWindow = new PhonebookWindow( settings, this);
+// 		connect(PbWindow,SIGNAL(OnCloseWindow()),this,SLOT(PhoneBookClosed()));
+// 	}
+// 	PbWindow->show();
+	if (tabWidget->currentIndex() != 1) {
+		tabWidget->setCurrentIndex( 1 );
+		PbWindow->fritzbox->hole_telefonbuch();
 	}
-	PbWindow->show();
 }
 
 void HauptFenster::PhoneBookClosed()
 {
- delete PbWindow;
- PbWindow = NULL;
+//  delete PbWindow;
+//  PbWindow = NULL;
 }
 
  void HauptFenster::readSettings()
@@ -104,4 +123,9 @@ void HauptFenster::PhoneBookClosed()
 	settings.endGroup();
  }
 
+ void HauptFenster::Calls_loaded()
+ {
+	tabelle->resizeColumnsToContents();	
+ }
 
+ 

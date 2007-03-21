@@ -31,6 +31,7 @@ void AnrufModell::neue_liste(QString daten, QChar seperator ){
 	
 	//Änderung den Views bekanntgeben
 	reset ();
+	emit liste_geladen();
 	//std::cout << "Spalten "<<columnCount(index(0,0))<<" Zeilen "<< rowCount(index(0,0)) <<std::endl;
 }
 
