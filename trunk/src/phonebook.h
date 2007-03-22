@@ -14,7 +14,7 @@
 	Q_OBJECT
 
 	public:
-	PhonebookWindow( QSettings& _settings,QWidget *parent = 0);
+	PhonebookWindow( QSettings& _settings,QWidget *parent);
 	
 	FritzBox *fritzbox;
 

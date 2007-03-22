@@ -17,10 +17,11 @@ HauptFenster::HauptFenster()
 	createActions();
 	readSettings();
 	
+	setWindowTitle(tr("frox"));
+	
 	//ToolBars
 	hauptToolBar = addToolBar(tr("default"));
 	hauptToolBar->addAction(refreshAct);
-	hauptToolBar->addAction(PhoneBookOpen);
 	
 	//Menü
 	fileMenu = menuBar()->addMenu(tr("&Datei"));
@@ -52,7 +53,7 @@ HauptFenster::HauptFenster()
 	this->statusBar()->show();
 	
 	//Wird im Klartext abgespeichert!!
-	fritzbox = new FritzBox(settings.value("common/password", "").toString());
+	fritzbox = new FritzBox(this, settings.value("common/password", "").toString());
 	
 	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));	
 }
@@ -69,11 +70,6 @@ void HauptFenster::createActions()
 	refreshAct->setStatusTip(tr("Refresh"));
 	connect(refreshAct, SIGNAL(triggered()), this, SLOT(refreshFritz()));
 	
-	PhoneBookOpen = new QAction(QIcon("bilder/phonebook.png"), tr("&Phonebook"), this);
-	PhoneBookOpen->setShortcut(tr("Ctrl+P"));
-	PhoneBookOpen->setStatusTip(tr("Phonebook"));
-	connect(PhoneBookOpen, SIGNAL(triggered()), this, SLOT(OpenPhoneBook()));
-	
 	exitAct = new QAction(QIcon("bilder/application-exit.png"), tr("&Beenden"), this);
 	exitAct->setShortcut(tr("Alt+F4"));
 	exitAct->setStatusTip(tr("Beenden"));
@@ -82,28 +78,20 @@ void HauptFenster::createActions()
 
 void HauptFenster::refreshFritz()
 {
-	fritzbox->hole_anrufliste();
-	statusBar()->showMessage(tr("Fertig"));
-}
-
-void HauptFenster::OpenPhoneBook()
-{
-// 	if (PbWindow == NULL) {
-// 		PbWindow = new PhonebookWindow( settings, this);
-// 		connect(PbWindow,SIGNAL(OnCloseWindow()),this,SLOT(PhoneBookClosed()));
-// 	}
-// 	PbWindow->show();
-	if (tabWidget->currentIndex() != 1) {
-		tabWidget->setCurrentIndex( 1 );
+	switch (tabWidget->currentIndex()) {
+	case 0: 
+		setEnabled(false);
+		fritzbox->hole_anrufliste();
+		statusBar()->showMessage(tr("Lade Anrufliste"));
+		break;
+		
+	case 1: 
 		PbWindow->fritzbox->hole_telefonbuch();
+		statusBar()->showMessage(tr("Lade Telefonbuch"));
+		break;
 	}
 }
 
-void HauptFenster::PhoneBookClosed()
-{
-//  delete PbWindow;
-//  PbWindow = NULL;
-}
 
  void HauptFenster::readSettings()
  {
@@ -125,7 +113,14 @@ void HauptFenster::PhoneBookClosed()
 
  void HauptFenster::Calls_loaded()
  {
-	tabelle->resizeColumnsToContents();	
+	tabelle->resizeColumnsToContents();
+	setEnabled(true);
+	statusBar()->showMessage(tr("Anrufliste geladen"));	
+ }
+ 
+ void HauptFenster::ReadProgress(int done, int total)
+ {
+	 statusBar()->showMessage(QString::number(done, 10) + " bytes received");	
  }
 
  

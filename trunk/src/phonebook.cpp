@@ -31,7 +31,7 @@ PhonebookWindow::PhonebookWindow( QSettings& _settings, QWidget *parent)
 	setLayout(layout);
 
 //  	fritzbox = new FritzBox("password");
-	fritzbox = new FritzBox(settings.value("common/password", "").toString());
+	fritzbox = new FritzBox(parent,settings.value("common/password", "").toString());
 	connect(fritzbox,SIGNAL(neues_telefonbuch(QString)),PhoneBookModell,SLOT(neue_liste(QString)));
 // 	fritzbox->hole_telefonbuch();
 }
@@ -58,6 +58,8 @@ void PhonebookWindow::ItemClicked(int index){
 void PhonebookWindow::Phonebook_loaded()
 {
 	tabelle->resizeColumnsToContents();
+	setEnabled(true);
 }
+
 
 

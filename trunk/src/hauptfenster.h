@@ -18,15 +18,17 @@
 
 class HauptFenster :public QMainWindow{
 	Q_OBJECT
+
+public slots:
+	void ReadProgress(int done,int total);
+			
 public:
 	HauptFenster();
 	~HauptFenster();
 	QSettings settings;
-
+	
 private slots:
 	void refreshFritz();
-	void OpenPhoneBook();
-	void PhoneBookClosed();
 	void Calls_loaded();
 	
 private:
@@ -37,7 +39,7 @@ private:
 	QToolBar *hauptToolBar;
 	QMenu *fileMenu;
 	QAction *refreshAct;
-	QAction *PhoneBookOpen;
+// 	QAction *PhoneBookOpen;
 	QAction *exitAct;
 	QHttp *http;
 	FritzBox *fritzbox;

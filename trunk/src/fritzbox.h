@@ -22,7 +22,7 @@ signals:
 public slots:
 	void Seite_geladen(bool error);
 public:
-	FritzBox(const QString &_passwort,const QString &_host = "fritz.box",int _port = 80);
+	FritzBox(QWidget *parent ,const QString &_passwort,const QString &_host = "fritz.box",int _port = 80);
 	~FritzBox();
 	void holeSeite(const QByteArray &postdaten);
 	void verarbeite_csv(QByteArray &daten);
