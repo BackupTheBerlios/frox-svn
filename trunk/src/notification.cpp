@@ -5,15 +5,50 @@
 //der Konstruktor
 NotificationWindow::NotificationWindow()
 {
-	setWindowFlags(Qt::Tool); 
+	Qt::WindowFlags flags = 0;
+	flags = Qt::Tool;
+// 	flags |= Qt::FramelessWindowHint; 	// rahmenlos machen
+	flags |= Qt::WindowStaysOnTopHint;	//Always on Top
+	
+	setWindowFlags(flags);
+	setLineWidth ( 4 );
+	setFrameShape(QFrame::StyledPanel);
+	setFrameShadow(QFrame::Sunken);
+	
 	readSettings();	
 	
-	QVBoxLayout *layout 	= new QVBoxLayout;
-
+	QPushButton *bleft = new QPushButton("<");
+	QPushButton *bright = new QPushButton(">");
+	QLabel	*title = new QLabel("Incoming Call: ");
+	QLabel	*id = new QLabel("id");
+	
+	QLabel	*number = new QLabel("number");
+	QLabel	*datetime = new QLabel("datetime");
+	QLabel	*msn = new QLabel("MSN");
+		
+	QHBoxLayout *hbox = new QHBoxLayout;
+	hbox->addWidget(title);
+	hbox->addWidget(id);
+	hbox->addWidget(bleft);
+	hbox->addWidget(bright);
+	
+	QHBoxLayout *hbox2 = new QHBoxLayout;
+	hbox2->addWidget(number);
+	hbox2->addWidget(datetime);
+	
+	QHBoxLayout *hbox3 = new QHBoxLayout;
+	hbox3->addWidget(msn);
+		
 	closeButton = new QPushButton(tr("&Close"));
  	connect(closeButton, SIGNAL(clicked()), this, SLOT(CloseWindow()));
+	
+	QVBoxLayout *layout = new QVBoxLayout;
+ 	layout->addLayout(hbox,0);
+	layout->addLayout(hbox2,0);
+	layout->addLayout(hbox3,0);
  	layout->addWidget(closeButton);
-
+	layout-> setMargin(2);
+	layout-> setSpacing(5);
 	setLayout(layout);
 }
 

@@ -4,7 +4,7 @@
 #include <QtGui>
 #include <iostream>
 
-class NotificationWindow : public QWidget
+class NotificationWindow : public QFrame
 {
 	Q_OBJECT
 
