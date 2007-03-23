@@ -16,6 +16,8 @@
 #include <QtNetwork>
 #include <QIcon>
 #include "types.h"
+		
+#include "notification.h"
 
 
 class Callmonitor :public QSystemTrayIcon{
@@ -28,12 +30,16 @@ public slots:
 	void verbunden();
 	void fehler(QAbstractSocket::SocketError socketError );
 	void onclick(QSystemTrayIcon::ActivationReason reason );
+	void NotificationClosed();
 
 private:
 	QTcpSocket *netz;
 	bool verbindung;
 	QString datenbuffer;
 	QVector<FBMessage> schlange;//Daraus soll ein Modell werden!!
+	
+	NotificationWindow *alert;
+
 };
 
 #endif /*TRAYICON_H*/

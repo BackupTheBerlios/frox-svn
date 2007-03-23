@@ -12,7 +12,7 @@
 #include "trayicon.h"
 
 Callmonitor::Callmonitor(QApplication * parent)
-:QSystemTrayIcon(QIcon("bilder/connect_no.png"),parent),verbindung(false)
+:QSystemTrayIcon(QIcon("bilder/connect_no.png"),parent),verbindung(false), alert(NULL)
 {
 	setVisible(true);
 	
@@ -55,6 +55,11 @@ void Callmonitor::neuedaten()
 		
 	}
 	showMessage("Debug",nachricht.toString());
+	if (alert == NULL) {
+		alert = new NotificationWindow();
+		connect(alert, SIGNAL(OnCloseWindow()),this,SLOT(NotificationClosed()));
+	}
+	alert->show();
 }
 
 void Callmonitor::onclick(QSystemTrayIcon::ActivationReason reason ){
@@ -82,4 +87,10 @@ void Callmonitor::verbunden(){
 }
 void Callmonitor::fehler(QAbstractSocket::SocketError socketError ) {
 	showMessage("Fehler",netz->errorString ());
+}
+
+void Callmonitor::NotificationClosed()
+{
+	delete alert;
+	alert = NULL;
 }

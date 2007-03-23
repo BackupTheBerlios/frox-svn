@@ -9,7 +9,9 @@ HEADERS += src/hauptfenster.h \
            src/types.h \
            src/fritzbox.h \
            src/phonebook.h \
-           src/PBmodell.h
+           src/PBmodell.h \
+           src/notification.h
+
            
 SOURCES += src/hauptfenster.cpp \
            src/main.cpp \
@@ -18,7 +20,9 @@ SOURCES += src/hauptfenster.cpp \
            src/types.cpp \
            fritzbox.cpp \
            src/phonebook.cpp \
-           src/PBmodell.cpp
+           src/PBmodell.cpp \
+           src/notification.cpp
+
 TEMPLATE = app
 TARGET =
 DEPENDPATH += . src
