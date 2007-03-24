@@ -188,14 +188,14 @@ bool operator<(const Person & lvalue,const Person & rvalue){
 
 
 //FBMessage
-
 FBMessage::FBMessage()
 	:command(UNSET)
 {
 }
 
 FBMessage::FBMessage(const FBMessage &input)
-:marke(input.marke),command(input.command),id(input.id),message(input.message)
+:marke(input.marke),command(input.command),id(input.id)
+		//message(input.message)
 {
 }
 
@@ -227,11 +227,44 @@ FBMessage::FBMessage(const QString &nachricht)
 			command = UNSET;
 			tempstlst.removeFirst();
 	}
+	
 	//Holen der id
 	id = tempstlst.first().toInt();
 	tempstlst.removeFirst();
+	
+	if (command == RING) {
+		incoming	= true;
+		Nebenstelle	= "";
+		Rufnummer	= tempstlst.at(0);
+		MSN		= tempstlst.at(1);
+		Dauer		= 0;
+	}
+	else
+	if (command == CALL) {
+		incoming	= false;
+		Nebenstelle	= tempstlst.at(0);
+		MSN		= tempstlst.at(1);
+		Rufnummer	= tempstlst.at(2);
+		Dauer		= 0;
+		}
+	else
+	if (command == CONNECT) {
+		Nebenstelle	= tempstlst.at(0);
+		MSN		= "";
+		Rufnummer	= tempstlst.at(1);
+		Dauer		= 0;
+		}
+	else
+	if (command == DISCONNECT) {
+			Nebenstelle	= "";
+			MSN		= "";
+			Rufnummer	= "";
+			Dauer		= tempstlst.at(0).toInt();
+		}
+		
+	
 	//der rest
-	message = QVector<QString>::fromList(tempstlst);
+// 	message = QVector<QString>::fromList(tempstlst);
 	
 }
 

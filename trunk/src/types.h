@@ -57,12 +57,20 @@ public:
 	FBMessage(const FBMessage &input);
 	QString toString();
 	QString CmdtoString();
-	bool isDisconnect(){return command == DISCONNECT;}
+	bool CallTerminated(){return command == DISCONNECT;}
+	bool CallStarted(){return command == CONNECT;}
 	void Disconnect(){command = UNSET;}
-	enum eCommand {CALL,RING,DISCONNECT,CONNECT,UNSET};
+	
+	enum eCommand {CALL, RING, DISCONNECT,CONNECT, UNSET};
 	QDateTime marke;
 	eCommand command;
+	bool incoming;
 	int id;
-	QVector<QString> message;
+	QString Rufnummer;
+	QString MSN;
+	QString Nebenstelle;
+	int Dauer;
+	
+// 	QVector<QString> message;
 };
 #endif /*TYPES_H*/

@@ -8,7 +8,6 @@
 #include "fritzbox.h"
 #include "PBmodell.h"
 
-
  class PhonebookWindow : public QWidget
 {
 	Q_OBJECT

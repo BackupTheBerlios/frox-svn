@@ -123,4 +123,9 @@ void HauptFenster::refreshFritz()
 	 statusBar()->showMessage(QString::number(done, 10) + " bytes received");	
  }
 
+ void HauptFenster::ShowWindow()
+ {
+	 show();
+ }
+
  

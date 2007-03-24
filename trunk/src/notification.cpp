@@ -17,27 +17,27 @@ NotificationWindow::NotificationWindow()
 	
 	readSettings();	
 	
-	QPushButton *bleft = new QPushButton("<");
-	QPushButton *bright = new QPushButton(">");
-	QLabel	*title = new QLabel("Incoming Call: ");
-	QLabel	*id = new QLabel("id");
+	bleft = new QPushButton("<");
+	bright = new QPushButton(">");
+	LabelTitle = new QLabel("Incoming Call: ");
+	LabelId = new QLabel("id");
 	
-	QLabel	*number = new QLabel("number");
-	QLabel	*datetime = new QLabel("datetime");
-	QLabel	*msn = new QLabel("MSN");
+	LabelNumber = new QLabel("number");
+	LabelDatetime = new QLabel("datetime");
+	LabelMsn = new QLabel("MSN");
 		
 	QHBoxLayout *hbox = new QHBoxLayout;
-	hbox->addWidget(title);
-	hbox->addWidget(id);
+	hbox->addWidget(LabelTitle);
+	hbox->addWidget(LabelId);
 	hbox->addWidget(bleft);
 	hbox->addWidget(bright);
 	
 	QHBoxLayout *hbox2 = new QHBoxLayout;
-	hbox2->addWidget(number);
-	hbox2->addWidget(datetime);
+	hbox2->addWidget(LabelNumber);
+	hbox2->addWidget(LabelDatetime);
 	
 	QHBoxLayout *hbox3 = new QHBoxLayout;
-	hbox3->addWidget(msn);
+	hbox3->addWidget(LabelMsn);
 		
 	closeButton = new QPushButton(tr("&Close"));
  	connect(closeButton, SIGNAL(clicked()), this, SLOT(CloseWindow()));

@@ -21,6 +21,7 @@ class HauptFenster :public QMainWindow{
 
 public slots:
 	void ReadProgress(int done,int total);
+	void ShowWindow();
 			
 public:
 	HauptFenster();

@@ -19,27 +19,34 @@
 		
 #include "notification.h"
 
-
 class Callmonitor :public QSystemTrayIcon{
 	Q_OBJECT
 public:
 	Callmonitor(QApplication * parent);
 	~Callmonitor();
+	
+	QVector<FBMessage> schlange;//Daraus soll ein Modell werden!!
+	int CallCount;
+	
 public slots:
 	void neuedaten();
 	void verbunden();
 	void fehler(QAbstractSocket::SocketError socketError );
 	void onclick(QSystemTrayIcon::ActivationReason reason );
+	
 	void NotificationClosed();
 
+	signals:
+	void TrayDoubleClicked();
+
 private:
+	void ShowSpecificCall(int id);
+	
 	QTcpSocket *netz;
 	bool verbindung;
 	QString datenbuffer;
-	QVector<FBMessage> schlange;//Daraus soll ein Modell werden!!
 	
 	NotificationWindow *alert;
-
 };
 
 #endif /*TRAYICON_H*/
