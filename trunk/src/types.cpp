@@ -114,7 +114,7 @@ Person::Person(QStringList zeile)
  	}
 }
 
-QVariant Person::operator[](int index) const
+/*QVariant Person::operator[](int index) const
 {
 	switch (index){
 		case 0:
@@ -128,9 +128,24 @@ QVariant Person::operator[](int index) const
 		default: 
 			return QString("unbekannt");
 	}
-}
+}*/
 
 QString &  Person::operator[](int index){
+	switch (index){
+		case 0:
+			return name;
+		case 1:
+			return rufnr;
+		case 2:
+			return kurzwahl;
+		case 3:
+			return vanity;
+	/*	default: 
+			return QString("unbekannt");*/
+	}
+}
+
+const QString &  Person::operator[](int index)const {
 	switch (index){
 		case 0:
 			return name;
@@ -161,7 +176,8 @@ QString Person::ueberschrift(int spalte)
 	}
 }
 
-bool operator<(Person & lvalue, Person & rvalue){
+bool operator<(const Person & lvalue,const Person & rvalue){
+//	std::cout << "sortiere"<<lvalue[Person::sort_column].toStdString() <<" "<< rvalue[Person::sort_column].toStdString()<<std::endl;
 	if (Person::order == Qt::AscendingOrder){
 		return lvalue[Person::sort_column] < rvalue[Person::sort_column];
 	}else{

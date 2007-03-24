@@ -41,12 +41,13 @@ public:
 	static int sort_column;
 	Person();
 	Person(QStringList zeile);
-	QVariant operator[](int index)const;
+	//QVariant operator[](int index)const;
 	QString & operator[](int index);
+	const QString & operator[](int index)const;
 	static QString ueberschrift(int spalte);
 	static int spaltenAnzahl(){return 4;}
 	
-	friend bool operator<(Person & lvalue, Person & rvalue);
+	friend bool operator<(const Person & lvalue,const Person & rvalue);
 };
 
 class FBMessage{

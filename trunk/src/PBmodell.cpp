@@ -73,7 +73,11 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
  }
  
  void  PBModell::sort ( int column, Qt::SortOrder order ){
- 	//qSort(phonebook);
+ 	Person::order = order;
+ 	Person::sort_column = column;
+// 	std::cout << "Sortiere" << std::endl;
+ 	qSort(phonebook);
+ 	emit layoutChanged();
  }
 
 PBModell::PBModell(QWidget *parent)
