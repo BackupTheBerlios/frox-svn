@@ -23,9 +23,7 @@ int main(int argc,char** argv){
 	HauptFenster mw;
 	mw.show();
 	QObject::connect(&temp, SIGNAL(TrayDoubleClicked()), &mw, SLOT(ShowWindow()));
-
 	
 	return app.exec();
-
 }
 

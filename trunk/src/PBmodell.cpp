@@ -23,12 +23,14 @@ void PBModell::neue_liste(QString daten){
     //Einlesen der Daten und Schreiben der Liste
 	QTextStream temp(&daten);
 	do{
+		int count = 1;
 		QString zeile = temp.readLine();
 		if (!zeile.isEmpty() && zeile.contains("document.write(TrFon(", Qt::CaseSensitive)){
 // 			output << zeile << "\n";
 			zeile.replace(1,55,"");
 			zeile.chop(12);
- 			phonebook.push_back(Person(zeile.split("\", "))); //push_back() ist gleich append() 
+ 			phonebook.push_back(Person(zeile.split("\", "),count)); //push_back() ist gleich append() 
+			count++;
 		}
 	}while(!temp.atEnd());
 	
@@ -61,7 +63,6 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
  			phonebook[index.row()][index.column()] = value.toString();
 			file.close();
 		
-
 //   		 phonebook[index.row()][0] = value.toString;
 //          phonebook.replace(index.row(), value.toString());
          emit dataChanged(index, index);
@@ -79,15 +80,45 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
  	qSort(phonebook);
  	emit layoutChanged();
  }
+ 
+ QByteArray PBModell::upload_phonebook()
+ {	
+	QByteArray Data="";
+	int i;
+	
+	for (i = 99;i>0;i--) 
+		Data.append("telcfg:command/HotDialEntry"+QByteArray::number(i)+"=delete&");
+	
+	
+	for( i=0; i<phonebook.count(); i++){
+			
+// 			if Phonebook[i].important then EName:= '!'+Phonebook[i].Name else EName:= Phonebook[i].Name;
+		Data.append("telcfg:settings/HotDialEntry"+QString::number(i) +"/Code="  + phonebook.at(i)[2]  + "&" +
+				"telcfg:settings/HotDialEntry"+QString::number(i)+"/Vanity=" + phonebook.at(i)[3] + "&" +
+				"telcfg:settings/HotDialEntry"+QString::number(i)+"/Number=" + phonebook.at(i)[1] + "&" +
+				"telcfg:settings/HotDialEntry"+QString::number(i)+"/Name="   + phonebook.at(i)[0]              + "&");
+	}
+	Data.append("Submit=Submit");
+	 
+	QFile file;
+	file.open(stderr, QIODevice::WriteOnly);
+	QTextStream output(&file);
+	output << Data << "\n";
+	
+	file.close();
+	
+	return Data;
+	 
+ }
 
 PBModell::PBModell(QWidget *parent)
 :phonebook()
 {
-	for(int i=0;i<20;i++){
-		phonebook.push_back(Person());
-		phonebook[i][0] += QString("%1").arg(i); 
-	}
-	//liste.push_back(Anruf());
+// Demoeinträge erzeugen
+// 	for(int i=0;i<20;i++){
+// 		phonebook.push_back(Person());
+// 		phonebook[i][0] += QString("%1").arg(i); 
+// 	}
 }
 
 int PBModell::rowCount(const QModelIndex &/*parent*/) const

@@ -24,6 +24,7 @@
 		void CloseWindow();
 		void ItemClicked(int index); 
 		void Phonebook_loaded();
+		void upload();
 	private:
 // 		QPushButton  *closeButton;
 		QTableView   *tabelle;

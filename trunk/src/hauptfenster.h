@@ -30,7 +30,9 @@ public:
 	
 private slots:
 	void refreshFritz();
+	void PhonebookUpload();
 	void Calls_loaded();
+	void TabChanged(int index);
 	
 private:
 
@@ -40,6 +42,7 @@ private:
 	QToolBar *hauptToolBar;
 	QMenu *fileMenu;
 	QAction *refreshAct;
+	QAction *uploadAct;
 // 	QAction *PhoneBookOpen;
 	QAction *exitAct;
 	QHttp *http;

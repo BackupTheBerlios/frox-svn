@@ -22,6 +22,7 @@ HauptFenster::HauptFenster()
 	//ToolBars
 	hauptToolBar = addToolBar(tr("default"));
 	hauptToolBar->addAction(refreshAct);
+	hauptToolBar->addAction(uploadAct);
 	
 	//Menü
 	fileMenu = menuBar()->addMenu(tr("&Datei"));
@@ -39,6 +40,7 @@ HauptFenster::HauptFenster()
 	
 	//Telefonbuch
 	PbWindow = new PhonebookWindow( settings, this);
+	connect(uploadAct, SIGNAL(triggered()), PbWindow, SLOT(upload()));
 	
 	//Tabbing
 	tabWidget = new QTabWidget;
@@ -47,6 +49,7 @@ HauptFenster::HauptFenster()
 // 	tabWidget->tabBar()->setVisible(false);
 	tabWidget->addTab(tabelle,  tr("List of Calls"));	
 	tabWidget->addTab(PbWindow, tr("Phonebook"));	
+	connect(tabWidget,SIGNAL(currentChanged(int)), this, SLOT(TabChanged( int )));
 	
 	this->setCentralWidget(tabWidget);
 // 	this->setCentralWidget(tabelle);
@@ -70,6 +73,13 @@ void HauptFenster::createActions()
 	refreshAct->setStatusTip(tr("Refresh"));
 	connect(refreshAct, SIGNAL(triggered()), this, SLOT(refreshFritz()));
 	
+	uploadAct = new QAction(QIcon("bilder/upload.png"), tr("&Upload"), this);
+	uploadAct->setShortcut(tr("Ctrl+U"));
+	uploadAct->setStatusTip(tr("phonebook upload"));
+	uploadAct->setVisible(false);
+// 	connect(uploadAct, SIGNAL(triggered()), this, SLOT(PhonebookUpload()));
+	
+	
 	exitAct = new QAction(QIcon("bilder/application-exit.png"), tr("&Beenden"), this);
 	exitAct->setShortcut(tr("Alt+F4"));
 	exitAct->setStatusTip(tr("Beenden"));
@@ -80,7 +90,7 @@ void HauptFenster::refreshFritz()
 {
 	switch (tabWidget->currentIndex()) {
 	case 0: 
-		setEnabled(false);
+// 		setEnabled(false);
 		fritzbox->hole_anrufliste();
 		statusBar()->showMessage(tr("Lade Anrufliste"));
 		break;
@@ -92,8 +102,23 @@ void HauptFenster::refreshFritz()
 	}
 }
 
+void HauptFenster::PhonebookUpload()
+{
+	
+}
 
- void HauptFenster::readSettings()
+void HauptFenster::TabChanged( int index)
+{
+	switch (index) {
+		case 0: uploadAct->setVisible(false);
+			break;
+		
+		case 1: uploadAct->setVisible(true);
+			break;
+	}
+}
+
+void HauptFenster::readSettings()
  {
 	settings.beginGroup("HauptFenster");
 	QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();

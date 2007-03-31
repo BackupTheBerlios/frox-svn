@@ -61,5 +61,11 @@ void PhonebookWindow::Phonebook_loaded()
 	setEnabled(true);
 }
 
+void PhonebookWindow::upload()
+{	QByteArray data="";
+	data = PhoneBookModell->upload_phonebook();
+	fritzbox->holeSeite(data);
+}
+
 
 
