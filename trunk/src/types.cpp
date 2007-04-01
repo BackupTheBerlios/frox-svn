@@ -87,7 +87,7 @@ Qt::SortOrder Person::order = Qt::AscendingOrder;
 int Person::sort_column =0;
 
 Person::Person()
-:name("Neu"),rufnr(""),kurzwahl(""),vanity(""),ident(1)
+:name("<Neuer Eintrag>"),rufnr(""),kurzwahl(""),vanity(""),ident(1)
 {}
 
 Person::Person(QStringList zeile, int pos)

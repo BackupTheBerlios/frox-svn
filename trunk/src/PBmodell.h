@@ -23,6 +23,8 @@ private:
 	QList<Person> phonebook;
 	QString header;
 	
+	bool DataValid(int col, QVariant value);
+	
 public	slots:
 	 void neue_liste(QString daten);
 	signals:

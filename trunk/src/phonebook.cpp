@@ -65,6 +65,13 @@ void PhonebookWindow::upload()
 {	QByteArray data="";
 	data = PhoneBookModell->upload_phonebook();
 	fritzbox->holeSeite(data);
+//debug
+// 	QFile file;
+// 	file.open(stderr, QIODevice::WriteOnly);
+// 	QTextStream output(&file);
+// 	output << data << "\n";
+// 	
+// 	file.close();
 }
 
 

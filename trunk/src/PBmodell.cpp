@@ -33,6 +33,7 @@ void PBModell::neue_liste(QString daten){
 			count++;
 		}
 	}while(!temp.atEnd());
+	phonebook.push_back(Person());
 	
 // file.close();		
 
@@ -40,6 +41,27 @@ void PBModell::neue_liste(QString daten){
 	reset ();
 	emit liste_geladen();
 	//std::cout << "Spalten "<<columnCount(index(0,0))<<" Zeilen "<< rowCount(index(0,0)) <<std::endl;
+}
+
+
+bool PBModell::DataValid(int col, QVariant value) {
+	int i=0;
+	
+	//doppelter Eintrag ? 
+	for (i=0;i<phonebook.count();i++) 
+		if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+		
+	switch (col) {
+		case 0: //moegliche Fehler im Namen abfangen
+			break;
+		case 1: //moegliche Fehler in der Nummer abgfangen
+			break;
+		case 2: //moegliche Fehler in der Kurzwahl abfangen
+			break;
+		case 3: //moegliche Fehler im Vanity abfangen
+			break;
+	}
+	return true;
 }
 
 //Wird nur zum Editieren gebraucht
@@ -50,25 +72,23 @@ Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 
 	return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
+
 bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 {
      if (index.isValid() && role == Qt::EditRole) {
-			
+	if (DataValid(index.column(), value) == true)
+		phonebook[index.row()][index.column()] = value.toString();			
 	//Ausgabe der Daten auf der Konsole
- 			QFile file;
- 			file.open(stderr, QIODevice::WriteOnly);
- 			QTextStream output(&file);
- 			
- 			output << "Ausgabe: " <<value.toString() << endl;//<<std::endl;
- 			phonebook[index.row()][index.column()] = value.toString();
-			file.close();
-		
-//   		 phonebook[index.row()][0] = value.toString;
-//          phonebook.replace(index.row(), value.toString());
-         emit dataChanged(index, index);
-		//Änderung den Views bekanntgeben
-		reset ();
-         return true;
+/* 	QFile file;
+ 	file.open(stderr, QIODevice::WriteOnly);
+ 	QTextStream output(&file);*/
+//  	output << "Ausgabe: " <<value.toString() << endl;//<<std::endl;
+// 	file.close();
+
+//      emit dataChanged(index, index);
+	//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
+	//reset ();
+        return true;
      }
      return false;
  }
@@ -89,24 +109,20 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 	for (i = 99;i>0;i--) 
 		Data.append("telcfg:command/HotDialEntry"+QByteArray::number(i)+"=delete&");
 	
-	
+	int count=0;
 	for( i=0; i<phonebook.count(); i++){
+ 		if ((phonebook[i][0] != "<Neuer Eintrag>")&&(phonebook[i][0] != ""))
+		{
 			
-// 			if Phonebook[i].important then EName:= '!'+Phonebook[i].Name else EName:= Phonebook[i].Name;
-		Data.append("telcfg:settings/HotDialEntry"+QString::number(i) +"/Code="  + phonebook.at(i)[2]  + "&" +
-				"telcfg:settings/HotDialEntry"+QString::number(i)+"/Vanity=" + phonebook.at(i)[3] + "&" +
-				"telcfg:settings/HotDialEntry"+QString::number(i)+"/Number=" + phonebook.at(i)[1] + "&" +
-				"telcfg:settings/HotDialEntry"+QString::number(i)+"/Name="   + phonebook.at(i)[0]              + "&");
+			Data.append("telcfg:settings/HotDialEntry"+QString::number(count) +"/Code="  + phonebook[i][2]  + "&" +
+				"telcfg:settings/HotDialEntry"+QString::number(count)+"/Vanity=" + phonebook[i][3] + "&" +
+				"telcfg:settings/HotDialEntry"+QString::number(count)+"/Number=" + phonebook[i][1] + "&" +
+				"telcfg:settings/HotDialEntry"+QString::number(count)+"/Name="   + phonebook[i][0] + "&");
+			count++;
+ 		}
 	}
 	Data.append("Submit=Submit");
-	 
-	QFile file;
-	file.open(stderr, QIODevice::WriteOnly);
-	QTextStream output(&file);
-	output << Data << "\n";
-	
-	file.close();
-	
+
 	return Data;
 	 
  }
