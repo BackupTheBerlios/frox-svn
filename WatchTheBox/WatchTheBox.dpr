@@ -16,7 +16,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.Title := 'WatchtheBox';
+  Application.Title := 'WatchTheBox';
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(Tstats, stats);
   Application.CreateForm(TForm3, Form3);

@@ -522,17 +522,18 @@ begin
 
  if sett.ReadBool('FritzBox','useMonitor',false) then
      StartMySocket; //Fritz!Box Listener starten
-
 end;
 
 
 procedure TForm1.SaveTrafficData;
 var f: TFileStream;
+    Tc: TTraffic;
 begin
+  Tc := TData;
   f:= TFileStream.Create(ExtractFilePath(ParamStr(0)) + 'traffic.dat',fmCreate);
-   TData.TotalIn :=  TData.TotalIn  + TIn-OffsetIN;  //Summe abspeichern
-   TData.TotalOut:=  TData.TotalOut + TOut-OffsetOUT;
-   f.Write(TData, sizeof(TData));
+   Tc.TotalIn :=  TData.TotalIn  + TIn-OffsetIN;  //Summe abspeichern
+   Tc.TotalOut:=  TData.TotalOut + TOut-OffsetOUT;
+   f.Write(Tc, sizeof(Tc));
   f.Free;
 end;
 
@@ -594,6 +595,7 @@ begin
    writeln(f, DateTostr(now) + #9 + Format('%.2f',[TData.TotalIn/1024]) + #9 + Format('%.2f',[TData.TotalOut/1024]) +#9 +Format('%.4f',[TData.Price]));
    closefile(f);
 
+   GetSessionTraffic(OffsetIN,OffsetOUT);
    TData.TotalIn  := 0;
    TData.TotalOut := 0;
    TData.Price:= 0;
