@@ -21,6 +21,17 @@
 
 class Callmonitor :public QSystemTrayIcon{
 	Q_OBJECT
+	
+private:
+	void ShowSpecificCall(int id);
+	
+	QTcpSocket *netz;
+	bool verbindung;
+	QString datenbuffer;
+	
+	NotificationWindow *alert;
+	int visibleCall;
+
 public:
 	Callmonitor(QApplication * parent);
 	~Callmonitor();
@@ -35,18 +46,11 @@ public slots:
 	void onclick(QSystemTrayIcon::ActivationReason reason );
 	
 	void NotificationClosed();
+	void ShowNextCall();
+	void ShowPrevCall();
 
 	signals:
 	void TrayDoubleClicked();
-
-private:
-	void ShowSpecificCall(int id);
-	
-	QTcpSocket *netz;
-	bool verbindung;
-	QString datenbuffer;
-	
-	NotificationWindow *alert;
 };
 
 #endif /*TRAYICON_H*/

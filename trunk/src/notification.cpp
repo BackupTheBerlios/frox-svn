@@ -18,7 +18,9 @@ NotificationWindow::NotificationWindow()
 	readSettings();	
 	
 	bleft = new QPushButton("<");
+	connect(bleft,SIGNAL(clicked()), this, SLOT(bleftClicked()));
 	bright = new QPushButton(">");
+	connect(bright,SIGNAL(clicked()), this, SLOT(brightClicked()));
 	LabelTitle = new QLabel("Incoming Call: ");
 	LabelId = new QLabel("id");
 	

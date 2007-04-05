@@ -21,12 +21,18 @@ class NotificationWindow : public QFrame
 	QLabel	*LabelNumber;
 	QLabel	*LabelDatetime;
 	QLabel	*LabelMsn;
+	int 	lastCall;
 	
 	signals:
 		void OnCloseWindow();
+		void nextCall();
+		void prevCall();
 
 	private slots:
 		void CloseWindow();
+		void brightClicked(){emit nextCall();}
+		void bleftClicked() {emit prevCall();}
+		
 	private:
 		void readSettings();
 		void writeSettings();

@@ -65,28 +65,51 @@ void Callmonitor::neuedaten()
 		
 	}
 //  	showMessage("Debug",nachricht.toString());
-	showMessage("Debug","Calls: "+ QString::number(CallCount,10));
+	showMessage("Debug","Calls: "+ QString::number(CallCount,10) + " | " + QString::number(nachricht.id,10));
 	if (alert == NULL) {
 		alert = new NotificationWindow();
+		connect(alert, SIGNAL(nextCall()),this,SLOT(ShowNextCall()));
+		connect(alert, SIGNAL(prevCall()),this,SLOT(ShowPrevCall()));
 		connect(alert, SIGNAL(OnCloseWindow()),this,SLOT(NotificationClosed()));
 	}
 	ShowSpecificCall(nachricht.id);
+	
+}
+
+void Callmonitor::ShowNextCall(){
+	int id = 0;
+	
+	id = visibleCall + 1;
+	if (id >= CallCount) id = 0;
+	std::cout << "next\n";
+	ShowSpecificCall(id);
+}
+
+void Callmonitor::ShowPrevCall(){
+	int id = 0;
+	
+	id = visibleCall - 1;
+	if (id < 0) id = CallCount-1;
+	std::cout << "prev\n";
+	ShowSpecificCall(id);
 }
 
 void Callmonitor::ShowSpecificCall(int id)
 {	
 	if (alert == NULL) return;
 	
+	alert->LabelId->setText(QString::number(id, 10));
+	
 	if (schlange[id].incoming == true) 
 		alert->LabelTitle->setText("Incoming Call :");
 	else
 		alert->LabelTitle->setText("Outgoing Call :");
-	
-	alert->LabelId->setText(QString::number(id, 10));
 	alert->LabelNumber->setText(schlange[id].Rufnummer);
 	alert->LabelDatetime->setText(schlange[id].marke.toString("hh:mm:ss dd.MM.yyyy"));
 	alert->LabelMsn->setText(schlange[id].MSN);
 	alert->show();
+	
+	visibleCall = id;
 }
 
 void Callmonitor::onclick(QSystemTrayIcon::ActivationReason reason ){
@@ -121,6 +144,6 @@ void Callmonitor::fehler(QAbstractSocket::SocketError socketError ) {
 
 void Callmonitor::NotificationClosed()
 {
-	delete alert;
+ 	delete alert;
 	alert = NULL;
 }
