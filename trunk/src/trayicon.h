@@ -16,6 +16,7 @@
 #include <QtNetwork>
 #include <QIcon>
 #include "types.h"
+#include "PBmodell.h"
 		
 #include "notification.h"
 
@@ -31,9 +32,10 @@ private:
 	
 	NotificationWindow *alert;
 	int visibleCall;
+	PBModell *PhoneBook;
 
 public:
-	Callmonitor(QApplication * parent);
+	Callmonitor(QApplication * parent, PBModell * PM);
 	~Callmonitor();
 	
 	QVector<FBMessage> schlange;//Daraus soll ein Modell werden!!
@@ -51,6 +53,7 @@ public slots:
 
 	signals:
 	void TrayDoubleClicked();
+	void GetNameFromNumber(QString number);
 };
 
 #endif /*TRAYICON_H*/

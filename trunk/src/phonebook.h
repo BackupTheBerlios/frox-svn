@@ -13,9 +13,10 @@
 	Q_OBJECT
 
 	public:
-	PhonebookWindow( QSettings& _settings,QWidget *parent);
+	PhonebookWindow( QSettings& _settings,QWidget *parent, PBModell *PM);
 	
 	FritzBox *fritzbox;
+	PBModell *PhoneBookModell;
 
 	signals:
 		void OnCloseWindow();
@@ -31,7 +32,7 @@
 		QTableWidget *tableWid;
 		QHeaderView  *tabhead;
 		QSettings& settings;
- 		PBModell *PhoneBookModell;
+
 
 };
 

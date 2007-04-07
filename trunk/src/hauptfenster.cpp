@@ -11,13 +11,15 @@
 //
 #include "hauptfenster.h"
 
-HauptFenster::HauptFenster()
+HauptFenster::HauptFenster(PBModell *PM)
 :settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName()), PbWindow(NULL)
-{
+{	
 	createActions();
 	readSettings();
 	
 	setWindowTitle(tr("frox"));
+	
+	PhoneBook = PM;
 	
 	//ToolBars
 	hauptToolBar = addToolBar(tr("default"));
@@ -39,7 +41,7 @@ HauptFenster::HauptFenster()
 	tabelle->resizeColumnsToContents();
 	
 	//Telefonbuch
-	PbWindow = new PhonebookWindow( settings, this);
+	PbWindow = new PhonebookWindow( settings, this, PhoneBook);
 	connect(uploadAct, SIGNAL(triggered()), PbWindow, SLOT(upload()));
 	
 	//Tabbing

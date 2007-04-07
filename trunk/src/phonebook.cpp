@@ -3,7 +3,7 @@
 #include "phonebook.h"
 #include <iostream>
 //der Konstruktor
-PhonebookWindow::PhonebookWindow( QSettings& _settings, QWidget *parent)
+PhonebookWindow::PhonebookWindow( QSettings& _settings, QWidget *parent, PBModell *PM)
 	: QWidget(parent),tabhead(NULL),settings(_settings)
 {
 	setWindowFlags(Qt::Tool);
@@ -11,12 +11,14 @@ PhonebookWindow::PhonebookWindow( QSettings& _settings, QWidget *parent)
 	
 	QVBoxLayout *layout 	= new QVBoxLayout;
 
-	PhoneBookModell 	= new PBModell(this);
+// 	PhoneBookModell 	= new PBModell();
+	PhoneBookModell 	= PM;
 	connect(PhoneBookModell,SIGNAL(liste_geladen()), this, SLOT(Phonebook_loaded()));
 	tabelle			= new QTableView(this);
 	tabhead			= tabelle->horizontalHeader();
 
 	tabelle->setModel(PhoneBookModell);
+	
 	tabelle->setSortingEnabled(true);
 	connect(tabhead, SIGNAL(sectionClicked(int)), this, SLOT(ItemClicked(int)));
 	layout->addWidget(tabelle);

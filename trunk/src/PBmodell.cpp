@@ -127,7 +127,7 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 	 
  }
 
-PBModell::PBModell(QWidget *parent)
+PBModell::PBModell(/*QWidget *parent*/)
 :phonebook()
 {
 // Demoeinträge erzeugen
@@ -161,6 +161,25 @@ QVariant PBModell::headerData ( int section, Qt::Orientation orientation, int ro
 			return Person::ueberschrift(section);
 
 	return QVariant();
+}
+
+QString PBModell::NameFromNumber(QString number){
+	int i = 0;
+	QString CallersName="";
+	
+	for (i=0;i< phonebook.count();i++){
+		if (phonebook[i][1] == number) {
+			CallersName = phonebook[i][0];
+		 	break;
+		}
+	}
+	
+	if ( CallersName.startsWith("!")==true) CallersName.remove(0,1); //Ausrufezeichen abschneiden
+	
+	if (CallersName != "") return CallersName;
+	else
+	return number;
+	
 }
 
 

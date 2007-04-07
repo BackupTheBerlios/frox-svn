@@ -24,9 +24,11 @@ public slots:
 	void ShowWindow();
 			
 public:
-	HauptFenster();
+	HauptFenster(PBModell *PM);
 	~HauptFenster();
 	QSettings settings;
+	PhonebookWindow *PbWindow;
+	PBModell *PhoneBook;
 	
 private slots:
 	void refreshFritz();
@@ -49,7 +51,6 @@ private:
 	FritzBox *fritzbox;
 	AnrufModell *modell;
 	QTableView *tabelle;
-	PhonebookWindow *PbWindow;
 	QTabWidget *tabWidget;
 };
 

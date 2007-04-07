@@ -11,9 +11,10 @@
 //
 #include "trayicon.h"
 
-Callmonitor::Callmonitor(QApplication * parent)
+Callmonitor::Callmonitor(QApplication * parent, PBModell * PM)
 :QSystemTrayIcon(QIcon("bilder/connect_no.png"),parent),verbindung(false), alert(NULL), CallCount(0)
 {
+	PhoneBook = PM;
 	setVisible(true);
 	
 	//Kontextmenu
@@ -48,7 +49,7 @@ void Callmonitor::neuedaten()
 	if (nachricht.CallTerminated()){ 	//augelegt > Anruf entfernen
 		schlange[nachricht.id].Disconnect();
 		CallCount--;
-//  		if ((CallCount == 0) && (alert != NULL)) alert->close();
+		if ((CallCount == 0) && (alert != NULL)) alert->close();
 		return;
 	}
 	if (nachricht.CallStarted()){ 	//Verbindung zustande gekommen
@@ -117,7 +118,7 @@ void Callmonitor::ShowSpecificCall(int id)
 	else
 		alert->LabelTitle->setText("Outgoing Call :");
 		
-	alert->LabelNumber->setText(schlange[id].Rufnummer);
+	alert->LabelNumber->setText(PhoneBook->NameFromNumber(schlange[id].Rufnummer));
 	alert->LabelDatetime->setText(schlange[id].marke.toString("hh:mm:ss dd.MM.yyyy"));
 	alert->LabelMsn->setText(schlange[id].MSN);
 	alert->show();

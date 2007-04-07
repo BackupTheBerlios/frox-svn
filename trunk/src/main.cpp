@@ -16,12 +16,14 @@ int main(int argc,char** argv){
 	QCoreApplication::setOrganizationName("frox");
 	QCoreApplication::setOrganizationDomain("frox.berlios.com");
 	QCoreApplication::setApplicationName("frox");
-
-	Callmonitor temp(&app);
-	trayicon = &temp;
 	
-	HauptFenster mw;
+	PBModell PM;
+	
+	HauptFenster mw(&PM);
 	mw.show();
+		
+	Callmonitor temp(&app, &PM);
+	trayicon = &temp;
 	QObject::connect(&temp, SIGNAL(TrayDoubleClicked()), &mw, SLOT(ShowWindow()));
 	
 	return app.exec();
