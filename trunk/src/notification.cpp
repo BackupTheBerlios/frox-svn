@@ -21,12 +21,21 @@ NotificationWindow::NotificationWindow()
 	connect(bleft,SIGNAL(clicked()), this, SLOT(bleftClicked()));
 	bright = new QPushButton(">");
 	connect(bright,SIGNAL(clicked()), this, SLOT(brightClicked()));
-	LabelTitle = new QLabel("Incoming Call: ");
-	LabelId = new QLabel("id");
 	
-	LabelNumber = new QLabel("number");
-	LabelDatetime = new QLabel("datetime");
-	LabelMsn = new QLabel("MSN");
+	bleft->setEnabled(false);
+	bright->setEnabled(false);
+	
+	LabelTitle = new QLabel("");
+	LabelId = new QLabel("");
+	
+	LabelNumber = new QLabel("");
+	LabelDatetime = new QLabel("");
+	LabelMsn = new QLabel("");
+	
+	LabelTitle->	setFont(QFont("Arial",  10, QFont::Bold));
+	LabelNumber->	setFont(QFont("Arial", 18, QFont::Bold));
+	LabelMsn->	setFont(QFont("Arial", 14, QFont::Normal));
+	LabelDatetime->	setFont(QFont("Arial", 14, QFont::Normal));
 		
 	QHBoxLayout *hbox = new QHBoxLayout;
 	hbox->addWidget(LabelTitle);

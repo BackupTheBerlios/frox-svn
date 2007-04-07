@@ -48,7 +48,7 @@ void Callmonitor::neuedaten()
 	if (nachricht.CallTerminated()){ 	//augelegt > Anruf entfernen
 		schlange[nachricht.id].Disconnect();
 		CallCount--;
-		if ((CallCount == 0) && (alert != NULL)) alert->close();
+//  		if ((CallCount == 0) && (alert != NULL)) alert->close();
 		return;
 	}
 	if (nachricht.CallStarted()){ 	//Verbindung zustande gekommen
@@ -72,6 +72,16 @@ void Callmonitor::neuedaten()
 		connect(alert, SIGNAL(prevCall()),this,SLOT(ShowPrevCall()));
 		connect(alert, SIGNAL(OnCloseWindow()),this,SLOT(NotificationClosed()));
 	}
+	
+	if ( CallCount > 1 ) {
+		alert->bleft->setEnabled(true);
+		alert->bright->setEnabled(true);
+	}
+	else {
+		alert->bleft->setEnabled(false);
+		alert->bright->setEnabled(false);
+	}	
+	
 	ShowSpecificCall(nachricht.id);
 	
 }
@@ -79,18 +89,20 @@ void Callmonitor::neuedaten()
 void Callmonitor::ShowNextCall(){
 	int id = 0;
 	
+	if (CallCount < 1) return;
+	
 	id = visibleCall + 1;
 	if (id >= CallCount) id = 0;
-	std::cout << "next\n";
 	ShowSpecificCall(id);
 }
 
 void Callmonitor::ShowPrevCall(){
 	int id = 0;
 	
+	if (CallCount < 1) return;
+	
 	id = visibleCall - 1;
 	if (id < 0) id = CallCount-1;
-	std::cout << "prev\n";
 	ShowSpecificCall(id);
 }
 
@@ -104,6 +116,7 @@ void Callmonitor::ShowSpecificCall(int id)
 		alert->LabelTitle->setText("Incoming Call :");
 	else
 		alert->LabelTitle->setText("Outgoing Call :");
+		
 	alert->LabelNumber->setText(schlange[id].Rufnummer);
 	alert->LabelDatetime->setText(schlange[id].marke.toString("hh:mm:ss dd.MM.yyyy"));
 	alert->LabelMsn->setText(schlange[id].MSN);
