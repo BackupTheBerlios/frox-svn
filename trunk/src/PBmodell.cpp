@@ -23,14 +23,12 @@ void PBModell::neue_liste(QString daten){
     //Einlesen der Daten und Schreiben der Liste
 	QTextStream temp(&daten);
 	do{
-		int count = 1;
 		QString zeile = temp.readLine();
 		if (!zeile.isEmpty() && zeile.contains("document.write(TrFon(", Qt::CaseSensitive)){
 // 			output << zeile << "\n";
 			zeile.replace(1,55,"");
 			zeile.chop(12);
- 			phonebook.push_back(Person(zeile.split("\", "),count)); //push_back() ist gleich append() 
-			count++;
+ 			phonebook.push_back(Person(zeile.split("\", "))); //push_back() ist gleich append() 
 		}
 	}while(!temp.atEnd());
 	phonebook.push_back(Person());
@@ -182,5 +180,43 @@ QString PBModell::NameFromNumber(QString number){
 	
 }
 
+void PBModell::SaveToFile(QString FileName){
+	
+	QFile file(FileName);
+     	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        	 return;
+
+     	QTextStream out(&file);
+
+	int i=0;
+	for (i=0;i< phonebook.count(); i++){
+		if ((phonebook[i][0] != "") && (phonebook[i][0]!= "<Neuer Eintrag>"))
+			out 	<< phonebook[i][0] << "\t" 
+			 	<< phonebook[i][1] << "\t" 
+			 	<< phonebook[i][2] << "\t" 
+			 	<< phonebook[i][3] << "\n";
+	}
+	file.close();
+}
+
+void PBModell::LoadFromFile(QString FileName){
+
+	QFile file(FileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	 return;
+
+    //Einlesen der Daten und Schreiben der Liste
+	
+	do{
+		QString zeile = file.readLine();
+		if (!zeile.isEmpty()){
+			phonebook.push_back(Person(zeile.split("\t"))); //push_back() ist gleich append() 
+		}
+	}while(!file.atEnd());
+	phonebook.push_back(Person());
+	file.close();
+	
+	emit liste_geladen();
+}
 
 

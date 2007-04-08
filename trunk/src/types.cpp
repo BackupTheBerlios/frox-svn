@@ -87,18 +87,17 @@ Qt::SortOrder Person::order = Qt::AscendingOrder;
 int Person::sort_column =0;
 
 Person::Person()
-:name("<Neuer Eintrag>"),rufnr(""),kurzwahl(""),vanity(""),ident(1)
+:name("<Neuer Eintrag>"),rufnr(""),kurzwahl(""),vanity("")
 {}
 
-Person::Person(QStringList zeile, int pos)
-:name("name"),rufnr("unbekannt"),kurzwahl(-1),vanity(""),ident(1)
+Person::Person(QStringList zeile)
+:name("name"),rufnr("unbekannt"),kurzwahl(-1),vanity("")
 {
  	if (spaltenAnzahl() == zeile.count()){
 		name		= zeile.takeFirst().trimmed();
 		rufnr		= zeile.takeFirst().trimmed();
 		kurzwahl	= zeile.takeFirst().trimmed();
 		vanity		= zeile.takeFirst().trimmed();	
-		ident 		= pos;
 
 		name.remove("\"");
 		name.replace("&auml;","ä");

@@ -36,12 +36,11 @@ class Person{
 	QString rufnr;
 	QString kurzwahl;
 	QString vanity;
-	int ident;
 public:
 	static Qt::SortOrder order;
 	static int sort_column;
 	Person();
-	Person(QStringList zeile, int pos);
+	Person(QStringList zeile);
 	//QVariant operator[](int index)const;
 	QString & operator[](int index);
 	const QString & operator[](int index)const;

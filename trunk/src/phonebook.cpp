@@ -17,14 +17,14 @@ PhonebookWindow::PhonebookWindow( QSettings& _settings, QWidget *parent, PBModel
 	tabelle			= new QTableView(this);
 	tabhead			= tabelle->horizontalHeader();
 
+	PhoneBookModell->LoadFromFile("phonebook.csv");
+	tabelle->setSortingEnabled(true);
 	tabelle->setModel(PhoneBookModell);
 	
-	tabelle->setSortingEnabled(true);
 	connect(tabhead, SIGNAL(sectionClicked(int)), this, SLOT(ItemClicked(int)));
 	layout->addWidget(tabelle);
 	
 // 	tabhead->setResizeMode(QHeaderView::ResizeToContents); 
-	//tabhead->setClickable(true);
  
 // 	closeButton = new QPushButton(tr("&Close"));
 // 	connect(closeButton, SIGNAL(clicked()), this, SLOT(CloseWindow()));
@@ -44,36 +44,19 @@ void PhonebookWindow::CloseWindow(){
 }
 
 void PhonebookWindow::ItemClicked(int index){
-	//Zur Ausgabe entweder mit std::endl oder flush()
-	std::cout << "clicked : " <<std::endl;
 	tabelle->sortByColumn(index);
-	//PhoneBookModell->sort(1,Qt::AscendingOrder);
-// 	//Ausgabe der Daten von der Fritzbox auf der Konsole
-/*{ 	QFile file;
- 	file.open(stderr, QIODevice::WriteOnly);
- 	QTextStream output(&file);
-  	output << "clicked\n" ;
- 	
-	file.close();
-}*/
-}
-void PhonebookWindow::Phonebook_loaded()
-{
-	tabelle->resizeColumnsToContents();
-	setEnabled(true);
 }
 
-void PhonebookWindow::upload()
-{	QByteArray data="";
+void PhonebookWindow::Phonebook_loaded(){
+	tabelle->resizeColumnsToContents();
+	setEnabled(true);
+	PhoneBookModell->SaveToFile("phonebook.csv");
+}
+
+void PhonebookWindow::upload(){	
+	QByteArray data="";
 	data = PhoneBookModell->upload_phonebook();
 	fritzbox->holeSeite(data);
-//debug
-// 	QFile file;
-// 	file.open(stderr, QIODevice::WriteOnly);
-// 	QTextStream output(&file);
-// 	output << data << "\n";
-// 	
-// 	file.close();
 }
 
 
