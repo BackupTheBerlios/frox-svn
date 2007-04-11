@@ -197,7 +197,11 @@ void HauptFenster::ImportDialog()
      		fileNames = fileDialog.selectedFiles();
      		fileName = fileNames.at(0);
      		Dialog *dialog = new Dialog(this, fileName);
+     		connect(dialog, SIGNAL(OnImportStart(QString,int,int,int,int, QStringList)), PhoneBook, SLOT(DoImport(QString,int,int,int,int, QStringList)));
      		dialog->exec();
+     		
+     		delete dialog;
      		}
+     	
 }
  

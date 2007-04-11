@@ -27,6 +27,8 @@ private:
 	
 public	slots:
 	 void neue_liste(QString daten);
+	 void DoImport(QString sep, int N_Name, int N_Number, int N_Short, int N_Vanity, QStringList Lines);
+
 	signals:
 	 void liste_geladen();
 

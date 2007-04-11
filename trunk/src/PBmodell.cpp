@@ -41,7 +41,6 @@ void PBModell::neue_liste(QString daten){
 	//std::cout << "Spalten "<<columnCount(index(0,0))<<" Zeilen "<< rowCount(index(0,0)) <<std::endl;
 }
 
-
 bool PBModell::DataValid(int col, QVariant value) {
 	int i=0;
 	
@@ -221,4 +220,25 @@ void PBModell::LoadFromFile(QString FileName){
 	emit liste_geladen();
 }
 
+void PBModell::DoImport(QString sep, int N_Name, int N_Number, int N_Short, int N_Vanity, QStringList Lines){
+int i=0;
+QStringList zeile, zeile_sort;
 
+for (i=0; i<Lines.count(); i++)
+ if (!Lines[i].isEmpty()){
+ 			zeile.clear();
+ 			zeile_sort.clear();
+			zeile = Lines[i].split(sep);
+			
+			zeile_sort.append(zeile[N_Name-1]);
+			zeile_sort.append(zeile[N_Number-1]);
+			zeile_sort.append(zeile[N_Short-1]);
+			zeile_sort.append(zeile[N_Vanity-1]);
+			
+			phonebook.push_back(zeile_sort); //an das Telefonbuch anfügen
+		}
+		
+	//Änderung den Views bekanntgeben
+	reset ();	
+	emit liste_geladen();
+ }

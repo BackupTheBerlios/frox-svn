@@ -39,6 +39,9 @@
  public:
      Dialog(QWidget *parent = 0, QString FName ="");
 
+ signals:
+ 	void OnImportStart(QString sep, int N_Name, int N_Number, int N_Short, int N_Vanity, QStringList Lines);
+
  private slots:
 	void ScanInputFile();	
 	void DoImport();
