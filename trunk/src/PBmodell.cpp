@@ -46,8 +46,9 @@ bool PBModell::DataValid(int col, QVariant value) {
 	int i=0;
 	
 	//doppelter Eintrag ? 
-	for (i=0;i<phonebook.count();i++) 
-		if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+	if (value.toString() != "")
+ 		for (i=0;i<phonebook.count();i++) 
+ 			if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
 		
 	switch (col) {
 		case 0: //moegliche Fehler im Namen abfangen
@@ -67,7 +68,7 @@ Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 {
 	if ( ! index.isValid() )
 		return Qt::ItemIsEnabled;
-
+	
 	return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
 
@@ -75,17 +76,18 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 {
      if (index.isValid() && role == Qt::EditRole) {
 	if (DataValid(index.column(), value) == true)
-		phonebook[index.row()][index.column()] = value.toString();			
+		phonebook[index.row()][index.column()] = value.toString();	
+//	
 	//Ausgabe der Daten auf der Konsole
-/* 	QFile file;
- 	file.open(stderr, QIODevice::WriteOnly);
- 	QTextStream output(&file);*/
+//  	QFile file;
+//  	file.open(stderr, QIODevice::WriteOnly);
+//  	QTextStream output(&file);
 //  	output << "Ausgabe: " <<value.toString() << endl;//<<std::endl;
 // 	file.close();
 
-//      emit dataChanged(index, index);
+//       emit dataChanged(index, index);
 	//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
-	//reset ();
+// 	reset ();
         return true;
      }
      return false;

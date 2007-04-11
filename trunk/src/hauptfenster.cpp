@@ -25,6 +25,8 @@ HauptFenster::HauptFenster(PBModell *PM)
 	hauptToolBar = addToolBar(tr("default"));
 	hauptToolBar->addAction(refreshAct);
 	hauptToolBar->addAction(uploadAct);
+	hauptToolBar->addAction(LoadPBAct);
+	hauptToolBar->addAction(SavePBAct);
 	
 	//Menü
 	fileMenu = menuBar()->addMenu(tr("&Datei"));
@@ -79,9 +81,19 @@ void HauptFenster::createActions()
 	uploadAct->setShortcut(tr("Ctrl+U"));
 	uploadAct->setStatusTip(tr("phonebook upload"));
 	uploadAct->setVisible(false);
-// 	connect(uploadAct, SIGNAL(triggered()), this, SLOT(PhonebookUpload()));
 	
+	LoadPBAct = new QAction(QIcon("bilder/Open.png"), tr("&Import phonebook .."), this);
+	LoadPBAct->setShortcut(tr("Ctrl+I"));
+	LoadPBAct->setStatusTip(tr("Import phonebook .."));
+	LoadPBAct->setVisible(false);
+	connect(LoadPBAct, SIGNAL(triggered()), this, SLOT(ImportDialog()));
 	
+	SavePBAct = new QAction(QIcon("bilder/SaveAs.png"), tr("&Save as .."), this);
+	SavePBAct->setShortcut(tr("Ctrl+S"));
+	SavePBAct->setStatusTip(tr("save phonebook as .."));
+	SavePBAct->setVisible(false);
+	connect(SavePBAct, SIGNAL(triggered()), this, SLOT(SaveDialog()));
+
 	exitAct = new QAction(QIcon("bilder/application-exit.png"), tr("&Beenden"), this);
 	exitAct->setShortcut(tr("Alt+F4"));
 	exitAct->setStatusTip(tr("Beenden"));
@@ -104,18 +116,17 @@ void HauptFenster::refreshFritz()
 	}
 }
 
-void HauptFenster::PhonebookUpload()
-{
-	
-}
-
 void HauptFenster::TabChanged( int index)
 {
 	switch (index) {
 		case 0: uploadAct->setVisible(false);
+			SavePBAct->setVisible(false);
+			LoadPBAct->setVisible(false);
 			break;
 		
 		case 1: uploadAct->setVisible(true);
+			SavePBAct->setVisible(true);
+			LoadPBAct->setVisible(true);
 			break;
 	}
 }
@@ -155,4 +166,38 @@ void HauptFenster::readSettings()
 	 show();
  }
 
+void HauptFenster::SaveDialog()
+{
+	QString fileName;
+	QFileDialog fileDialog;
+ 	QStringList fileNames;
+ 	
+ 	fileDialog.setConfirmOverwrite(true);
+ 	fileDialog.setDefaultSuffix("csv");
+ 	fileDialog.setFileMode(QFileDialog::AnyFile);
+ 	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+ 	
+ 	if (fileDialog.exec()){
+     		fileNames = fileDialog.selectedFiles();
+     		fileName = fileNames.at(0);
+     		PhoneBook->SaveToFile(fileName);
+     		}
+}
+
+void HauptFenster::ImportDialog()
+{
+	QString fileName;
+	QFileDialog fileDialog;
+ 	QStringList fileNames;
+ 	
+ 	fileDialog.setFileMode(QFileDialog::AnyFile);
+ 	fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+ 	
+ 	if (fileDialog.exec()){
+     		fileNames = fileDialog.selectedFiles();
+     		fileName = fileNames.at(0);
+     		Dialog *dialog = new Dialog(this, fileName);
+     		dialog->exec();
+     		}
+}
  

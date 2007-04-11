@@ -26,7 +26,7 @@ nebenstelle(""),anschluss(""),intern(""),dauer()
 		name = zeile.takeFirst();
 		rufnr = zeile.takeFirst();
 		nebenstelle= zeile.takeFirst();
-		QStringList anschluss_intern= zeile.takeFirst().split(':');
+		QStringList anschluss_intern = zeile.takeFirst().split(':');
 		anschluss = anschluss_intern.takeFirst();
 		intern = anschluss_intern.takeFirst();
 		dauer = QTime::fromString(zeile.takeFirst(),"m:ss");

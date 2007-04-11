@@ -15,11 +15,11 @@ void AnrufModell::neue_liste(QString daten, QChar seperator ){
 	liste.clear();
 	
 	//Ausgabe der Daten von der Fritzbox auf der Konsole
-	QFile file;
-	file.open(stderr, QIODevice::WriteOnly);
-	QTextStream output(&file);
-	output << daten;
-	file.close();
+// 	QFile file;
+// 	file.open(stderr, QIODevice::WriteOnly);
+// 	QTextStream output(&file);
+// 	output << daten;
+// 	file.close();
 
     //Einlesen der Daten und Schreiben der Liste
 	QTextStream temp(&daten);
