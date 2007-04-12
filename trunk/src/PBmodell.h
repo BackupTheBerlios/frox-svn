@@ -50,6 +50,9 @@ public:
 	QString NameFromNumber(QString number);
 	void SaveToFile(QString FileName);
 	void LoadFromFile(QString FileName);
+	
+	QString GenerateFreeShortDial();
+	QString GenerateFreeVanity();
 };
 
 #endif /*MODELL_H*/

@@ -232,8 +232,19 @@ for (i=0; i<Lines.count(); i++)
 			
 			zeile_sort.append(zeile[N_Name-1]);
 			zeile_sort.append(zeile[N_Number-1]);
-			zeile_sort.append(zeile[N_Short-1]);
-			zeile_sort.append(zeile[N_Vanity-1]);
+			if ( N_Short == -1 ) 
+				{ 
+				zeile_sort.append(GenerateFreeShortDial());
+				}
+				else 
+				zeile_sort.append(zeile[N_Short-1]);
+				
+			if (N_Vanity == -1)
+				{
+				zeile_sort.append(GenerateFreeVanity());
+				}
+				else
+				zeile_sort.append(zeile[N_Vanity-1]);
 			
 			phonebook.push_back(zeile_sort); //an das Telefonbuch anfügen
 		}
@@ -242,3 +253,38 @@ for (i=0; i<Lines.count(); i++)
 	reset ();	
 	emit liste_geladen();
  }
+ 
+QString PBModell::GenerateFreeShortDial(){
+
+	int i = 0;
+	QStringList ShortDial;
+	
+	for (i=0; i< 100; i++){
+		if (i < 10)
+			ShortDial.append("0" + QString::number(i,10));
+		else	
+			ShortDial.append(QString::number(i,10));
+	}
+	
+	for (i=0; i< phonebook.count(); i++)
+		ShortDial.removeAt(ShortDial.indexOf(phonebook[i][2]));
+	
+	if (ShortDial.count() > 0)
+		return ShortDial[0];
+	else 
+		return "keine freie Kurzwahl";
+
+}
+
+QString PBModell::GenerateFreeVanity(){
+
+	int i = 0;
+	QStringList VanityCode;
+	
+	if (VanityCode.count() > 0)
+		return VanityCode[0];
+	else 
+		return "";
+
+}
+

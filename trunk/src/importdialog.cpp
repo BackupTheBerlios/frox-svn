@@ -78,6 +78,12 @@ Dialog::Dialog(QWidget *parent, QString FName)
 	SpinVanity->setSingleStep(1);
 	SpinVanity->setValue(4);
 
+	CheckShort  = new QCheckBox;
+	CheckVanity = new QCheckBox;
+	
+	CheckShort ->setText("generate");
+	CheckVanity->setText("generate");
+
 	QGridLayout *layout = new QGridLayout;
 	layout->setColumnStretch(1, 1);
 	layout->setColumnMinimumWidth(1, 10);
@@ -92,16 +98,23 @@ Dialog::Dialog(QWidget *parent, QString FName)
 	layout->addWidget(SpinNumber, 2, 1);
 	layout->addWidget(LabShort, 3, 0);
 	layout->addWidget(SpinShort, 3, 1);
+	layout->addWidget(CheckShort,3,2);
 	layout->addWidget(LabVanity, 4, 0);
 	layout->addWidget(SpinVanity, 4, 1);
+	layout->addWidget(CheckVanity,4,2);
 
-	QPushButton *FinishButton = new QPushButton(tr("Import"));
+	QPushButton *FinishButton = new QPushButton(tr("import"));
+	QPushButton *cancelButton = new QPushButton(tr("cancel"));
+	layout->addWidget(cancelButton, 5, 0);
 	layout->addWidget(FinishButton, 5, 1);
 	setLayout(layout);
 	setWindowTitle(tr("Import phonebook"));
 
-	connect(StartButton, SIGNAL(clicked()), this, SLOT(ScanInputFile()));
+	connect(StartButton , SIGNAL(clicked()), this, SLOT(ScanInputFile()));
 	connect(FinishButton, SIGNAL(clicked()), this, SLOT(DoImport()));
+	connect(cancelButton, SIGNAL(clicked()), this, SLOT(close()));
+	connect(CheckShort  , SIGNAL(clicked()), this, SLOT(toggleShort()));
+	connect(CheckVanity , SIGNAL(clicked()), this, SLOT(toggleVanity()));
 	FileName = FName;
 	
 	QFile file(FileName);
@@ -114,13 +127,23 @@ Dialog::Dialog(QWidget *parent, QString FName)
 	}
 }
 
+void Dialog::toggleShort() { SpinShort ->setEnabled(!SpinShort  -> isEnabled());}
+void Dialog::toggleVanity(){ SpinVanity->setEnabled(!SpinVanity -> isEnabled());}
+
 void Dialog::ScanInputFile(){
 
  }
  
 void Dialog::DoImport(){
-   emit OnImportStart(separator->text(), SpinName->value(),SpinNumber->value(), SpinShort->value(), SpinVanity->value(), Lines);
-   close();
-//    delete this;
+  if ((!CheckShort->isChecked()) && (!CheckVanity->isChecked()))
+		emit OnImportStart(separator->text(), SpinName->value(),SpinNumber->value(), SpinShort->value(), SpinVanity->value(), Lines);
+  else 
+  if ((CheckShort->isChecked()) && (!CheckVanity->isChecked()))
+		emit OnImportStart(separator->text(), SpinName->value(),SpinNumber->value(), -1, SpinVanity->value(), Lines);
+  else
+  if ((!CheckShort->isChecked()) && (CheckVanity->isChecked()))
+		emit OnImportStart(separator->text(), SpinName->value(),SpinNumber->value(), SpinShort->value(), -1, Lines);
+  
+  close();
 }
 
