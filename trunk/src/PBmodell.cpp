@@ -43,21 +43,23 @@ void PBModell::neue_liste(QString daten){
 
 bool PBModell::DataValid(int col, QVariant value) {
 	int i=0;
-	
-	//doppelter Eintrag ? 
-	if (value.toString() != "")
- 		for (i=0;i<phonebook.count();i++) 
- 			if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
 		
 	switch (col) {
-		case 0: //moegliche Fehler im Namen abfangen
-			break;
-		case 1: //moegliche Fehler in der Nummer abgfangen
-			break;
-		case 2: //moegliche Fehler in der Kurzwahl abfangen
-			break;
-		case 3: //moegliche Fehler im Vanity abfangen
-			break;
+		case 0		: //moegliche Fehler im Namen abfangen
+					if (value.toString() == tr("<Neuer Eintrag>")) 
+						for (i=0;i<phonebook.count();i++) 
+ 							if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+					break;
+// 		case 1,2,3
+		default	: //moegliche Fehler in der Nummer abgfangen
+					if (value.toString() != "") //doppelter Eintrag ? 
+ 						for (i=0;i<phonebook.count();i++) 
+ 							if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+					break;
+// 		case 2: //moegliche Fehler in der Kurzwahl abfangen
+// 			break;
+// 		case 3: //moegliche Fehler im Vanity abfangen
+// 			break;
 	}
 	return true;
 }
@@ -73,9 +75,9 @@ Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 
 bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 {
-     if (index.isValid() && role == Qt::EditRole) {
-	if (DataValid(index.column(), value) == true)
-		phonebook[index.row()][index.column()] = value.toString();	
+    if (index.isValid() && role == Qt::EditRole) {
+		if (DataValid(index.column(), value) == true)
+			phonebook[index.row()][index.column()] = value.toString();	
 //	
 	//Ausgabe der Daten auf der Konsole
 //  	QFile file;
@@ -85,8 +87,12 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 // 	file.close();
 
 //       emit dataChanged(index, index);
-	//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
-// 	reset ();
+	
+		if (DataValid(0,tr("<Neuer Eintrag>"))) {
+				phonebook.push_back(Person());
+			 	//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
+				reset ();
+			}
         return true;
      }
      return false;
@@ -110,7 +116,7 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 	
 	int count=0;
 	for( i=0; i<phonebook.count(); i++){
- 		if ((phonebook[i][0] != "<Neuer Eintrag>")&&(phonebook[i][0] != ""))
+ 		if ((phonebook[i][0] != tr("<Neuer Eintrag>"))&&(phonebook[i][0] != ""))
 		{
 			
 			Data.append("telcfg:settings/HotDialEntry"+QString::number(count) +"/Code="  + phonebook[i][2]  + "&" +
@@ -191,7 +197,7 @@ void PBModell::SaveToFile(QString FileName){
 
 	int i=0;
 	for (i=0;i< phonebook.count(); i++){
-		if ((phonebook[i][0] != "") && (phonebook[i][0]!= "<Neuer Eintrag>"))
+		if ((phonebook[i][0] != "") && (phonebook[i][0]!= tr("<Neuer Eintrag>")))
 			out 	<< phonebook[i][0] << "\t" 
 			 	<< phonebook[i][1] << "\t" 
 			 	<< phonebook[i][2] << "\t" 
@@ -230,21 +236,22 @@ for (i=0; i<Lines.count(); i++)
  			zeile_sort.clear();
 			zeile = Lines[i].split(sep);
 			
-			zeile_sort.append(zeile[N_Name-1]);
+			if ( N_Name == -1 ) { 
+						zeile_sort.append(tr("<unbekannt>"));
+					}
+			else zeile_sort.append(zeile[N_Name-1]);
+			
 			zeile_sort.append(zeile[N_Number-1]);
-			if ( N_Short == -1 ) 
-				{ 
-				zeile_sort.append(GenerateFreeShortDial());
-				}
-				else 
-				zeile_sort.append(zeile[N_Short-1]);
+			
+			if ( N_Short == -1 ) { 
+					zeile_sort.append(GenerateFreeShortDial());
+					}
+			else zeile_sort.append(zeile[N_Short-1]);
 				
-			if (N_Vanity == -1)
-				{
-				zeile_sort.append(GenerateFreeVanity());
-				}
-				else
-				zeile_sort.append(zeile[N_Vanity-1]);
+			if (N_Vanity == -1){
+						zeile_sort.append(GenerateFreeVanity());
+					}
+			else zeile_sort.append(zeile[N_Vanity-1]);
 			
 			phonebook.push_back(zeile_sort); //an das Telefonbuch anfügen
 		}
@@ -277,14 +284,6 @@ QString PBModell::GenerateFreeShortDial(){
 }
 
 QString PBModell::GenerateFreeVanity(){
-
-	int i = 0;
-	QStringList VanityCode;
-	
-	if (VanityCode.count() > 0)
-		return VanityCode[0];
-	else 
-		return "";
-
+	return "";
 }
 

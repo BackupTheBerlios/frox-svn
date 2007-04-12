@@ -77,12 +77,14 @@ Dialog::Dialog(QWidget *parent, QString FName)
 	SpinVanity->setRange(1, 100);
 	SpinVanity->setSingleStep(1);
 	SpinVanity->setValue(4);
-
+	
+	CheckName  = new QCheckBox;
 	CheckShort  = new QCheckBox;
 	CheckVanity = new QCheckBox;
 	
+	CheckName->setText("leave empty");
 	CheckShort ->setText("generate");
-	CheckVanity->setText("generate");
+	CheckVanity->setText("leave empty");
 
 	QGridLayout *layout = new QGridLayout;
 	layout->setColumnStretch(1, 1);
@@ -94,6 +96,7 @@ Dialog::Dialog(QWidget *parent, QString FName)
 	
 	layout->addWidget(LabName, 1, 0);
 	layout->addWidget(SpinName, 1, 1);
+	layout->addWidget(CheckName,1,2);
 	layout->addWidget(LabNumber, 2, 0);
 	layout->addWidget(SpinNumber, 2, 1);
 	layout->addWidget(LabShort, 3, 0);
@@ -113,6 +116,7 @@ Dialog::Dialog(QWidget *parent, QString FName)
 	connect(StartButton , SIGNAL(clicked()), this, SLOT(ScanInputFile()));
 	connect(FinishButton, SIGNAL(clicked()), this, SLOT(DoImport()));
 	connect(cancelButton, SIGNAL(clicked()), this, SLOT(close()));
+	connect(CheckName  , SIGNAL(clicked()), this, SLOT(toggleName()));
 	connect(CheckShort  , SIGNAL(clicked()), this, SLOT(toggleShort()));
 	connect(CheckVanity , SIGNAL(clicked()), this, SLOT(toggleVanity()));
 	FileName = FName;
@@ -126,7 +130,7 @@ Dialog::Dialog(QWidget *parent, QString FName)
 	     Lines.append(line);
 	}
 }
-
+void Dialog::toggleName() { SpinName ->setEnabled(!SpinName  -> isEnabled());}
 void Dialog::toggleShort() { SpinShort ->setEnabled(!SpinShort  -> isEnabled());}
 void Dialog::toggleVanity(){ SpinVanity->setEnabled(!SpinVanity -> isEnabled());}
 
@@ -135,15 +139,26 @@ void Dialog::ScanInputFile(){
  }
  
 void Dialog::DoImport(){
-  if ((!CheckShort->isChecked()) && (!CheckVanity->isChecked()))
-		emit OnImportStart(separator->text(), SpinName->value(),SpinNumber->value(), SpinShort->value(), SpinVanity->value(), Lines);
-  else 
-  if ((CheckShort->isChecked()) && (!CheckVanity->isChecked()))
-		emit OnImportStart(separator->text(), SpinName->value(),SpinNumber->value(), -1, SpinVanity->value(), Lines);
-  else
-  if ((!CheckShort->isChecked()) && (CheckVanity->isChecked()))
-		emit OnImportStart(separator->text(), SpinName->value(),SpinNumber->value(), SpinShort->value(), -1, Lines);
-  
-  close();
+	int val_Name;
+	int val_Short;
+	int val_Vanity;
+	
+	if (CheckName->isChecked()) 
+		val_Name = -1;
+	else
+		val_Name = SpinName->value();
+	
+	if (CheckShort->isChecked()) 
+		val_Short = -1;
+	else
+		val_Short = SpinShort->value(); 
+		
+	if (CheckVanity->isChecked()) 
+		val_Vanity = -1;
+	else
+		val_Vanity = SpinVanity->value();
+	
+	emit OnImportStart(separator->text(), val_Name,SpinNumber->value(), val_Short, val_Vanity, Lines);
+	close();
 }
 

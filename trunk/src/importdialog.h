@@ -44,6 +44,7 @@
  	void OnImportStart(QString sep, int N_Name, int N_Number, int N_Short, int N_Vanity, QStringList Lines);
 
  private slots:
+ 	void toggleName(); 
 	void toggleShort(); 
 	void toggleVanity();
 	void ScanInputFile();	
@@ -54,7 +55,7 @@
      QLineEdit *separator;
      QLabel *LabName, *LabNumber, *LabShort, *LabVanity;
      QSpinBox *SpinName, *SpinNumber, *SpinShort, *SpinVanity;
-     QCheckBox *CheckShort,*CheckVanity;
+     QCheckBox *CheckName,*CheckShort,*CheckVanity;
      QStringList Lines;
      QString 	 FileName;
      
