@@ -139,10 +139,10 @@ type
     procedure httpget(URL: string; var str: TStringStream);
     procedure httppost(URL,Data: string);
     procedure SaveTrafficData;
+    procedure ReverseLookUp(Call: TCaller);
   private
     { Private-Deklarationen }
     PBselected: integer;
-    ConnectionID: string;
     unsaved_Phonebook: boolean;
   public
     { Public-Deklarationen }
@@ -220,6 +220,19 @@ begin
  end;
 end;
 
+procedure TForm1.ReverseLookUp(Call: TCaller);
+var reverseAdress  : string;
+begin
+     reverseAdress := sett.ReadString('FritzBox','reverse', '');
+
+     if reverseAdress <> '' then
+      if (Call.Rufnummer <> '') and (Call.Name = Call.Rufnummer) then
+       begin
+        reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',CALL.Rufnummer);
+        Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
+       end;
+end;
+
 Procedure TForm1.SocketMessage(Sender: TObject; Socket: TCustomWinSocket);
 var m    : string;
     s    : TStringlist;
@@ -255,6 +268,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
         count:= AddACall(Call);
         if count = 1 then ShowNotification;
         Callin.ShowCall(count - 1);
+        ReverseLookUp(Call);
       end;
     end
    else
@@ -278,6 +292,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
         count := AddACall(Call);
         if Count = 1 then ShowNotification;
         Callin.ShowCall(count -1);
+        ReverseLookUp(Call);
       end;
     end
    else

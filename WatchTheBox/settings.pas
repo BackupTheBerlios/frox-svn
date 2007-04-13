@@ -202,7 +202,6 @@ begin
 end;
 
 procedure TForm3.FormCreate(Sender: TObject);
-var i: integer;
 begin
   CurrLabel.Caption:= CurrencyString;
 end;

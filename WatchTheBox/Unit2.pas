@@ -67,7 +67,7 @@ procedure TCallIn.showCall(p: integer);
 begin
       if p >= length(ActiveCalls) then p:=0;
       if length(ActiveCalls)=0 then exit;
-      
+
       callID:= p;
       CallType.caption:= ActiveCalls[p].typ;
       info2.caption   := ActiveCalls[p].name;
@@ -80,7 +80,7 @@ begin
 
       duration.caption:= '';
       if ActiveCalls[p].start > 0 then
-       duration.caption:= Format('%d',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);
+       duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);
 end;
 
 procedure SetFormPosition;
@@ -164,7 +164,6 @@ CallIn:= nil;
 end;
 
 procedure TCallIn.FormCreate(Sender: TObject);
-var reverseAdress  : string;
 begin
 
 CallIn.Left:= sett.Readinteger('Call','left',-1);
@@ -180,13 +179,6 @@ AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, t
   timer.Enabled:= true;
  end;
 
-  reverseAdress := sett.ReadString('FritzBox','reverse', '');
-   if reverseAdress <> '' then
-    if (Call <> '') and (Call = info2.caption) then
-     begin
-      reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',CALL);
-      Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
-     end;
 end;
 
 

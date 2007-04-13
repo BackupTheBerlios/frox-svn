@@ -250,7 +250,7 @@ object Form3: TForm3
           Top = 36
           Width = 313
           Height = 21
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           Text = 'NDev'
         end
