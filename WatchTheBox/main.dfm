@@ -438,7 +438,7 @@ object Form1: TForm1
         Width = 57
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         Sorted = True
         TabOrder = 2
       end
@@ -1573,5 +1573,12 @@ object Form1: TForm1
   object OneInstance: TBomeOneInstance
     Left = 360
     Top = 72
+  end
+  object SocketConnect: TTimer
+    Enabled = False
+    Interval = 5000
+    OnTimer = SocketConnectTimer
+    Left = 120
+    Top = 296
   end
 end

@@ -21,6 +21,8 @@ type
     info4: TLabel;
     duration: TLabel;
     Timer: TTimer;
+    durationTimer: TTimer;
+    procedure durationTimerTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure TimerTimer(Sender: TObject);
@@ -81,6 +83,7 @@ begin
       duration.caption:= '';
       if ActiveCalls[p].start > 0 then
        duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);
+      durationTimer.Enabled:= true; 
 end;
 
 procedure SetFormPosition;
@@ -157,8 +160,9 @@ end;
 
 procedure TCallIn.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
- sett.Writeinteger('Call','left',CallIn.Left);
- sett.Writeinteger('Call','top' ,CallIn.top);
+sett.Writeinteger('Call','left',CallIn.Left);
+sett.Writeinteger('Call','top' ,CallIn.top);
+durationTimer.Enabled:= false;
 CallIn.Release;
 CallIn:= nil;
 end;
@@ -181,5 +185,13 @@ AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, t
 
 end;
 
+
+procedure TCallIn.durationTimerTimer(Sender: TObject);
+begin
+ if (( CallID >= 0  ) and (CallID < length(ActiveCalls))
+    and (ActiveCalls[CallID].start > 0))
+  then
+       duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[CallID].start/1000)]);
+end;
 
 end.

@@ -93,6 +93,8 @@ type
     Website: TLabel;
     ToolButton9: TToolButton;
     OneInstance: TBomeOneInstance;
+    SocketConnect: TTimer;
+    procedure SocketConnectTimer(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure ToolButton9Click(Sender: TObject);
     procedure WebsiteClick(Sender: TObject);
@@ -144,6 +146,7 @@ type
     { Private-Deklarationen }
     PBselected: integer;
     unsaved_Phonebook: boolean;
+    SocketConnected: boolean;
   public
     { Public-Deklarationen }
   end;
@@ -172,8 +175,16 @@ uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
 
 {$R arrows.res}
 
+procedure TForm1.SocketConnectTimer(Sender: TObject);
+begin //versuche alle 5 s mit der FritzBox zu Verbinden
+ SocketConnect.enabled:= false;
+ if sett.ReadBool('FritzBox','useMonitor',false) then
+     StartMySocket; //Fritz!Box Listener started
+end;
+
 procedure TForm1.StartMySocket;
 begin
+ SocketConnected  := false;
  MySocket.Host    := sett.readstring('Fritzbox','IP','192.168.178.1');
  MySocket.Port    := sett.ReadInteger('FritzBox','Port',1012);
  MySocket.Open;
@@ -182,6 +193,7 @@ end;
 procedure tForm1.SocketConn(Sender: TObject; Socket: TCustomWinSocket);
 begin
  Status.Simpletext:= 'Fritz!Box connected';
+ SocketConnected  := true;
 end;
 
 procedure TForm1.SocketErr(Sender:TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
@@ -189,13 +201,14 @@ begin
  If ErrorCode <> 0 then
  begin
     Status.Simpletext:= 'Could not connect to your Fritz!Box';
+    SocketConnect.enabled:= true;
     ErrorCode:= 0;
- end;   
+ end;
 end;
 
 procedure TForm1.StopMySocket;
 begin
- MySocket.Close;
+ if SocketConnected then MySocket.Close;
 end;
 
 function findnames(number: string): string;
@@ -536,7 +549,7 @@ begin
  MySocket.OnRead   := SocketMessage;
 
  if sett.ReadBool('FritzBox','useMonitor',false) then
-     StartMySocket; //Fritz!Box Listener starten
+     StartMySocket; //Fritz!Box Listener started
 end;
 
 

@@ -139,4 +139,10 @@ object CallIn: TCallIn
     Left = 112
     Top = 56
   end
+  object durationTimer: TTimer
+    Enabled = False
+    OnTimer = durationTimerTimer
+    Left = 160
+    Top = 32
+  end
 end
