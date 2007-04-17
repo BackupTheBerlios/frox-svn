@@ -4,11 +4,10 @@
 #include <QtGui>
 #include <iostream>
 
-
 #include "fritzbox.h"
 #include "PBmodell.h"
 
- class PhonebookWindow : public QWidget
+class PhonebookWindow : public QWidget
 {
 	Q_OBJECT
 

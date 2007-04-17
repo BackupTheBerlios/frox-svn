@@ -21,9 +21,9 @@
  **
  ****************************************************************************/
 
- #ifndef DIALOG_H
- #define DIALOG_H
- 
+ #ifndef SETTINGS_H
+ #define SETTINGS_H
+
  #include <QtGui>
  #include <QDialog>
  #include <QLineEdit>
@@ -31,37 +31,25 @@
  #include <QStringList>
  #include <QCheckBox>
 
- class QLabel;
- class QErrorMessage;
-
- class Dialog : public QDialog
- {
+class SettingsWindow : public QDialog
+{
      Q_OBJECT
 
  public:
-     Dialog(QWidget *parent = 0, QString FName ="");
+     SettingsWindow();
 
  signals:
- 	void OnImportStart(QString sep, int N_Name, int N_Number, int N_Short, int N_Vanity, QStringList Lines);
-
+ 
  private slots:
- 	void toggleName(); 
-	void toggleShort(); 
-	void toggleVanity();
-	void ScanInputFile();	
-	void DoImport();
-
+	void SaveSettings();
+ 
  private:
-     QLabel *integerLabel;
-     QLineEdit *separator;
-     QLabel *LabName, *LabNumber, *LabShort, *LabVanity;
-     QSpinBox *SpinName, *SpinNumber, *SpinShort, *SpinVanity;
-     QCheckBox *CheckName,*CheckShort,*CheckVanity;
-     QStringList Lines;
-     QString 	 FileName;
-     
+     QLineEdit *FBAdress;
+     QLineEdit *FBPort;
+     QLineEdit *FBPassword;
 
- };
+
+};
 
 #endif
 

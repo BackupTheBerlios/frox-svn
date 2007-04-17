@@ -21,15 +21,7 @@
  **
  ****************************************************************************/
 
- #include <QtGui>
-
- #include "importdialog.h"
-
- #define MESSAGE \
-     Dialog::tr("<p>Message boxes have a caption, a text, " \
-                "and any number of buttons, each with standard or custom texts." \
-                "<p>Click a button to close the message box. Pressing the Esc button " \
-                "will activate the detected escape button (if any).")
+#include "importdialog.h"
 
 Dialog::Dialog(QWidget *parent, QString FName)
      : QDialog(parent)

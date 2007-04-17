@@ -15,6 +15,7 @@
 #include "fritzbox.h"
 #include "phonebook.h"
 #include "importdialog.h"
+#include "settingswindow.h"
 		
 
 class HauptFenster :public QMainWindow{
@@ -37,6 +38,7 @@ private slots:
 	void TabChanged(int index);
 	void SaveDialog();
 	void ImportDialog();
+	void ShowSettings();
 	
 private:
 
@@ -45,10 +47,12 @@ private:
 	void writeSettings();
 	QToolBar *hauptToolBar;
 	QMenu *fileMenu;
+	QMenu *settMenu;
 	QAction *refreshAct;
 	QAction *uploadAct;
 	QAction *SavePBAct;
 	QAction *LoadPBAct;
+	QAction *SettAct;
 	QAction *exitAct;
 	QHttp *http;
 	FritzBox *fritzbox;

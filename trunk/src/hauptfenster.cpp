@@ -27,12 +27,18 @@ HauptFenster::HauptFenster(PBModell *PM)
 	hauptToolBar->addAction(uploadAct);
 	hauptToolBar->addAction(LoadPBAct);
 	hauptToolBar->addAction(SavePBAct);
+	hauptToolBar->addAction(SettAct);
 	
 	//Menü
-	fileMenu = menuBar()->addMenu(tr("&Datei"));
+	fileMenu = menuBar()->addMenu(tr("&File"));
 	fileMenu->addAction(refreshAct);
+	fileMenu->addAction(LoadPBAct);
+	fileMenu->addAction(SavePBAct);
 	fileMenu->addSeparator();
 	fileMenu->addAction(exitAct);
+	
+	settMenu = menuBar()->addMenu(tr("&Settings"));
+	settMenu->addAction(SettAct);
 	
 	
 	//Anrufliste
@@ -88,11 +94,17 @@ void HauptFenster::createActions()
 	LoadPBAct->setVisible(false);
 	connect(LoadPBAct, SIGNAL(triggered()), this, SLOT(ImportDialog()));
 	
-	SavePBAct = new QAction(QIcon("bilder/SaveAs.png"), tr("&Save as .."), this);
+	SavePBAct = new QAction(QIcon("bilder/SaveAs.png"), tr("&Save phonebook as .."), this);
 	SavePBAct->setShortcut(tr("Ctrl+S"));
 	SavePBAct->setStatusTip(tr("save phonebook as .."));
 	SavePBAct->setVisible(false);
 	connect(SavePBAct, SIGNAL(triggered()), this, SLOT(SaveDialog()));
+
+	SettAct = new QAction(QIcon("bilder/settings.png"), tr("S&ettings"), this);
+	SettAct->setShortcut(tr("Ctrl+E"));
+	SettAct->setStatusTip(tr("settings"));
+	SettAct->setVisible(true);
+	connect(SettAct, SIGNAL(triggered()), this, SLOT(ShowSettings()));
 
 	exitAct = new QAction(QIcon("bilder/application-exit.png"), tr("&Beenden"), this);
 	exitAct->setShortcut(tr("Alt+F4"));
@@ -204,4 +216,9 @@ void HauptFenster::ImportDialog()
      		}
      	
 }
- 
+
+void HauptFenster::ShowSettings()
+{
+SettingsWindow *set = new SettingsWindow();
+set->show();
+}

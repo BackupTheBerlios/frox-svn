@@ -11,7 +11,8 @@ HEADERS += src/hauptfenster.h \
            src/phonebook.h \
            src/PBmodell.h \
            src/notification.h \
-           src/importdialog.h 
+           src/importdialog.h \
+           src/settingswindow.h 
 SOURCES += src/hauptfenster.cpp \
            src/main.cpp \
            src/modell.cpp \
@@ -21,7 +22,8 @@ SOURCES += src/hauptfenster.cpp \
            src/phonebook.cpp \
            src/PBmodell.cpp \
            src/notification.cpp \
-           src/importdialog.cpp 
+           src/importdialog.cpp \
+           src/settingswindow.cpp 
 TEMPLATE = app
 TARGET =
 DEPENDPATH += . src
