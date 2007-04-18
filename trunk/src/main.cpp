@@ -18,8 +18,9 @@ int main(int argc,char** argv){
 	QCoreApplication::setApplicationName("frox");
 	
 	PBModell PM;
+	QSettings cfg(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName());
 	
-	HauptFenster mw(&PM);
+	HauptFenster mw(PM, cfg);
 	mw.show();
 		
 	Callmonitor temp(&app, &PM);

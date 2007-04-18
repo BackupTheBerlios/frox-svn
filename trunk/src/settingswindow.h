@@ -36,14 +36,17 @@ class SettingsWindow : public QDialog
      Q_OBJECT
 
  public:
-     SettingsWindow();
+     SettingsWindow(QSettings& cfg);
 
  signals:
- 
+	void SettingsChanged();
+	
  private slots:
 	void SaveSettings();
  
  private:
+ 	void LoadSettings();
+  	 QSettings& settings;
      QLineEdit *FBAdress;
      QLineEdit *FBPort;
      QLineEdit *FBPassword;

@@ -24,7 +24,8 @@
 
 #include "settingswindow.h"
 
-SettingsWindow::SettingsWindow()
+SettingsWindow::SettingsWindow(QSettings& cfg)
+ :settings(cfg)
 {
 	int frameStyle = QFrame::Sunken | QFrame::Panel;
 	setWindowTitle(tr("settings"));
@@ -32,6 +33,8 @@ SettingsWindow::SettingsWindow()
 	FBAdress	= new QLineEdit;
 	FBPort 		= new QLineEdit;
 	FBPassword 	= new QLineEdit;
+	
+	LoadSettings();
 	
 	QLabel *FBAdressLabel 	= new QLabel("Adress of your Fritz!Box");
 	QLabel *FBPortLabel 	= new QLabel("Port");
@@ -65,8 +68,21 @@ SettingsWindow::SettingsWindow()
 	
 }
 
-void SettingsWindow::SaveSettings(){}
+void SettingsWindow::SaveSettings(){
+	settings.setValue("common/IP", 		FBAdress	->text());
+	settings.setValue("common/Port", 	FBPort		->text());
+	settings.setValue("common/password",FBPassword	->text());
+	settings.sync();
+	close();
+	emit SettingsChanged();
+	delete this;
+}
 
-
+void SettingsWindow::LoadSettings()
+{
+	FBAdress	->setText(settings.value("common/IP", "fritz.box").toString());
+	FBPort		->setText(settings.value("common/Port", "1012").toString());
+	FBPassword	->setText(settings.value("common/password", "").toString());
+}
 
 

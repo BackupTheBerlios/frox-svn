@@ -11,15 +11,15 @@
 //
 #include "hauptfenster.h"
 
-HauptFenster::HauptFenster(PBModell *PM)
-:settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName()), PbWindow(NULL)
+HauptFenster::HauptFenster(PBModell& PM, QSettings& cfg)
+:PbWindow(NULL), PhoneBook(PM), settings(cfg)
 {	
+// 	PhoneBook = PM;
+
 	createActions();
 	readSettings();
 	
 	setWindowTitle(tr("frox"));
-	
-	PhoneBook = PM;
 	
 	//ToolBars
 	hauptToolBar = addToolBar(tr("default"));
@@ -49,7 +49,7 @@ HauptFenster::HauptFenster(PBModell *PM)
 	tabelle->resizeColumnsToContents();
 	
 	//Telefonbuch
-	PbWindow = new PhonebookWindow( settings, this, PhoneBook);
+	PbWindow = new PhonebookWindow(settings, this, PhoneBook);
 	connect(uploadAct, SIGNAL(triggered()), PbWindow, SLOT(upload()));
 	
 	//Tabbing
@@ -66,7 +66,8 @@ HauptFenster::HauptFenster(PBModell *PM)
 	this->statusBar()->show();
 	
 	//Wird im Klartext abgespeichert!!
-	fritzbox = new FritzBox(this, settings.value("common/password", "").toString());
+	fritzbox = new FritzBox(this, settings);
+// 	fritzbox = new FritzBox(this, settings.value("common/password", "").toString());
 	
 	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));	
 }
@@ -192,7 +193,7 @@ void HauptFenster::SaveDialog()
  	if (fileDialog.exec()){
      		fileNames = fileDialog.selectedFiles();
      		fileName = fileNames.at(0);
-     		PhoneBook->SaveToFile(fileName);
+     		PhoneBook.SaveToFile(fileName);
      		}
 }
 
@@ -209,7 +210,7 @@ void HauptFenster::ImportDialog()
      		fileNames = fileDialog.selectedFiles();
      		fileName = fileNames.at(0);
      		Dialog *dialog = new Dialog(this, fileName);
-     		connect(dialog, SIGNAL(OnImportStart(QString,int,int,int,int, QStringList)), PhoneBook, SLOT(DoImport(QString,int,int,int,int, QStringList)));
+     		connect(dialog, SIGNAL(OnImportStart(QString,int,int,int,int, QStringList)), &PhoneBook, SLOT(DoImport(QString,int,int,int,int, QStringList)));
      		dialog->exec();
      		
      		delete dialog;
@@ -219,6 +220,9 @@ void HauptFenster::ImportDialog()
 
 void HauptFenster::ShowSettings()
 {
-SettingsWindow *set = new SettingsWindow();
+SettingsWindow *set = new SettingsWindow(settings);
+connect(set, SIGNAL(SettingsChanged()), fritzbox, SLOT(UpdateSettings()));
+connect(set, SIGNAL(SettingsChanged()), PbWindow, SLOT(UpdateSettings()));
 set->show();
 }
+

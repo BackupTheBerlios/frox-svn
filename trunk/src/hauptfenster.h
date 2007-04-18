@@ -26,11 +26,11 @@ public slots:
 	void ShowWindow();
 			
 public:
-	HauptFenster(PBModell *PM);
+	HauptFenster(PBModell& PM, QSettings& cfg);
 	~HauptFenster();
-	QSettings settings;
 	PhonebookWindow *PbWindow;
-	PBModell *PhoneBook;
+	PBModell& PhoneBook;
+	QSettings& settings;
 	
 private slots:
 	void refreshFritz();

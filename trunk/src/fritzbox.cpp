@@ -7,15 +7,18 @@ const QByteArray FritzBox::POSTDATA_CALL_LIST = "getpage=..%2Fhtml%2Fde%2Fmenus%
 const QByteArray FritzBox::POSTDATA_CALL_LIST_ALL = "getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Alang=de&var%3Amenu=fon&var%3Apagename=foncalls&var%3Ashowall";
 const QByteArray FritzBox::POSTDATA_CALL = "";
 
-FritzBox::FritzBox(QWidget *parent,const QString &_passwort,const QString &_host,int _port)
-:host(_host),passwort(_passwort),port(_port),postheader("POST", "/cgi-bin/webcm")
+// FritzBox::FritzBox(QWidget *parent,const QString &_passwort,const QString &_host,int _port)
+// :host(_host),passwort(_passwort),port(_port),postheader("POST", "/cgi-bin/webcm")
+FritzBox::FritzBox(QWidget *parent ,QSettings& cfg, int _port)
+:settings(cfg),postheader("POST", "/cgi-bin/webcm"),httpPort(_port), host("fritz.box")
 {
 	//QString host();
-	http = new QHttp(host,port);
-  	
-  	postheader.setValue("Host", "fritz.box"); 
+	http = new QHttp(host,httpPort);
+	postheader.setValue("Host", host/*"fritz.box"*/); 
   	postheader.setContentType("application/x-www-form-urlencoded");
-  	
+	
+	LoadSettings();
+	
 	connect(http,SIGNAL(done(bool)),this,SLOT(Seite_geladen(bool)));
 	connect(http,SIGNAL(dataReadProgress(int, int)), parent, SLOT(ReadProgress(int,int)));
 }
@@ -23,6 +26,18 @@ FritzBox::FritzBox(QWidget *parent,const QString &_passwort,const QString &_host
 FritzBox::~FritzBox(){
 	delete http;
 }
+
+void FritzBox::LoadSettings()
+{
+ host 		= settings.value("common/IP", "fritz.box").toString();
+ port 		= settings.value("common/Port", "1012").toInt();
+ password 	= settings.value("common/password", "").toString();
+ 
+ postheader.removeValue("Host");
+ postheader.setValue("Host", host/*"fritz.box"*/); 
+}
+
+void FritzBox::UpdateSettings(){LoadSettings();}
 
 void FritzBox::Seite_geladen(bool error){
 	//reagiert nur auf die letzte Anfrage!!
@@ -64,8 +79,8 @@ void FritzBox::Seite_geladen(bool error){
 
 void FritzBox::holeSeite(const QByteArray &postdaten){
 	RequestStr = postdaten;
-	if (!passwort.isEmpty())
-		RequestID = http->request(postheader,postdaten + POSTDATA_LOGIN + QUrl::toPercentEncoding(passwort));
+	if (!password.isEmpty())
+		RequestID = http->request(postheader,postdaten + POSTDATA_LOGIN + QUrl::toPercentEncoding(password));
 	else
   		RequestID = http->request(postheader, postdaten);
 }
@@ -87,11 +102,13 @@ void FritzBox::verarbeite_csv(QByteArray &daten){
 
 void FritzBox::hole_anrufliste(){
 	http->clearPendingRequests();
+	http->setHost(host, httpPort);
 	holeSeite(POSTDATA_CALL_LIST);
 	holeSeite(POSTDATA_CSV);
 }
 
 void FritzBox::hole_telefonbuch(){
 	http->clearPendingRequests();
+	http->setHost(host, httpPort);
 	holeSeite(POSTDATA_PHONE_BOOK);
 }

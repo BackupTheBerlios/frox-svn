@@ -12,13 +12,18 @@ class PhonebookWindow : public QWidget
 	Q_OBJECT
 
 	public:
-	PhonebookWindow( QSettings& _settings,QWidget *parent, PBModell *PM);
+	PhonebookWindow( QSettings& _settings,QWidget *parent, PBModell& PM);
 	
-	FritzBox *fritzbox;
-	PBModell *PhoneBookModell;
+	FritzBox 	*fritzbox;
+	QSettings& 	settings;
+	PBModell& 	PhoneBookModell;
 
 	signals:
 		void OnCloseWindow();
+		void OnUpdate();
+		
+	public slots :
+		void UpdateSettings();
 
 	private slots:
 		void CloseWindow();
@@ -30,9 +35,6 @@ class PhonebookWindow : public QWidget
 		QTableView   *tabelle;
 		QTableWidget *tableWid;
 		QHeaderView  *tabhead;
-		QSettings& settings;
-
-
 };
 
 #endif
