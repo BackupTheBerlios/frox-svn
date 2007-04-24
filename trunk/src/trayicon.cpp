@@ -11,14 +11,14 @@
 //
 #include "trayicon.h"
 
-Callmonitor::Callmonitor(QApplication * parent, PBModell * PM)
-:QSystemTrayIcon(QIcon("bilder/connect_no.png"),parent),verbindung(false), alert(NULL), CallCount(0)
+Callmonitor::Callmonitor(QApplication * parent, PBModell * PM, QSettings& cfg)
+:QSystemTrayIcon(QIcon(":/bilder/connect_no.png"),parent), settings(cfg), verbindung(false), alert(NULL), CallCount(0)
 {
 	PhoneBook = PM;
 	setVisible(true);
 	
 	//Kontextmenu
-	QAction *exitAct = new QAction(QIcon("bilder/application-exit.png"), tr("&Beenden"), this);
+	QAction *exitAct = new QAction(QIcon(":/bilder/application-exit.png"), tr("&Beenden"), this);
 	exitAct->setShortcut(tr("Alt+F4"));
 	exitAct->setStatusTip(tr("Beenden"));
 	connect(exitAct, SIGNAL(triggered()), parent, SLOT(quit()));
@@ -30,9 +30,14 @@ Callmonitor::Callmonitor(QApplication * parent, PBModell * PM)
 	connect(this, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onclick(QSystemTrayIcon::ActivationReason)));
 	
 	//Netzwerkteil
+	QString Host;
+	int Port;
+	Host = settings.value("common/IP", "fritz.box").toString();
+	Port = settings.value("common/Port", "1012").toInt();
 	netz = new QTcpSocket(this);
-	netz->connectToHost("fritz.box",1012);
+	netz->connectToHost(Host,Port);
 	connect(netz, SIGNAL(connected()), this, SLOT(verbunden())); 
+	connect(netz, SIGNAL(disconnected()), this, SLOT(getrennt())); 
 	connect(netz, SIGNAL(error(QAbstractSocket::SocketError )), this, SLOT(fehler(QAbstractSocket::SocketError )));
 	connect(netz, SIGNAL(readyRead()), this, SLOT(neuedaten()));
 }
@@ -68,7 +73,7 @@ void Callmonitor::neuedaten()
 //  	showMessage("Debug",nachricht.toString());
 	showMessage("Debug","Calls: "+ QString::number(CallCount,10) + " | " + QString::number(nachricht.id,10));
 	if (alert == NULL) {
-		alert = new NotificationWindow();
+		alert = new NotificationWindow(settings);
 		connect(alert, SIGNAL(nextCall()),this,SLOT(ShowNextCall()));
 		connect(alert, SIGNAL(prevCall()),this,SLOT(ShowPrevCall()));
 		connect(alert, SIGNAL(OnCloseWindow()),this,SLOT(NotificationClosed()));
@@ -152,6 +157,23 @@ void Callmonitor::onclick(QSystemTrayIcon::ActivationReason reason ){
 void Callmonitor::verbunden(){
 	showMessage("Debug","Fritz!Box gefunden");
 }
+
+void Callmonitor::getrennt(){
+	showMessage("Debug","Fritz!Box getrennt");
+	
+}
+
+void Callmonitor::UpdateSettings(){
+	netz->disconnectFromHost();
+	
+	QString Host;
+	int Port;
+	Host = settings.value("common/IP", "fritz.box").toString();
+	Port = settings.value("common/Port", "1012").toInt();
+	netz->connectToHost(Host,Port);
+}
+
+
 void Callmonitor::fehler(QAbstractSocket::SocketError socketError ) {
 	showMessage("Fehler",netz->errorString ());
 }
@@ -161,3 +183,6 @@ void Callmonitor::NotificationClosed()
  	delete alert;
 	alert = NULL;
 }
+
+
+

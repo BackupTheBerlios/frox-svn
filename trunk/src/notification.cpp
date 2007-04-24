@@ -3,7 +3,8 @@
 
 #include "notification.h"
 //der Konstruktor
-NotificationWindow::NotificationWindow()
+NotificationWindow::NotificationWindow(QSettings & cfg)
+ : settings(cfg)
 {
 	Qt::WindowFlags flags = 0;
 	flags = Qt::Tool;
@@ -72,7 +73,7 @@ void NotificationWindow::CloseWindow(){
 void NotificationWindow::readSettings()
 {
 // 	QSettings settings("Trolltech", "Application Example");
-	QSettings settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName());
+// 	QSettings settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName());
 	
 	settings.beginGroup("Notification");
 	QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
@@ -84,7 +85,7 @@ void NotificationWindow::readSettings()
 
  void NotificationWindow::writeSettings()
 {
-	QSettings settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName());
+// 	QSettings settings(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName());
 	settings.beginGroup("Notification");
 	settings.setValue("pos", pos());
 	settings.setValue("size", size());

@@ -1,0 +1,17 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+     <file>bilder/application-exit.png</file>
+     <file>bilder/Callin.gif</file>
+     <file>bilder/Callinfailed.gif</file>
+     <file>bilder/Callout.gif</file>
+     <file>bilder/connect_creating.png</file>
+     <file>bilder/connect_established.png</file>
+     <file>bilder/connect_no.png</file>
+     <file>bilder/Open.png</file>
+     <file>bilder/reload.png</file>
+     <file>bilder/Save.png</file>
+     <file>bilder/SaveAs.png</file>
+     <file>bilder/settings.png</file>
+     <file>bilder/upload.png</file>
+ </qresource>
+ </RCC>

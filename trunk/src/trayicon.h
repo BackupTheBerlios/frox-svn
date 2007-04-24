@@ -25,7 +25,7 @@ class Callmonitor :public QSystemTrayIcon{
 	
 private:
 	void ShowSpecificCall(int id);
-	
+	QSettings & settings;
 	QTcpSocket *netz;
 	bool verbindung;
 	QString datenbuffer;
@@ -35,7 +35,7 @@ private:
 	PBModell *PhoneBook;
 
 public:
-	Callmonitor(QApplication * parent, PBModell * PM);
+	Callmonitor(QApplication * parent, PBModell * PM, QSettings& cfg);
 	~Callmonitor();
 	
 	QVector<FBMessage> schlange;//Daraus soll ein Modell werden!!
@@ -44,8 +44,11 @@ public:
 public slots:
 	void neuedaten();
 	void verbunden();
+	void getrennt();
+	
 	void fehler(QAbstractSocket::SocketError socketError );
 	void onclick(QSystemTrayIcon::ActivationReason reason );
+	void UpdateSettings();
 	
 	void NotificationClosed();
 	void ShowNextCall();

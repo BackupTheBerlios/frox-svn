@@ -32,6 +32,9 @@ public:
 	PBModell& PhoneBook;
 	QSettings& settings;
 	
+	signals:
+	void SettingsChanged();
+	
 private slots:
 	void refreshFritz();
 	void Calls_loaded();
@@ -39,6 +42,7 @@ private slots:
 	void SaveDialog();
 	void ImportDialog();
 	void ShowSettings();
+	void UpdateSettings(){emit SettingsChanged();};
 	
 private:
 

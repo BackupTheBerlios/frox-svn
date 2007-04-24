@@ -70,13 +70,13 @@ QVariant AnrufModell::data ( const QModelIndex & index, int role ) const
 		switch(liste[index.row()][index.column()].toInt()){
 			case 1:
 				//Angenommen
-				return QIcon("bilder/Callin.gif");
+				return QIcon(":/bilder/Callin.gif");
 			case 2:
 				//Abwesend
-				return QIcon("bilder/Callinfailed.gif");
+				return QIcon(":/bilder/Callinfailed.gif");
 			case 3:
 				//Ausgehend
-				return QIcon("bilder/Callout.gif");
+				return QIcon(":/bilder/Callout.gif");
 			default:
 				break;
 		}

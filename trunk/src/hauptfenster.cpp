@@ -79,35 +79,35 @@ HauptFenster::~HauptFenster(){
 
 void HauptFenster::createActions()
 {
-	refreshAct = new QAction(QIcon("bilder/reload.png"), tr("&Refresh"), this);
+	refreshAct = new QAction(QIcon(":/bilder/reload.png"), tr("&Refresh"), this);
 	refreshAct->setShortcut(tr("Ctrl+R"));
 	refreshAct->setStatusTip(tr("Refresh"));
 	connect(refreshAct, SIGNAL(triggered()), this, SLOT(refreshFritz()));
 	
-	uploadAct = new QAction(QIcon("bilder/upload.png"), tr("&Upload"), this);
+	uploadAct = new QAction(QIcon(":/bilder/upload.png"), tr("&Upload"), this);
 	uploadAct->setShortcut(tr("Ctrl+U"));
 	uploadAct->setStatusTip(tr("phonebook upload"));
 	uploadAct->setVisible(false);
 	
-	LoadPBAct = new QAction(QIcon("bilder/Open.png"), tr("&Import phonebook .."), this);
+	LoadPBAct = new QAction(QIcon(":/bilder/Open.png"), tr("&Import phonebook .."), this);
 	LoadPBAct->setShortcut(tr("Ctrl+I"));
 	LoadPBAct->setStatusTip(tr("Import phonebook .."));
 	LoadPBAct->setVisible(false);
 	connect(LoadPBAct, SIGNAL(triggered()), this, SLOT(ImportDialog()));
 	
-	SavePBAct = new QAction(QIcon("bilder/SaveAs.png"), tr("&Save phonebook as .."), this);
+	SavePBAct = new QAction(QIcon(":/bilder/SaveAs.png"), tr("&Save phonebook as .."), this);
 	SavePBAct->setShortcut(tr("Ctrl+S"));
 	SavePBAct->setStatusTip(tr("save phonebook as .."));
 	SavePBAct->setVisible(false);
 	connect(SavePBAct, SIGNAL(triggered()), this, SLOT(SaveDialog()));
 
-	SettAct = new QAction(QIcon("bilder/settings.png"), tr("S&ettings"), this);
+	SettAct = new QAction(QIcon(":/bilder/settings.png"), tr("S&ettings"), this);
 	SettAct->setShortcut(tr("Ctrl+E"));
 	SettAct->setStatusTip(tr("settings"));
 	SettAct->setVisible(true);
 	connect(SettAct, SIGNAL(triggered()), this, SLOT(ShowSettings()));
 
-	exitAct = new QAction(QIcon("bilder/application-exit.png"), tr("&Beenden"), this);
+	exitAct = new QAction(QIcon(":/bilder/application-exit.png"), tr("&Beenden"), this);
 	exitAct->setShortcut(tr("Alt+F4"));
 	exitAct->setStatusTip(tr("Beenden"));
 	connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
@@ -223,6 +223,7 @@ void HauptFenster::ShowSettings()
 SettingsWindow *set = new SettingsWindow(settings);
 connect(set, SIGNAL(SettingsChanged()), fritzbox, SLOT(UpdateSettings()));
 connect(set, SIGNAL(SettingsChanged()), PbWindow, SLOT(UpdateSettings()));
+connect(set, SIGNAL(SettingsChanged()), this, SLOT(UpdateSettings()));
 set->show();
 }
 

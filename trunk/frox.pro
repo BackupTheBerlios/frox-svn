@@ -3,6 +3,8 @@
 # Subdir relative project main directory: .
 # Target is an application:  
 
+RESOURCES = frox.qrc
+
 HEADERS += src/hauptfenster.h \
            src/modell.h \
            src/trayicon.h \

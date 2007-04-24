@@ -11,7 +11,7 @@ class NotificationWindow : public QFrame
 	Q_OBJECT
 
 	public:
-	NotificationWindow();
+	NotificationWindow(QSettings & cfg);
 	void ShowCall(int id);
 	
 	QPushButton *bleft;
@@ -34,11 +34,12 @@ class NotificationWindow : public QFrame
 		void bleftClicked() {emit prevCall();}
 		
 	private:
+	
 		void readSettings();
 		void writeSettings();
 		
+		QSettings & settings;
  		QPushButton  *closeButton;
-// 		QSettings& settings;
 };
 
 #endif

@@ -23,10 +23,11 @@ int main(int argc,char** argv){
 	HauptFenster mw(PM, cfg);
 	mw.show();
 		
-	Callmonitor temp(&app, &PM);
+	Callmonitor temp(&app, &PM, cfg);
 	trayicon = &temp;
 	QObject::connect(&temp, SIGNAL(TrayDoubleClicked()), &mw, SLOT(ShowWindow()));
-	
+	QObject::connect(&mw, SIGNAL(SettingsChanged()), &temp, SLOT(UpdateSettings()));
+		
 	return app.exec();
 }
 
