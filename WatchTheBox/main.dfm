@@ -608,8 +608,11 @@ object Form1: TForm1
     end
     object searchNumber: TMenuItem
       Caption = 'reverse Lookup'
-      Enabled = False
-      Visible = False
+      OnClick = searchNumberClick
+    end
+    object addtoPhonebook: TMenuItem
+      Caption = 'add item to phonebook'
+      OnClick = addtoPhonebookClick
     end
   end
   object PopupMenu2: TPopupMenu

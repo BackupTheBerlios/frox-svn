@@ -77,6 +77,8 @@ begin
       info4.caption   := ActiveCalls[p].ConnID;
       date.caption    := ActiveCalls[p].date;
 
+      if (info2.caption = '') then info2.caption:= 'unknown';
+
       if ActiveCalls[p].typ = 'outgoing call' then
          info3.caption   := ActiveCalls[p].Nebenstelle+'@'+ActiveCalls[p].MSN;
 

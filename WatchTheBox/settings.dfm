@@ -4,7 +4,7 @@ object Form3: TForm3
   BorderIcons = [biMinimize, biMaximize]
   BorderStyle = bsToolWindow
   Caption = 'settings'
-  ClientHeight = 323
+  ClientHeight = 361
   ClientWidth = 335
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -24,8 +24,8 @@ object Form3: TForm3
     Left = 0
     Top = 0
     Width = 335
-    Height = 281
-    ActivePage = TabSheet1
+    Height = 321
+    ActivePage = FritzBox
     Align = alTop
     Style = tsFlatButtons
     TabOrder = 0
@@ -250,7 +250,7 @@ object Form3: TForm3
           Top = 36
           Width = 313
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           Text = 'NDev'
         end
@@ -279,10 +279,17 @@ object Form3: TForm3
       end
       object Label8: TLabel
         Left = 240
-        Top = 147
+        Top = 187
         Width = 39
         Height = 13
         Caption = 'seconds'
+      end
+      object Label9: TLabel
+        Left = 20
+        Top = 117
+        Width = 120
+        Height = 13
+        Caption = 'your city code (e.g. 030)'
       end
       object FBMon: TCheckBox
         Left = 16
@@ -317,7 +324,7 @@ object Form3: TForm3
       end
       object monout: TCheckBox
         Left = 16
-        Top = 104
+        Top = 144
         Width = 153
         Height = 17
         Caption = 'monitor outgoing calls, too'
@@ -325,7 +332,7 @@ object Form3: TForm3
       end
       object revpath: TLabeledEdit
         Left = 16
-        Top = 212
+        Top = 252
         Width = 289
         Height = 21
         EditLabel.Width = 224
@@ -335,7 +342,7 @@ object Form3: TForm3
       end
       object closefinished: TCheckBox
         Left = 16
-        Top = 125
+        Top = 165
         Width = 249
         Height = 17
         Caption = 'close notification when all calls are terminated'
@@ -343,7 +350,7 @@ object Form3: TForm3
       end
       object closetimer: TCheckBox
         Left = 16
-        Top = 147
+        Top = 187
         Width = 129
         Height = 17
         Caption = 'close notification after'
@@ -351,7 +358,7 @@ object Form3: TForm3
       end
       object closeafter: TSpinEdit
         Left = 154
-        Top = 143
+        Top = 183
         Width = 73
         Height = 22
         MaxValue = 0
@@ -361,24 +368,31 @@ object Form3: TForm3
       end
       object OneMSN: TCheckBox
         Left = 16
-        Top = 174
+        Top = 214
         Width = 121
         Height = 17
         Caption = 'monitor only one MSN'
         TabOrder = 7
       end
       object MSN: TEdit
-        Left = 144
-        Top = 170
+        Left = 152
+        Top = 210
         Width = 121
         Height = 21
         TabOrder = 8
+      end
+      object CityCode: TEdit
+        Left = 154
+        Top = 112
+        Width = 121
+        Height = 21
+        TabOrder = 10
       end
     end
   end
   object BtnCancel: TBitBtn
     Left = 112
-    Top = 288
+    Top = 328
     Width = 97
     Height = 25
     Caption = 'Cancel'
@@ -388,7 +402,7 @@ object Form3: TForm3
   end
   object BtnSave: TBitBtn
     Left = 16
-    Top = 288
+    Top = 328
     Width = 75
     Height = 25
     Caption = 'Apply'

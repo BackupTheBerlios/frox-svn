@@ -94,6 +94,9 @@ type
     ToolButton9: TToolButton;
     OneInstance: TBomeOneInstance;
     SocketConnect: TTimer;
+    addtoPhonebook: TMenuItem;
+    procedure addtoPhonebookClick(Sender: TObject);
+    procedure searchNumberClick(Sender: TObject);
     procedure SocketConnectTimer(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure ToolButton9Click(Sender: TObject);
@@ -235,13 +238,18 @@ end;
 
 procedure TForm1.ReverseLookUp(Call: TCaller);
 var reverseAdress  : string;
+    CityCode       : string;
+    searchstring   : string;
 begin
-     reverseAdress := sett.ReadString('FritzBox','reverse', '');
+   CityCode      := sett.ReadString('FritzBox','CityCode', '');
+   reverseAdress := sett.ReadString('FritzBox','reverse', '');
 
-     if reverseAdress <> '' then
-      if (Call.Rufnummer <> '') and (Call.Name = Call.Rufnummer) then
+   searchstring := Call.Rufnummer;
+   if reverseAdress <> '' then
+     if (Call.Rufnummer <> '') and (Call.Name = Call.Rufnummer) then
        begin
-        reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',CALL.Rufnummer);
+        if (searchstring[1] <> '0') then searchstring:= Citycode+searchstring;
+        reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',searchstring);
         Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
        end;
 end;
@@ -1331,6 +1339,49 @@ showmessage('WatchTheBox'
              #9 +'Stefan Grandner '+#9+' : icon art (arrows)'
              +#13#10 +
              #9 +'Stefan Fruhner  '+#9#9+' : programming');
+end;
+
+procedure TForm1.searchNumberClick(Sender: TObject);
+var index          : integer;
+    reverseAdress  : string;
+    CityCode       : string;
+    SearchString   : string;
+begin
+ CityCode      := sett.ReadString('FritzBox','CityCode', '');
+ reverseAdress := sett.ReadString('FritzBox','reverse', '');
+ if CallerList.ItemIndex > -1 then
+  begin
+   index        := CallerList.ItemIndex;
+   searchstring := Callerlist.items[index].SubItems.Strings[2];
+   if (searchstring <> '') then
+   begin
+    if (searchstring[1] <> '0') then searchstring:= Citycode+searchstring;
+    reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',searchstring);
+    Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
+   end;
+  end;
+end;
+
+procedure TForm1.addtoPhonebookClick(Sender: TObject);
+var index          : integer;
+    NumberString   : string;
+    CityCode       : string;
+begin
+  CityCode      := sett.ReadString('FritzBox','CityCode', '');
+  if CallerList.ItemIndex > -1 then
+  begin
+   index        := CallerList.ItemIndex;
+
+   NumberString := Callerlist.items[index].SubItems.Strings[2];
+   if (NumberString[1] <> '0') then NumberString:= Citycode+NumberString;
+
+   PBName.text  := Callerlist.items[index].SubItems.Strings[1];
+   PBNumber.text:= numberstring;
+   PBVanity.text:= '';
+
+   PageControl1.ActivePageIndex:= 2;
+  end;
+
 end;
 
 end.
