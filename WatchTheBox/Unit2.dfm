@@ -3,8 +3,8 @@ object CallIn: TCallIn
   Top = 0
   BorderStyle = bsToolWindow
   Caption = 'CallIn'
-  ClientHeight = 107
-  ClientWidth = 245
+  ClientHeight = 109
+  ClientWidth = 353
   Color = 14600382
   TransparentColorValue = clMoneyGreen
   Font.Charset = DEFAULT_CHARSET
@@ -17,24 +17,26 @@ object CallIn: TCallIn
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    245
-    107)
+    353
+    109)
   PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel
-    Left = 0
-    Top = 25
-    Width = 245
-    Height = 82
+    Left = 102
+    Top = 0
+    Width = 251
+    Height = 109
     Align = alClient
+    Anchors = [akTop, akRight]
     Shape = bsFrame
     Style = bsRaised
   end
   object info2: TLabel
-    Left = 18
+    Left = 122
     Top = 32
     Width = 52
     Height = 19
+    Anchors = [akTop, akRight, akBottom]
     Caption = 'InfoNr'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -44,26 +46,28 @@ object CallIn: TCallIn
     ParentFont = False
   end
   object info3: TLabel
-    Left = 19
+    Left = 123
     Top = 72
     Width = 24
     Height = 13
+    Anchors = [akTop, akRight, akBottom]
     Caption = 'info3'
   end
   object Date: TLabel
-    Left = 213
+    Left = 315
     Top = 37
     Width = 23
     Height = 13
     Alignment = taRightJustify
-    Anchors = [akTop, akRight]
+    Anchors = [akTop, akRight, akBottom]
     Caption = 'Date'
   end
   object duration: TLabel
-    Left = 160
+    Left = 264
     Top = 65
     Width = 72
     Height = 19
+    Anchors = [akTop, akRight]
     Caption = '00:00:00'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -72,30 +76,42 @@ object CallIn: TCallIn
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Image1: TImage
+    Left = 0
+    Top = 0
+    Width = 102
+    Height = 109
+    Align = alLeft
+    Anchors = [akTop, akRight, akBottom]
+    Center = True
+    Proportional = True
+  end
   object BitBtn1: TBitBtn
-    Left = 168
-    Top = 95
+    Left = 272
+    Top = 104
     Width = 65
-    Height = 25
+    Height = 24
+    Anchors = [akTop, akRight]
     TabOrder = 0
     OnClick = BitBtn1Click
     Kind = bkOK
   end
   object topbox: TCheckBox
-    Left = 8
-    Top = 101
+    Left = 112
+    Top = 104
     Width = 81
-    Height = 17
+    Height = 24
+    Anchors = [akTop, akRight]
     Caption = 'stay on top'
     TabOrder = 1
     OnClick = topboxClick
   end
   object Panel: TPanel
-    Left = 0
-    Top = 0
-    Width = 245
+    Left = 103
+    Top = 1
+    Width = 249
     Height = 25
-    Align = alTop
+    Anchors = [akTop, akRight]
     BevelKind = bkFlat
     BevelOuter = bvNone
     TabOrder = 2
@@ -136,8 +152,8 @@ object CallIn: TCallIn
     Enabled = False
     Interval = 15000
     OnTimer = TimerTimer
-    Left = 112
-    Top = 56
+    Left = 184
+    Top = 40
   end
   object durationTimer: TTimer
     Enabled = False

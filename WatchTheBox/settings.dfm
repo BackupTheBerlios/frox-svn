@@ -25,7 +25,7 @@ object Form3: TForm3
     Top = 0
     Width = 335
     Height = 321
-    ActivePage = FritzBox
+    ActivePage = TabSheet2
     Align = alTop
     Style = tsFlatButtons
     TabOrder = 0
@@ -328,7 +328,7 @@ object Form3: TForm3
         Width = 153
         Height = 17
         Caption = 'monitor outgoing calls, too'
-        TabOrder = 3
+        TabOrder = 4
       end
       object revpath: TLabeledEdit
         Left = 16
@@ -338,7 +338,7 @@ object Form3: TForm3
         EditLabel.Width = 224
         EditLabel.Height = 13
         EditLabel.Caption = 'reverse lookup (use %NUMBER% as identifier)'
-        TabOrder = 9
+        TabOrder = 10
       end
       object closefinished: TCheckBox
         Left = 16
@@ -346,7 +346,7 @@ object Form3: TForm3
         Width = 249
         Height = 17
         Caption = 'close notification when all calls are terminated'
-        TabOrder = 4
+        TabOrder = 5
       end
       object closetimer: TCheckBox
         Left = 16
@@ -354,7 +354,7 @@ object Form3: TForm3
         Width = 129
         Height = 17
         Caption = 'close notification after'
-        TabOrder = 5
+        TabOrder = 6
       end
       object closeafter: TSpinEdit
         Left = 154
@@ -363,7 +363,7 @@ object Form3: TForm3
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 6
+        TabOrder = 7
         Value = 15
       end
       object OneMSN: TCheckBox
@@ -372,21 +372,21 @@ object Form3: TForm3
         Width = 121
         Height = 17
         Caption = 'monitor only one MSN'
-        TabOrder = 7
+        TabOrder = 8
       end
       object MSN: TEdit
         Left = 152
         Top = 210
         Width = 121
         Height = 21
-        TabOrder = 8
+        TabOrder = 9
       end
       object CityCode: TEdit
         Left = 154
         Top = 112
         Width = 121
         Height = 21
-        TabOrder = 10
+        TabOrder = 3
       end
     end
   end

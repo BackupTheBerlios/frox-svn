@@ -8,115 +8,121 @@
   resources were bound to the produced executable.
 */
 
-#define IPFunctions_sInvalidParameter 65280
-#define IPFunctions_sNoData 65281
-#define IPFunctions_sNotSupported 65282
-#define ComStrs_sTabFailClear 65283
-#define ComStrs_sTabFailDelete 65284
-#define ComStrs_sTabFailRetrieve 65285
-#define ComStrs_sTabFailGetObject 65286
-#define ComStrs_sTabFailSet 65287
-#define ComStrs_sTabFailSetObject 65288
-#define ComStrs_sTabMustBeMultiLine 65289
-#define ComStrs_sInvalidOwner 65290
-#define ComStrs_sPageIndexError 65291
-#define ComStrs_sInvalidComCtl32 65292
-#define Consts_SDockZoneHasNoCtl 65296
-#define Consts_SDockZoneVersionConflict 65297
-#define Consts_SSeparator 65298
-#define Consts_SNoGetItemEventHandler 65299
-#define Consts_SANSIEncoding 65300
-#define Consts_SASCIIEncoding 65301
-#define Consts_SUnicodeEncoding 65302
-#define Consts_SBigEndianEncoding 65303
-#define Consts_SUTF8Encoding 65304
-#define Consts_SUTF7Encoding 65305
-#define HelpIntfs_hNoTableOfContents 65306
-#define HelpIntfs_hNothingFound 65307
-#define HelpIntfs_hNoContext 65308
-#define HelpIntfs_hNoContextFound 65309
-#define HelpIntfs_hNoTopics 65310
-#define IPFunctions_sNotImplemented 65311
-#define Consts_SmkcUp 65312
-#define Consts_SmkcRight 65313
-#define Consts_SmkcDown 65314
-#define Consts_SmkcIns 65315
-#define Consts_SmkcDel 65316
-#define Consts_SmkcShift 65317
-#define Consts_SmkcCtrl 65318
-#define Consts_SmkcAlt 65319
-#define Consts_SOutOfRange 65320
-#define Consts_SInsertLineError 65321
-#define Consts_SIconToClipboard 65322
-#define Consts_SCannotOpenClipboard 65323
-#define Consts_SDuplicateMenus 65324
-#define Consts_SDockedCtlNeedsName 65325
-#define Consts_SDockTreeRemoveError 65326
-#define Consts_SDockZoneNotFound 65327
-#define Consts_SMsgDlgAbort 65328
-#define Consts_SMsgDlgRetry 65329
-#define Consts_SMsgDlgIgnore 65330
-#define Consts_SMsgDlgAll 65331
-#define Consts_SMsgDlgNoToAll 65332
-#define Consts_SMsgDlgYesToAll 65333
-#define Consts_SmkcBkSp 65334
-#define Consts_SmkcTab 65335
-#define Consts_SmkcEsc 65336
-#define Consts_SmkcEnter 65337
-#define Consts_SmkcSpace 65338
-#define Consts_SmkcPgUp 65339
-#define Consts_SmkcPgDn 65340
-#define Consts_SmkcEnd 65341
-#define Consts_SmkcHome 65342
-#define Consts_SmkcLeft 65343
-#define Consts_SAbortButton 65344
-#define Consts_SAllButton 65345
-#define Consts_SCannotDragForm 65346
-#define Consts_SVMetafiles 65347
-#define Consts_SVEnhMetafiles 65348
-#define Consts_SVIcons 65349
-#define Consts_SVBitmaps 65350
-#define Consts_SMsgDlgWarning 65351
-#define Consts_SMsgDlgError 65352
-#define Consts_SMsgDlgInformation 65353
-#define Consts_SMsgDlgConfirm 65354
-#define Consts_SMsgDlgYes 65355
-#define Consts_SMsgDlgNo 65356
-#define Consts_SMsgDlgOK 65357
-#define Consts_SMsgDlgCancel 65358
-#define Consts_SMsgDlgHelp 65359
-#define Consts_SPropertyOutOfRange 65360
-#define Consts_SMenuIndexError 65361
-#define Consts_SMenuReinserted 65362
-#define Consts_SMenuNotFound 65363
-#define Consts_SNoTimers 65364
-#define Consts_SGroupIndexTooLow 65365
-#define Consts_SNoMDIForm 65366
-#define Consts_SControlParentSetToSelf 65367
-#define Consts_SOKButton 65368
-#define Consts_SCancelButton 65369
-#define Consts_SYesButton 65370
-#define Consts_SNoButton 65371
-#define Consts_SHelpButton 65372
-#define Consts_SCloseButton 65373
-#define Consts_SIgnoreButton 65374
-#define Consts_SRetryButton 65375
-#define Consts_SOutOfResources 65376
-#define Consts_SNoCanvasHandle 65377
-#define Consts_SInvalidImageSize 65378
-#define Consts_SInvalidImageList 65379
-#define Consts_SReplaceImage 65380
-#define Consts_SImageIndexError 65381
-#define Consts_SImageReadFail 65382
-#define Consts_SImageWriteFail 65383
-#define Consts_SWindowDCError 65384
-#define Consts_SWindowClass 65385
-#define Consts_SCannotFocus 65386
-#define Consts_SParentRequired 65387
-#define Consts_SParentGivenNotAParent 65388
-#define Consts_SMDIChildNotVisible 65389
-#define Consts_SVisibleChanged 65390
-#define Consts_SCannotShowModal 65391
+#define JConsts_sChangeJPGSize 65264
+#define JConsts_sJPEGError 65265
+#define JConsts_sJPEGImageFile 65266
+#define HelpIntfs_hNoContextFound 65280
+#define HelpIntfs_hNoTopics 65281
+#define IPFunctions_sNotImplemented 65282
+#define IPFunctions_sInvalidParameter 65283
+#define IPFunctions_sNoData 65284
+#define IPFunctions_sNotSupported 65285
+#define ComStrs_sTabFailClear 65286
+#define ComStrs_sTabFailDelete 65287
+#define ComStrs_sTabFailRetrieve 65288
+#define ComStrs_sTabFailGetObject 65289
+#define ComStrs_sTabFailSet 65290
+#define ComStrs_sTabFailSetObject 65291
+#define ComStrs_sTabMustBeMultiLine 65292
+#define ComStrs_sInvalidOwner 65293
+#define ComStrs_sPageIndexError 65294
+#define ComStrs_sInvalidComCtl32 65295
+#define Consts_SDockedCtlNeedsName 65296
+#define Consts_SDockTreeRemoveError 65297
+#define Consts_SDockZoneNotFound 65298
+#define Consts_SDockZoneHasNoCtl 65299
+#define Consts_SDockZoneVersionConflict 65300
+#define Consts_SSeparator 65301
+#define Consts_SNoGetItemEventHandler 65302
+#define Consts_SANSIEncoding 65303
+#define Consts_SASCIIEncoding 65304
+#define Consts_SUnicodeEncoding 65305
+#define Consts_SBigEndianEncoding 65306
+#define Consts_SUTF8Encoding 65307
+#define Consts_SUTF7Encoding 65308
+#define HelpIntfs_hNoTableOfContents 65309
+#define HelpIntfs_hNothingFound 65310
+#define HelpIntfs_hNoContext 65311
+#define Consts_SmkcEnd 65312
+#define Consts_SmkcHome 65313
+#define Consts_SmkcLeft 65314
+#define Consts_SmkcUp 65315
+#define Consts_SmkcRight 65316
+#define Consts_SmkcDown 65317
+#define Consts_SmkcIns 65318
+#define Consts_SmkcDel 65319
+#define Consts_SmkcShift 65320
+#define Consts_SmkcCtrl 65321
+#define Consts_SmkcAlt 65322
+#define Consts_SOutOfRange 65323
+#define Consts_SInsertLineError 65324
+#define Consts_SIconToClipboard 65325
+#define Consts_SCannotOpenClipboard 65326
+#define Consts_SDuplicateMenus 65327
+#define Consts_SMsgDlgOK 65328
+#define Consts_SMsgDlgCancel 65329
+#define Consts_SMsgDlgHelp 65330
+#define Consts_SMsgDlgAbort 65331
+#define Consts_SMsgDlgRetry 65332
+#define Consts_SMsgDlgIgnore 65333
+#define Consts_SMsgDlgAll 65334
+#define Consts_SMsgDlgNoToAll 65335
+#define Consts_SMsgDlgYesToAll 65336
+#define Consts_SmkcBkSp 65337
+#define Consts_SmkcTab 65338
+#define Consts_SmkcEsc 65339
+#define Consts_SmkcEnter 65340
+#define Consts_SmkcSpace 65341
+#define Consts_SmkcPgUp 65342
+#define Consts_SmkcPgDn 65343
+#define Consts_SCloseButton 65344
+#define Consts_SIgnoreButton 65345
+#define Consts_SRetryButton 65346
+#define Consts_SAbortButton 65347
+#define Consts_SAllButton 65348
+#define Consts_SCannotDragForm 65349
+#define Consts_SVMetafiles 65350
+#define Consts_SVEnhMetafiles 65351
+#define Consts_SVIcons 65352
+#define Consts_SVBitmaps 65353
+#define Consts_SMsgDlgWarning 65354
+#define Consts_SMsgDlgError 65355
+#define Consts_SMsgDlgInformation 65356
+#define Consts_SMsgDlgConfirm 65357
+#define Consts_SMsgDlgYes 65358
+#define Consts_SMsgDlgNo 65359
+#define Consts_SMDIChildNotVisible 65360
+#define Consts_SVisibleChanged 65361
+#define Consts_SCannotShowModal 65362
+#define Consts_SPropertyOutOfRange 65363
+#define Consts_SMenuIndexError 65364
+#define Consts_SMenuReinserted 65365
+#define Consts_SMenuNotFound 65366
+#define Consts_SNoTimers 65367
+#define Consts_SGroupIndexTooLow 65368
+#define Consts_SNoMDIForm 65369
+#define Consts_SControlParentSetToSelf 65370
+#define Consts_SOKButton 65371
+#define Consts_SCancelButton 65372
+#define Consts_SYesButton 65373
+#define Consts_SNoButton 65374
+#define Consts_SHelpButton 65375
+#define Consts_SChangeIconSize 65376
+#define Consts_SUnknownExtension 65377
+#define Consts_SUnknownClipboardFormat 65378
+#define Consts_SOutOfResources 65379
+#define Consts_SNoCanvasHandle 65380
+#define Consts_SInvalidImageSize 65381
+#define Consts_SInvalidImageList 65382
+#define Consts_SReplaceImage 65383
+#define Consts_SImageIndexError 65384
+#define Consts_SImageReadFail 65385
+#define Consts_SImageWriteFail 65386
+#define Consts_SWindowDCError 65387
+#define Consts_SWindowClass 65388
+#define Consts_SCannotFocus 65389
+#define Consts_SParentRequired 65390
+#define Consts_SParentGivenNotAParent 65391
 #define RTLConsts_SUnknownGroup 65392
 #define RTLConsts_SUnknownProperty 65393
 #define RTLConsts_SWriteError 65394
@@ -131,8 +137,8 @@
 #define Consts_SInvalidBitmap 65403
 #define Consts_SInvalidIcon 65404
 #define Consts_SInvalidMetafile 65405
-#define Consts_SChangeIconSize 65406
-#define Consts_SUnknownClipboardFormat 65407
+#define Consts_SInvalidPixelFormat 65406
+#define Consts_SScanLine 65407
 #define RTLConsts_SInvalidName 65408
 #define RTLConsts_SInvalidProperty 65409
 #define RTLConsts_SInvalidPropertyPath 65410
@@ -263,6 +269,12 @@
 #define SysConst_SInvalidInput 65535
 STRINGTABLE
 BEGIN
+	JConsts_sChangeJPGSize,	"Die Größe einer JPEG-Grafik kann nicht verändert werden"
+	JConsts_sJPEGError,	"JPEG-Fehler #%d"
+	JConsts_sJPEGImageFile,	"JPEG-Grafikdatei"
+	HelpIntfs_hNoContextFound,	"Keine Hilfe für Kontext gefunden"
+	HelpIntfs_hNoTopics,	"Kein themenbezogenes Hilfesystem installiert"
+	IPFunctions_sNotImplemented,	"Function %s is not implemented."
 	IPFunctions_sInvalidParameter,	"Function %s. Invalid parameter"
 	IPFunctions_sNoData,	"Function %s. No adapter information exists for the local computer."
 	IPFunctions_sNotSupported,	"Function %s is not supported by the operating system."
@@ -276,6 +288,9 @@ BEGIN
 	ComStrs_sInvalidOwner,	"Ungültiger Besitzer"
 	ComStrs_sPageIndexError,	"%d ist ein ungültiger Wert für PageIndex. PageIndex muss zwischen 0 und %d liegen"
 	ComStrs_sInvalidComCtl32,	"Dieses Element benötigt COMCTL32.DLL in der Version 4.70 oder höher"
+	Consts_SDockedCtlNeedsName,	"Angedocktes Steuerelement muss einen Namen haben."
+	Consts_SDockTreeRemoveError,	"Fehler beim Entfernen des Steuerelements aus der Andock-Hierarchie"
+	Consts_SDockZoneNotFound,	" - Andockzone nicht gefunden"
 	Consts_SDockZoneHasNoCtl,	" - Andockzone enthält kein Steuerelement"
 	Consts_SDockZoneVersionConflict,	"Fehler beim Laden der Andockzone aus dem Stream. Version %d erwartet, aber %d gefunden."
 	Consts_SSeparator,	"Trennlinie"
@@ -289,9 +304,9 @@ BEGIN
 	HelpIntfs_hNoTableOfContents,	"Inhaltsverzeichnis nicht gefunden"
 	HelpIntfs_hNothingFound,	"Keine Hilfe für %s gefunden"
 	HelpIntfs_hNoContext,	"Keine kontextsensitive Hilfe installiert"
-	HelpIntfs_hNoContextFound,	"Keine Hilfe für Kontext gefunden"
-	HelpIntfs_hNoTopics,	"Kein themenbezogenes Hilfesystem installiert"
-	IPFunctions_sNotImplemented,	"Function %s is not implemented."
+	Consts_SmkcEnd,	"Ende"
+	Consts_SmkcHome,	"Pos1"
+	Consts_SmkcLeft,	"Links"
 	Consts_SmkcUp,	"Auf"
 	Consts_SmkcRight,	"Rechts"
 	Consts_SmkcDown,	"Nach unten"
@@ -305,9 +320,9 @@ BEGIN
 	Consts_SIconToClipboard,	"Zwischenablage unterstützt keine Symbole"
 	Consts_SCannotOpenClipboard,	"Zwischenablage kann nicht geöffnet werden"
 	Consts_SDuplicateMenus,	"Menü '%s' wird bereits von einem anderen Formular benutzt"
-	Consts_SDockedCtlNeedsName,	"Angedocktes Steuerelement muss einen Namen haben."
-	Consts_SDockTreeRemoveError,	"Fehler beim Entfernen des Steuerelements aus der Andock-Hierarchie"
-	Consts_SDockZoneNotFound,	" - Andockzone nicht gefunden"
+	Consts_SMsgDlgOK,	"OK"
+	Consts_SMsgDlgCancel,	"Abbrechen"
+	Consts_SMsgDlgHelp,	"&Hilfe"
 	Consts_SMsgDlgAbort,	"&Abbrechen"
 	Consts_SMsgDlgRetry,	"&Wiederholen"
 	Consts_SMsgDlgIgnore,	"&Ignorieren"
@@ -321,9 +336,9 @@ BEGIN
 	Consts_SmkcSpace,	"Leertaste"
 	Consts_SmkcPgUp,	"BildAuf"
 	Consts_SmkcPgDn,	"BildAb"
-	Consts_SmkcEnd,	"Ende"
-	Consts_SmkcHome,	"Pos1"
-	Consts_SmkcLeft,	"Links"
+	Consts_SCloseButton,	"&Schließen"
+	Consts_SIgnoreButton,	"&Ignorieren"
+	Consts_SRetryButton,	"&Wiederholen"
 	Consts_SAbortButton,	"Abbruch"
 	Consts_SAllButton,	"&Alle"
 	Consts_SCannotDragForm,	"Formulare können nicht gezogen werden"
@@ -337,9 +352,9 @@ BEGIN
 	Consts_SMsgDlgConfirm,	"Bestätigen"
 	Consts_SMsgDlgYes,	"&Ja"
 	Consts_SMsgDlgNo,	"&Nein"
-	Consts_SMsgDlgOK,	"OK"
-	Consts_SMsgDlgCancel,	"Abbrechen"
-	Consts_SMsgDlgHelp,	"&Hilfe"
+	Consts_SMDIChildNotVisible,	"Untergeordnetes MDI-Formular kann nicht verborgen werden"
+	Consts_SVisibleChanged,	"Eigenschaft Visible kann in OnShow oder OnHide nicht verändert werden"
+	Consts_SCannotShowModal,	"Aus einem sichtbaren Fenster kann kein modales gemacht werden"
 	Consts_SPropertyOutOfRange,	"Eigenschaft %s außerhalb des zulässigen Bereichs"
 	Consts_SMenuIndexError,	"Menüindex außerhalb des zulässigen Bereichs"
 	Consts_SMenuReinserted,	"Menü zweimal eingefügt"
@@ -353,9 +368,9 @@ BEGIN
 	Consts_SYesButton,	"&Ja"
 	Consts_SNoButton,	"&Nein"
 	Consts_SHelpButton,	"&Hilfe"
-	Consts_SCloseButton,	"&Schließen"
-	Consts_SIgnoreButton,	"&Ignorieren"
-	Consts_SRetryButton,	"&Wiederholen"
+	Consts_SChangeIconSize,	"Die Größe eines Symbols kann nicht geändert werden"
+	Consts_SUnknownExtension,	"Unbekannte Bilddateierweiterung (.%s)"
+	Consts_SUnknownClipboardFormat,	"Format der Zwischenablage wird nicht unterstützt"
 	Consts_SOutOfResources,	"Systemressourcen erschöpft."
 	Consts_SNoCanvasHandle,	"Leinwand/Bild erlaubt kein Zeichnen"
 	Consts_SInvalidImageSize,	"Ungültige Bildgröße"
@@ -369,9 +384,6 @@ BEGIN
 	Consts_SCannotFocus,	"Deaktiviertes oder unsichtbares Fenster kann den Fokus nicht erhalten"
 	Consts_SParentRequired,	"Element '%s' hat kein übergeordnetes Fenster"
 	Consts_SParentGivenNotAParent,	"Das angegebene übergeordnete Element ist kein übergeordnetes Element von '%s'"
-	Consts_SMDIChildNotVisible,	"Untergeordnetes MDI-Formular kann nicht verborgen werden"
-	Consts_SVisibleChanged,	"Eigenschaft Visible kann in OnShow oder OnHide nicht verändert werden"
-	Consts_SCannotShowModal,	"Aus einem sichtbaren Fenster kann kein modales gemacht werden"
 	RTLConsts_SUnknownGroup,	"%s befindet sich nicht in einer Gruppe für Klassenregistrierungen"
 	RTLConsts_SUnknownProperty,	"Eigenschaft %s existiert nicht."
 	RTLConsts_SWriteError,	"Stream-Schreibfehler"
@@ -386,8 +398,8 @@ BEGIN
 	Consts_SInvalidBitmap,	"Bitmap ist ungültig"
 	Consts_SInvalidIcon,	"Ungültiges Symbol"
 	Consts_SInvalidMetafile,	"Metadatei ist ungültig"
-	Consts_SChangeIconSize,	"Die Größe eines Symbols kann nicht geändert werden"
-	Consts_SUnknownClipboardFormat,	"Format der Zwischenablage wird nicht unterstützt"
+	Consts_SInvalidPixelFormat,	"Ungültiges Pixel-Format"
+	Consts_SScanLine,	"Bereichsüberschreitung bei Zeilenindex"
 	RTLConsts_SInvalidName,	"''%s'' ist kein gültiger Komponentenname"
 	RTLConsts_SInvalidProperty,	"Ungültiger Eigenschaftswert"
 	RTLConsts_SInvalidPropertyPath,	"Ungültiger Pfad für Eigenschaft"

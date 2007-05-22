@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls,
   IpHlpApi,IpIfConst,IpRtrMib,ipFunctions,iptypes, ExtCtrls, StrUtils,
   scktcomp, CoolTrayIcon, ComCtrls, Buttons, inifiles, HttpProt, Menus, ImgList,
-  ToolWin, Gauges, BomeOneInstance;
+  Gauges, BomeOneInstance, ToolWin;
 
 type
 
@@ -95,6 +95,11 @@ type
     OneInstance: TBomeOneInstance;
     SocketConnect: TTimer;
     addtoPhonebook: TMenuItem;
+    N1: TMenuItem;
+    ImgDlg: TOpenDialog;
+    N2: TMenuItem;
+    addpicture: TMenuItem;
+    procedure addpictureClick(Sender: TObject);
     procedure addtoPhonebookClick(Sender: TObject);
     procedure searchNumberClick(Sender: TObject);
     procedure SocketConnectTimer(Sender: TObject);
@@ -119,7 +124,6 @@ type
     Procedure LoadCallersFromFile(filter: integer);
     procedure ReloadPhonebookClick(Sender: TObject);
     procedure Eintraglschen1Click(Sender: TObject);
-    procedure ReverseNumberLookup;
     procedure PopupMenu1Popup(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
     procedure viewstatsClick(Sender: TObject);
@@ -248,7 +252,7 @@ begin
    if reverseAdress <> '' then
      if (Call.Rufnummer <> '') and (Call.Name = Call.Rufnummer) then
        begin
-        if (searchstring[1] <> '0') then searchstring:= Citycode+searchstring;
+        if ((searchstring[1] <> '0') and (searchstring[1] <> '+')) then searchstring:= Citycode+searchstring;
         reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',searchstring);
         Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
        end;
@@ -866,6 +870,46 @@ begin
  stats.show;
 end;
 
+//löscht unbenutzte Einträge für die Bildanzeige
+procedure CheckImageEntries;
+var sl     : TStringList;
+    i,j    : integer;
+    found  : boolean;
+    compare: string;
+    changes: boolean;
+begin
+ changes:= false;
+ if length(phonebook) = 0 then exit;
+
+ sl:= TStringList.Create;
+
+ sett.ReadSection('Images', sl);
+ for i:= 0 to sl.Count-1 do
+ begin
+  found:= false;
+
+  for j:= 0 to length(phonebook)-1 do
+  begin
+   compare:= phonebook[j].name;
+   if compare[1]='!' then Delete(Compare,1,1);
+   if (sl.Strings[i] = compare) then
+   begin
+    found:= true;
+    break;
+   end;
+  end;
+
+  if not found then
+  begin
+    sett.DeleteKey('Images',sl.Strings[i]);
+    changes:= true;
+  end;
+
+ end;
+ sl.Free;
+ if changes then sett.UpdateFile;
+end;
+
 procedure TForm1.FillPhonebook;
 var CL: TStringList;
     i: integer;
@@ -928,63 +972,6 @@ begin
     searchnumber.caption:= 'reverse lookup: ' + number;}
  end;
 // searchNumber.visible:= (callerlist.ItemIndex > -1)
-end;
-
-procedure TForm1.ReverseNumberLookup;
-var s,s2: string;
-    r: TRegExpr;
-    number: string;
-    url: string;
-    str: TStringStream;
-    f: TFileStream;
-    sl: TStringlist;
-    i: integer;
-begin
-
- number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
-// Vorwahl einfügen
-// if length(number) <= 8 then number := '030' + number;
-
- r:= TRegExpr.create;
-
- str:= TStringStream.Create('');
- URL:= 'http://www1.dasoertliche.de/?form_name=search_inv&ph='+number;
- httpget(URL,str);
-
- s:= '';
- str.Position:=0;
- f:= TFileStream.Create('reverse.htm', fmCreate);
- f.copyfrom(str, str.size);
- f.Free;
-
- str.Position:=0;
- s:= str.DataString;
- s2:= s;
- sl:= TStringList.Create;
- r.Expression:= '#10';
- r.Split(s,sl);
- r.Expression:= '.*title=\"Details zu diesem Eintrag anzeigen\" class=\"entry\">([\w\s]*)</a>.*';
- for i:= 0 to sl.Count-1 do
-  if r.Exec(sl.strings[i]) then
-  begin
-//    showmessage('gefunden');
-    s:= r.Replace(sl.strings[i],'$1',true); //gefundener String
-//    form3.memo1.Lines.Add(s);
-    break;
-  end;
-
- sl.Free;
-
-  //Adressdaten filtern
-{  r.Expression:= '.*div>([\w\s]*)<br>.*';
-  if r.Exec(s2) then
-  begin
-    s2:= r.Replace(s2,'$1',true);
-    memo1.Lines.Add(s2);
-  end;
-}
-  str.free;
-  r.free;
 end;
 
 procedure TForm1.Eintraglschen1Click(Sender: TObject);
@@ -1060,11 +1047,10 @@ begin
  Phonebooklist.Cursor:= crHourGlass;
  Phonebooklist.Enabled:= false;
 
- if unsaved_phonebook then
-  begin
-   if AskforUpdate then exit;
-  end;
-  str:= TStringStream.Create('');
+  if unsaved_phonebook then
+    if AskforUpdate then exit;
+
+   str:= TStringStream.Create('');
 
    if CheckForPassword then PWForm.showmodal;
 
@@ -1081,6 +1067,9 @@ begin
    f.free;
 
   str.free;
+
+ CheckImageEntries;
+
  Phonebooklist.Enabled:= true;
  Phonebooklist.Cursor:= crDefault;
 end;
@@ -1355,7 +1344,7 @@ begin
    searchstring := Callerlist.items[index].SubItems.Strings[2];
    if (searchstring <> '') then
    begin
-    if (searchstring[1] <> '0') then searchstring:= Citycode+searchstring;
+    if ((searchstring[1] <> '0') and (searchstring[1] <> '+')) then searchstring:= Citycode+searchstring;
     reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',searchstring);
     Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
    end;
@@ -1373,7 +1362,7 @@ begin
    index        := CallerList.ItemIndex;
 
    NumberString := Callerlist.items[index].SubItems.Strings[2];
-   if (NumberString[1] <> '0') then NumberString:= Citycode+NumberString;
+   if ((NumberString[1] <> '0') and (NumberString <> '+')) then NumberString:= Citycode+NumberString;
 
    PBName.text  := Callerlist.items[index].SubItems.Strings[1];
    PBNumber.text:= numberstring;
@@ -1382,6 +1371,30 @@ begin
    PageControl1.ActivePageIndex:= 2;
   end;
 
+end;
+
+procedure TForm1.addpictureClick(Sender: TObject);
+var index          : integer;
+    NumberString   : string;
+    CityCode       : string;
+begin
+  CityCode      := sett.ReadString('FritzBox','CityCode', '');
+  if PhoneBookList.ItemIndex > -1 then
+  begin
+   index        := PhoneBookList.ItemIndex;
+//   NumberString := PhoneBooklist.items[index].SubItems.Strings[0];
+//   if (NumberString[1] <> '0') then NumberString:= Citycode+NumberString;
+
+   NumberString := PhoneBooklist.items[index].Caption;
+   if numberstring[1] = '!' then delete(numberstring,1,1);
+   
+   if ImgDlg.Execute then
+   begin
+     sett.WriteString('Images', NumberString, ImgDlg.FileName);
+     sett.UpdateFile;
+   end;
+
+  end;
 end;
 
 end.

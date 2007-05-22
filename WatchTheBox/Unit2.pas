@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Buttons;
+  StdCtrls, ExtCtrls, Buttons, jpeg;
 
 type
   TCallIn = class(TForm)
@@ -22,6 +22,7 @@ type
     duration: TLabel;
     Timer: TTimer;
     durationTimer: TTimer;
+    Image1: TImage;
     procedure durationTimerTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -66,6 +67,7 @@ begin
 end;
 
 procedure TCallIn.showCall(p: integer);
+var image: string;
 begin
       if p >= length(ActiveCalls) then p:=0;
       if length(ActiveCalls)=0 then exit;
@@ -85,7 +87,21 @@ begin
       duration.caption:= '';
       if ActiveCalls[p].start > 0 then
        duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);
-      durationTimer.Enabled:= true; 
+      durationTimer.Enabled:= true;
+
+      //Anruferbild laden
+      image:= sett.readString('Images', ActiveCalls[p].name, '');
+      if (image <> '') and FileExists(image) then
+      begin
+       Image1.Picture.LoadFromFile(image);
+       image1.Visible:= true;
+       callin.Width:= 252 + Image1.width;
+      end
+      else
+      begin
+       image1.Visible:= false;
+       callin.Width:= 252;
+      end; 
 end;
 
 procedure SetFormPosition;
