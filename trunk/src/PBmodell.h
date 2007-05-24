@@ -22,8 +22,8 @@ class PBModell:public QAbstractTableModel{
 private:
 	QList<Person> phonebook;
 	QString header;
-	
-	bool DataValid(int col, QVariant value);
+//MW: Verstehe den Sinn dieser Funktion nicht!
+// 	bool DataValid(int col, QVariant value);
 	
 public	slots:
 	 void neue_liste(QString daten);

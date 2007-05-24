@@ -31,8 +31,7 @@ void PBModell::neue_liste(QString daten){
  			phonebook.push_back(Person(zeile.split("\", "))); //push_back() ist gleich append() 
 		}
 	}while(!temp.atEnd());
-	phonebook.push_back(Person());
-	
+	//phonebook.push_back(Person());
 // file.close();		
 
 	//Änderung den Views bekanntgeben
@@ -41,28 +40,28 @@ void PBModell::neue_liste(QString daten){
 	//std::cout << "Spalten "<<columnCount(index(0,0))<<" Zeilen "<< rowCount(index(0,0)) <<std::endl;
 }
 
-bool PBModell::DataValid(int col, QVariant value) {
-	int i=0;
-		
-	switch (col) {
-		case 0		: //moegliche Fehler im Namen abfangen
-					if (value.toString() == tr("<Neuer Eintrag>")) 
-						for (i=0;i<phonebook.count();i++) 
- 							if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
-					break;
-// 		case 1,2,3
-		default	: //moegliche Fehler in der Nummer abgfangen
-					if (value.toString() != "") //doppelter Eintrag ? 
- 						for (i=0;i<phonebook.count();i++) 
- 							if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
-					break;
-// 		case 2: //moegliche Fehler in der Kurzwahl abfangen
-// 			break;
-// 		case 3: //moegliche Fehler im Vanity abfangen
-// 			break;
-	}
-	return true;
-}
+// bool PBModell::DataValid(int col, QVariant value) {
+// 	int i=0;
+// 		
+// 	switch (col) {
+// 		case 0		: //moegliche Fehler im Namen abfangen
+// 					if (value.toString() == tr("<Neuer Eintrag>")) 
+// 						for (i=0;i<phonebook.count();i++) 
+//  							if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+// 					break;
+// // 		case 1,2,3
+// 		default	: //moegliche Fehler in der Nummer abgfangen
+// 					if (value.toString() != "") //doppelter Eintrag ? 
+//  						for (i=0;i<phonebook.count();i++) 
+//  							if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+// 					break;
+// // 		case 2: //moegliche Fehler in der Kurzwahl abfangen
+// // 			break;
+// // 		case 3: //moegliche Fehler im Vanity abfangen
+// // 			break;
+// 	}
+// 	return true;
+// }
 
 //Wird nur zum Editieren gebraucht
 Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
@@ -76,9 +75,19 @@ Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole) {
-		if (DataValid(index.column(), value) == true)
-			phonebook[index.row()][index.column()] = value.toString();	
-//	
+	//MW: Verstehe ich nicht
+	//if (DataValid(index.column(), value) == true)
+	//	phonebook[index.row()][index.column()] = value.toString();	
+	if (index.row() != phonebook.count()){
+		phonebook[index.row()][index.column()] = value.toString();
+	}
+	else{
+		 if (value.toString() != tr("<Neuer Eintrag>") && !value.toString().isEmpty()){
+			phonebook.push_back(Person());
+			phonebook[index.row()][index.column()] = value.toString();
+			reset ();
+		}
+	}
 	//Ausgabe der Daten auf der Konsole
 //  	QFile file;
 //  	file.open(stderr, QIODevice::WriteOnly);
@@ -88,11 +97,11 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 
 //       emit dataChanged(index, index);
 	
-		if (DataValid(0,tr("<Neuer Eintrag>"))) {
-				phonebook.push_back(Person());
-			 	//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
-				reset ();
-			}
+	/*if (DataValid(0,tr("<Neuer Eintrag>"))) {
+		phonebook.push_back(Person());
+		//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
+		reset ();
+	}*/
         return true;
      }
      return false;
@@ -144,7 +153,7 @@ PBModell::PBModell(/*QWidget *parent*/)
 
 int PBModell::rowCount(const QModelIndex &/*parent*/) const
 {
-	return phonebook.count();
+	return phonebook.count()+1;
 }
 
 int PBModell::columnCount(const QModelIndex &/*parent*/) const
@@ -154,8 +163,15 @@ int PBModell::columnCount(const QModelIndex &/*parent*/) const
 
 QVariant PBModell::data ( const QModelIndex & index, int role ) const
 {
-	if (role == Qt::DisplayRole){
-		return phonebook[index.row()][index.column()];
+	//std::cout << "Role: " << role<< " Inhalt: "<< phonebook[index.row()][index.column()].toStdString()<<std::endl;
+	if (role == Qt::DisplayRole || role == Qt::EditRole){
+		if (index.row()!=phonebook.count()){
+			return phonebook[index.row()][index.column()];
+		}else {
+			if (index.column() ==0){
+				return tr("<Neuer Eintrag>");
+			}
+		}
 	}
 	return QVariant();
 }
@@ -220,7 +236,6 @@ void PBModell::LoadFromFile(QString FileName){
 			phonebook.push_back(Person(zeile.split("\t"))); //push_back() ist gleich append() 
 		}
 	}while(!file.atEnd());
-	phonebook.push_back(Person());
 	file.close();
 	
 	emit liste_geladen();
