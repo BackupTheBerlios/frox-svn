@@ -25,7 +25,7 @@ object Form3: TForm3
     Top = 0
     Width = 335
     Height = 321
-    ActivePage = TabSheet2
+    ActivePage = TabSheet3
     Align = alTop
     Style = tsFlatButtons
     TabOrder = 0
@@ -338,7 +338,7 @@ object Form3: TForm3
         EditLabel.Width = 224
         EditLabel.Height = 13
         EditLabel.Caption = 'reverse lookup (use %NUMBER% as identifier)'
-        TabOrder = 10
+        TabOrder = 11
       end
       object closefinished: TCheckBox
         Left = 16
@@ -346,7 +346,7 @@ object Form3: TForm3
         Width = 249
         Height = 17
         Caption = 'close notification when all calls are terminated'
-        TabOrder = 5
+        TabOrder = 6
       end
       object closetimer: TCheckBox
         Left = 16
@@ -354,7 +354,7 @@ object Form3: TForm3
         Width = 129
         Height = 17
         Caption = 'close notification after'
-        TabOrder = 6
+        TabOrder = 7
       end
       object closeafter: TSpinEdit
         Left = 154
@@ -363,7 +363,7 @@ object Form3: TForm3
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 7
+        TabOrder = 8
         Value = 15
       end
       object OneMSN: TCheckBox
@@ -372,14 +372,14 @@ object Form3: TForm3
         Width = 121
         Height = 17
         Caption = 'monitor only one MSN'
-        TabOrder = 8
+        TabOrder = 9
       end
       object MSN: TEdit
         Left = 152
         Top = 210
         Width = 121
         Height = 21
-        TabOrder = 9
+        TabOrder = 10
       end
       object CityCode: TEdit
         Left = 154
@@ -387,6 +387,34 @@ object Form3: TForm3
         Width = 121
         Height = 21
         TabOrder = 3
+      end
+      object NotifyOnlyInTray: TCheckBox
+        Left = 168
+        Top = 144
+        Width = 137
+        Height = 17
+        Caption = 'notify only in tray'
+        TabOrder = 5
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'List of Calls'
+      ImageIndex = 3
+      object DeleteListAutomatically: TCheckBox
+        Left = 16
+        Top = 40
+        Width = 249
+        Height = 17
+        Caption = 'delete list automatically'
+        TabOrder = 1
+      end
+      object LoadListAutomatically: TCheckBox
+        Left = 16
+        Top = 18
+        Width = 209
+        Height = 17
+        Caption = 'load list automatically'
+        TabOrder = 0
       end
     end
   end

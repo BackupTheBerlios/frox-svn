@@ -99,6 +99,13 @@ type
     ImgDlg: TOpenDialog;
     N2: TMenuItem;
     addpicture: TMenuItem;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    deleteitem: TMenuItem;
+    ToolButton10: TToolButton;
+    procedure ToolButton10Click(Sender: TObject);
+    procedure deleteitemClick(Sender: TObject);
     procedure addpictureClick(Sender: TObject);
     procedure addtoPhonebookClick(Sender: TObject);
     procedure searchNumberClick(Sender: TObject);
@@ -138,7 +145,7 @@ type
     procedure SocketErr(Sender:TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
     Procedure SocketMessage(Sender: TObject; Socket: TCustomWinSocket);
     Procedure DocData(sender: TObject; Buffer: Pointer; len: integer);
-    Procedure ParseCallList(s:TStream; filterindex: integer);
+    Procedure ParseCallList(s:TStream; filterindex: integer; LoadedFromBox: Boolean;Sender: TObject);
     procedure FillPhonebook;
     procedure PBShortFill;
     Procedure StartMySocket;
@@ -231,11 +238,20 @@ begin
   end;
 end;
 
-procedure ShowNotification;
+procedure ShowNotification(reallyShow: boolean; CallType: string);
 begin
- if not assigned(CallIN) then
+
+if (CallType = 'incoming') then
+begin
+ Form1.Tray.IconIndex:= 4;
+ form1.tray.Tag:= 1;
+end;
+
+ if (not sett.ReadBool('FritzBox','NotifyOnlyInTray',false) or ReallyShow)
+ and not assigned(CallIN) then
  begin
    Application.CreateForm(TCallIn, CallIn);
+   Callin.ShowCall(0);
    CallIn.Show;
  end;
 end;
@@ -291,8 +307,9 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       then
       begin
         count:= AddACall(Call);
-        if count = 1 then ShowNotification;
-        Callin.ShowCall(count - 1);
+        if count = 1 then ShowNotification(False, 'incomming');
+        if assigned(CallIn) then
+          Callin.ShowCall(count - 1);
         ReverseLookUp(Call);
       end;
     end
@@ -315,8 +332,9 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       then
       begin
         count := AddACall(Call);
-        if Count = 1 then ShowNotification;
-        Callin.ShowCall(count -1);
+        if Count = 1 then ShowNotification(false, 'outgoing');
+        if assigned(CallIn) then
+          Callin.ShowCall(count -1);
         ReverseLookUp(Call);
       end;
     end
@@ -333,7 +351,13 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
 
       if sett.ReadBool('FritzBox','AutoClose',true) and (count = 0)
           then
+          begin
+            tray.IconIndex:=0;
+            tray.Tag:=0;
             if assigned(callIn) then CallIn.close;         //Fenster schließen, wenn alle Anrufe beendet sind
+            if sett.ReadBool('FritzBox','LoadListAutomatically',false)
+              then ReloadCallerlistClick(ToolButton1); //Liste neuladen
+          end;
     end
   else
  //Zustandegekommene Verbindung: datum;CONNECT;ConnectionID;Nebenstelle;Nummer;
@@ -364,7 +388,8 @@ procedure TForm1.httpget(URL: string; var str: TStringStream);
 var Http: THttpCli;
 begin
   if BoxAdress = '' then exit;
-
+  tray.IconIndex:= 6;
+  tray.tag:= 99;
   Http := THttpCli.Create(nil);
   http.OnDocData := Form1.DocData;
   with Http do
@@ -395,6 +420,8 @@ begin
   http.RcvdStream:= nil;
 
   http.Free;
+  tray.IconIndex:= 0;
+  tray.tag:= 0;
 end;
 
 procedure TForm1.httppost(URL,Data: string);
@@ -546,6 +573,11 @@ begin
 
  LoadCallersFromFile(0);
  LoadPhonebookFromFile;
+ if sett.ReadBool('FritzBox','LoadListAutomatically',false)
+  then
+  try
+    ReloadCallerlistClick(nil);
+  except end;
 
  if tab1.Visible then
    PageControl1.ActivePageIndex:= 0
@@ -563,7 +595,6 @@ begin
  if sett.ReadBool('FritzBox','useMonitor',false) then
      StartMySocket; //Fritz!Box Listener started
 end;
-
 
 procedure TForm1.SaveTrafficData;
 var f: TFileStream;
@@ -602,6 +633,7 @@ end;
 
 procedure MakeArrowsBlink(diffIn, DiffOut: longint; threshold: integer);
 begin
+if form1.tray.Tag = 0 then
 with form1 do
   if (diffIN > threshold) and (diffOut > threshold)
     then tray.IconIndex:= 3
@@ -691,9 +723,15 @@ begin
 
   MakeArrowsBlink(inCurrent-LastIN, outCurrent-LastOut, 25);
 
-  tray.hint:= 'SimpleTrayMonitor' +#13#10 +
+  tray.hint:= 'WatchTheBox' +#13#10 +
               Format('in: %.2f kb/s',[(inCurrent-LastIn)/1024])  + #13#10+
               Format('out: %.2f kb/s',[(OutCurrent-LastOut)/1024]);
+
+  if tray.Tag = 2 then
+    tray.hint:= tray.hint + #13#10#13#10+'There are missed calls.'
+  else
+  if tray.Tag = 1 then
+    tray.hint:= tray.hint + #13#10#13#10+'There are active calls.';
 
   LastIN:= inCurrent;
   LastOut:= OutCurrent;
@@ -746,14 +784,14 @@ begin
     case PUnit of
     0: //MB
       if VUnit = 0 then //diff ist in MB
-        TData.Price:= TData.Price + (diff * PricePerUnit)
+        TData.Price:=(diff * PricePerUnit)
       else              //diff ist in GB
-        TData.Price:= TData.Price + (diff * 1024 * PricePerUnit);
+        TData.Price:=(diff *1024* PricePerUnit);
     1: //GB
       if VUnit = 0 then //diff ist in MB
-        TData.Price:= TData.Price + (diff /1024 * PricePerUnit)
+        TData.Price:=(diff /1024 * PricePerUnit)
       else              //diff ist in GB
-        TData.Price:= TData.Price + (diff * PricePerUnit);
+      TData.Price:= (diff * PricePerUnit);
     end;
     if limit > 0 then limitlabel.Caption:= 'Your limit ist reached !';
   end
@@ -769,24 +807,71 @@ begin
    end;
    
    ResetData;
+
+   Case tray.IconIndex of
+     4: tray.IconIndex:= 5;
+     5: tray.IconIndex:= 4;
+   end;  
 end;
 
 procedure TForm1.TrayMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
+ if Tray.Iconindex>3 then
+ begin
+  case (tray.Tag) of
+   1: ShowNotification(true,'none'); //Anruf
+   2: begin                   //verpasster Anruf in der Vergangenheit
+       Tray.ShowMainForm;
+       PageControl1.ActivePageIndex:= 1;
+      end;
+  end;
+  tray.Tag:= 0;
+ end
+ else
  Tray.ShowMainForm;
 end;
 
-procedure TForm1.ParseCallList(s:TStream; filterindex: integer);
+procedure DeleteOtherMSN(SL: TStringlist);
+var i: integer;
+    r: TregExpr;
+    s: TStringlist;
+    msn: string;
+begin
+msn := sett.ReadString('FritzBox','MSN', '');
+r:= TRegExpr.Create;
+r.Expression:= ';';
+
+s:= TStringlist.Create;
+ for i:= sl.count-1 downto 0 do
+ begin
+  s.Clear;
+  r.Split(sl.strings[i],s);
+  //Format: Typ;Datum;Name;Rufnummer;Nebenstelle;Eigene Rufnummer;Dauer
+  if s.count = 7 then
+   if not Ansicontainsstr(s.strings[5],msn) then Sl.Delete(i);
+
+ end;
+s.free;
+r.Free;
+end;
+
+procedure TForm1.ParseCallList(s:TStream; filterindex: integer; LoadedFromBox: Boolean; Sender: TObject);
 var data: string;
-    r: TRegExpr;
-    SL, CL: TStringList;
-    i: integer;
-    sep: string;
-    liItem: TListItem;
+    r      : TRegExpr;
+    SL, CL : TStringList;
+    sla,slb: TStringList;
+    OldData: TStringList;
+    i,j    : integer;
+    sep    : string;
+    liItem : TListItem;
+    oldcount: integer;
+    newcount: integer;
 begin
  Callerliste.Clear;
  SL:= TSTringlist.Create;
+ SLa:= TSTringlist.Create;
+ SLb:= TSTringlist.Create;
  CL:= TSTringlist.Create;
 
  s.Position:= 0;
@@ -795,14 +880,116 @@ begin
  r.Expression:= #10;
  r.Split(Data,SL);
 
+ //wenn MSN vorgegeben, dann die anderen MSN löschen
+ if sett.Readbool('FritzBox','OneMSN',false) then DeleteOtherMSN(SL);
+// oldcount:= sl.count; //merken wie viele Einträge
+
+ //daten, die lokal gespeichert sind, aber nicht mehr auf der Box liegen an die Datei anhängen
+ if loadedFromBox then
+ begin
+  OldData:= TStringList.Create;
+  if fileexists('anrufliste.csv') then
+       OldData.LoadFromFile('anrufliste.csv');
+
+ //wenn MSN vorgegeben, dann die anderen MSN löschen
+  if sett.Readbool('FritzBox','OneMSN',false) then DeleteOtherMSN(OldData);
+
+  sla.AddStrings(OldData);
+  oldcount:= OldData.Count;
+  if oldcount > 0 then
+  begin
+    Olddata.Delete(0); //die Beschreibungszeilen löschen
+    Olddata.Delete(0);
+  end;
+    //die letzten Leerzeichen löschen
+    while (SL.strings[sl.count-1]='') do sl.delete(sl.count-1);
+
+    for j:= 0 to olddata.count-1 do
+     if (SL.IndexOf(OldData.Strings[j])= -1) then
+      SL.Append(OldData.Strings[j]);
+
+  slb.addstrings(sl);
+  SL.SaveToFile('anrufliste.csv'); //speichert dumerweise mit Windowszeilenende
+  OldData.Free;
+//-----------------------------------------------------------------------------
+  //Alles Löschen, was kein einkommender Anruf war -> Alte Liste
+  for j:= sla.count-1 downto 0 do
+    if (StartsStr('2;', sla.strings[j])=false) then SLa.Delete(j);
+
+  //Alles Löschen, was kein einkommender Anruf war -> neue Liste
+   for j:= slb.count-1 downto 0 do
+    if (StartsStr('2;', slb.strings[j])=false) then SLb.Delete(j);
+
+   newcount:= Sl.Count;
+   if (sender = nil) then
+   begin
+     if (slb.count > sla.count)
+     //(((sla.count > 0) and ) //wenn Datei schon existiert
+//      or  ((oldcount = 0) and (newcount > 2)))  //wenn noch keine Datei existiert
+      then
+      begin tray.tag:= 2; tray.iconindex:= 4; end;
+   end;
+ end;
+ sla.free;
+ slb.free;
+//-----------------------------------------------------------------------------
+//   Tray blinken lassen, wenn neuer Anruf
+//   showmessage(sl.strings[3]);
+//   newcount:= Sl.Count;
+//   if (sender = nil) then
+//   begin
+//     if ( ((oldcount > 0) and (newcount > oldcount)) //wenn Datei schon existiert
+//      or  ((oldcount = 0) and (newcount > 2)))  //wenn noch keine Datei existiert
+//      then
+//      begin tray.tag:= 2; tray.iconindex:= 4; end;
+//   end;
+// end;
+
+ //-----------------------------------------------------------------------------
+//  if loadedFromBox then
+// begin
+//  OldData:= TStringList.Create;
+//  if fileexists('anrufliste.csv') then
+//       OldData.LoadFromFile('anrufliste.csv');
+//
+//  oldcount:= OldData.Count;
+//  if oldcount > 0 then
+//  begin
+//    Olddata.Delete(0); //die Beschreibungszeilen löschen
+//    Olddata.Delete(0);
+//  end;
+//    //die letzten Leerzeichen löschen
+//    while (SL.strings[sl.count-1]='') do sl.delete(sl.count-1);
+//
+//    for j:= 0 to olddata.count-1 do
+//     if (SL.IndexOf(OldData.Strings[j])= -1) then
+//      SL.Append(OldData.Strings[j]);
+//
+//  SL.SaveToFile('anrufliste.csv'); //speichert dumerweise mit Windowszeilenende
+//  OldData.Free;
+//
+////   Tray blinken lassen, wenn neuer Anruf
+//   showmessage(sl.strings[3]);
+//   newcount:= Sl.Count;
+//   if (sender = nil) then
+//   begin
+//     if ( ((oldcount > 0) and (newcount > oldcount)) //wenn Datei schon existiert
+//      or  ((oldcount = 0) and (newcount > 2)))  //wenn noch keine Datei existiert
+//      then
+//      begin tray.tag:= 2; tray.iconindex:= 4; end;
+//   end;
+// end;
+
  if sl.Count > 2 then
  begin
+   sl.Strings[0]:= AnsireplaceStr(sl.strings[0], #13,''); //Windowszeilenende killen
    r.Expression:= 'sep=(.*)';
    sep:= r.Replace(sl.strings[0],'$1',true);
    r.Expression:= sep;
 
    for i:= 2 to sl.count -1 do
    begin //die zweite Zeile ist die Beschreibungszeile, daher erst beim index 2 beginnen
+    sl.Strings[i]:= AnsireplaceStr(sl.strings[i], #13,''); //das leidige Windows_Zeilenende killen
     cl.Clear;
     r.Split(sl.strings[i],cl);
     if cl.Count = 7 then
@@ -816,10 +1003,27 @@ begin
       liItem.SubItems:=cl;
       end;
    end;
+   ToolButton3.Tag:= filterindex;
  end;
 
 SL.Free;
 CL.Free;
+end;
+
+function isinphonebook(number: string): integer;
+var i: integer;
+begin
+
+ for i:= 0 to length(phonebook)-1 do
+ begin
+  if (number = phonebook[i].number) then
+  begin
+    Result:= i;
+    exit;
+  end;
+ end;
+
+ Result:= -1;
 end;
 
 function ParsePhoneBook(s:TStream): boolean;
@@ -840,13 +1044,20 @@ begin
  r.Split(Data,SL);
 
  r.Expression:= '.*TrFon\(\"(.*)\", \"(.*)\", \"(.*)\", \"(.*)\"\).*';
- setlength(Phonebook, 0);
+ //setlength(Phonebook, 0);
  for i:=0 to SL.Count-1 do
   if r.Exec(SL.strings[i]) then
   begin
     Result:= true;
-    setlength(Phonebook, length(Phonebook)+1);
-    len:= Length(phonebook) -1;
+    //Prüfen ob die Nummer schon existiert
+    len:= isinPhoneBook(r.Replace(SL.strings[i],'$2',true));
+    
+    if (len = -1) then
+    begin
+     setlength(Phonebook, length(Phonebook)+1);
+     len:= Length(phonebook) -1;
+    end;
+    
     Phonebook[len].Name   := r.Replace(SL.strings[i],'$1',true);
     Phonebook[len].Number := r.Replace(SL.strings[i],'$2',true);
     Phonebook[len].short  := r.Replace(SL.strings[i],'$3',true);
@@ -861,9 +1072,58 @@ begin
     Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Uuml;','Ü');
     Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&szlig;','ß');
   end;
+
+//   setlength(Phonebook, 0);
+// for i:=0 to SL.Count-1 do
+//  if r.Exec(SL.strings[i]) then
+//  begin
+//    Result:= true;
+//    setlength(Phonebook, length(Phonebook)+1);
+//    len:= Length(phonebook) -1;
+//    Phonebook[len].Name   := r.Replace(SL.strings[i],'$1',true);
+//    Phonebook[len].Number := r.Replace(SL.strings[i],'$2',true);
+//    Phonebook[len].short  := r.Replace(SL.strings[i],'$3',true);
+//    Phonebook[len].vanity := r.Replace(SL.strings[i],'$4',true);
+//    Phonebook[len].No     := len;
+//
+//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&auml;','ä');
+//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&ouml;','ö');
+//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&uuml;','ü');
+//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Auml;','Ä');
+//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Ouml;','Ö');
+//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Uuml;','Ü');
+//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&szlig;','ß');
+//  end;
+
+
  r.Free;
  SL.Free;
 end;
+
+function SavePhoneBook(): boolean;
+var  f: Tfilestream;
+     b: string;
+     i: integer;
+begin
+
+ f:= TFileStream.Create('phonebook.csv',fmcreate);
+//      Name     : string;
+//      Number   : string;
+//      short    : string;
+//      vanity   : string;
+//      No       : integer;
+//      important: boolean;
+
+ Result:=false;
+ for i:=0 to (Length(phonebook) -1) do
+  begin
+    b:= Phonebook[i].Name  +';'+ Phonebook[i].Number + ';'
+      + Phonebook[i].short +';'+ Phonebook[i].vanity +#13#10;
+    f.Write(b[1],length(b));
+  end;
+ f.free;
+end;
+
 
 procedure TForm1.viewstatsClick(Sender: TObject);
 begin
@@ -944,13 +1204,14 @@ case PageControl1.ActivePageIndex of
      PhoneBookList.PopupMenu:= nil;
     end;
 1:  begin
+     if tray.tag=2 then tray.tag:=0;
      Callerlist.PopupMenu:= PopupMenu1;
      PhoneBookList.PopupMenu:= nil;
     end;
 2:  begin
       Callerlist.PopupMenu:= nil;
       PhoneBookList.PopupMenu:= PopupMenu2;
-      PbClear.click;
+      if sender = PageControl1 then PbClear.click;
     end;
  end;
 ToolButton1.Visible:=  (PageControl1.ActivePageIndex = 1);
@@ -960,6 +1221,7 @@ ToolButton5.Visible:=  (PageControl1.ActivePageIndex = 1);
 ToolButton6.Visible:=  (PageControl1.ActivePageIndex = 1);
 ToolButton7.Visible:=  (PageControl1.ActivePageIndex = 2);
 ToolButton8.Visible:=  (PageControl1.ActivePageIndex = 2);
+ToolButton10.Visible:=  (PageControl1.ActivePageIndex = 1);
 end;
 
 procedure TForm1.PopupMenu1Popup(Sender: TObject);
@@ -989,6 +1251,7 @@ begin
         PhoneBook[i] := Phonebook[length(PhoneBook)-1];
         setlength(PhoneBook, length(PhoneBook)-1);
         FillPhoneBook;
+        SavePhoneBook; //lokal speichern
         unsaved_phonebook:= true;
         break;
       end;
@@ -996,19 +1259,44 @@ begin
 end;
 
 Procedure TForm1.LoadPhonebookFromFile;
-var f  : TFileStream;
-    str: TStringStream;
+var s  : TStringlist;
+    r  : TRegExpr;
+    sl : TStringList;
+    i, l: integer;
 begin
-   if not fileExists('phonebook.dat') then exit;
+   if not fileExists('phonebook.csv') then exit;
 
-   f:= TFileStream.Create('phonebook.dat',fmOpenRead);
-   str:= TStringStream.Create('');
-   str.CopyFrom(f,f.Size);
-   f.free;
+   r:= TRegExpr.create;
+   s:= TStringList.Create;
+   sl:= TStringList.Create;
 
-   ParsePhonebook(str);
-   FillPhoneBook;
-   str.free;
+   s.LoadFromFile('phonebook.csv');
+   r.Expression:= ';';
+   setlength(phonebook, 0);
+   for i:=0 to s.count -1 do
+    begin
+      sl.Clear;
+      r.Split(s.Strings[i], sl);
+      if sl.count > 0 then
+      begin
+
+        l:= length(phonebook);
+        setlength(phonebook, l+1);
+
+        Phonebook[l].Name   := sl.strings[0];
+        Phonebook[l].Number := sl.strings[1];
+        Phonebook[l].short  := sl.strings[2];
+        Phonebook[l].vanity := sl.strings[3];
+        phonebook[l].important := (sl[0][1]='!');
+        Phonebook[l].no := l;
+      end;
+   end;
+
+ sl.free;
+ s.free;
+ r.free;
+
+ FillPhoneBook;
 end;
 
 Procedure TForm1.LoadCallersFromFile(filter: integer);
@@ -1021,7 +1309,8 @@ begin
    str:= TStringStream.Create('');
    str.CopyFrom(f,f.Size);
    f.free;
-   ParseCallList(str,filter);
+
+   ParseCallList(str,filter, false, nil);
    str.free;
 end;
 
@@ -1042,13 +1331,13 @@ end;
 procedure TForm1.ReloadPhonebookClick(Sender: TObject);
 var url : string;
     str : TStringStream;
-    f   : TFileStream;
 begin
  Phonebooklist.Cursor:= crHourGlass;
  Phonebooklist.Enabled:= false;
 
-  if unsaved_phonebook then
-    if AskforUpdate then exit;
+//nicht mehr notwendig, da die Daten für eine Rufnummer nicht mehr überschrieben werden
+//  if unsaved_phonebook then
+//    if AskforUpdate then exit;
 
    str:= TStringStream.Create('');
 
@@ -1058,14 +1347,8 @@ begin
    httpget(URL,str);
 
    ParsePhonebook(str);
+   SavePhonebook; //in einer Datei abspeichern
    FillPhoneBook;
-
-   // abspeichern
-   str.Position:= 0;
-   f:= TFileStream.Create('phonebook.dat',fmcreate);
-   f.CopyFrom(str,str.Size);
-   f.free;
-
   str.free;
 
  CheckImageEntries;
@@ -1074,34 +1357,47 @@ begin
  Phonebooklist.Cursor:= crDefault;
 end;
 
+procedure DeleteListFritzBox;
+var Data: String;
+begin
+Data:= Data + 'getpage=../html/de/menus/menu2.html&';
+         Data:= Data + 'errorpage=../html/de/menus/menu2.html&';
+         Data:= Data + 'var:lang=de&';
+         Data:= Data + 'var:pagename=foncalls&';
+         Data:= Data + 'var:errorpagename=foncalls&';
+         Data:= Data + 'var:menu=fon&';
+         Data:= Data + 'var:pagemaster=&';
+         Data:= Data + 'telcfg:settings/ClearJournal=1&';
+         Data:= Data + 'Submit=Submit';
+
+Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+end;
+
 procedure TForm1.reloadCallerListClick(Sender: TObject);
 var url : string;
     str : TStringStream;
-    f   : TFileStream;
 begin
  Callerlist.Cursor:= crHourGlass;
  Callerlist.Enabled:= false;
      str:= TStringStream.Create('');
 
-     if CheckForPassword then PWForm.showmodal;
+      if CheckForPassword then PWForm.showmodal;
 
       URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/menus/menu2.html&var:lang=de&var:menu=fon&var:pagename=foncalls';
       httpget(URL,str);
-      str.free;
-//     sleep(500);
+     str.free;
 
      str:= TStringStream.Create('');
       URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/FRITZ!Box_Anrufliste.csv';
       httpget(URL,str);
-      ParseCallList(str,0);
+      ParseCallList(str,0, true, sender);
       callerlist.Tag:= 1;
+    str.free;
 
-      str.Position:= 0;
-      f:= TFileStream.Create('anrufliste.csv',fmcreate);
-      f.CopyFrom(str,str.Size);
-      f.free;
+      //Anrufliste komplett löschen
+      if sett.ReadBool('FritzBox','DeleteListAutomatically',false) then
+        DeleteListFritzBox;
 
-     str.free;
  Callerlist.Enabled:= true;
  Callerlist.Cursor:= crDefault;
 end;
@@ -1165,6 +1461,7 @@ begin
      PhoneBook[i].No     := i;
      FillPhonebook;
      Phonebooklist.ItemIndex:= i;
+     SavePhonebook;
      unsaved_phonebook:= true;
    end;
 end;
@@ -1205,7 +1502,7 @@ end;
 
 procedure TForm1.ToolButton1Click(Sender: TObject);
 begin
-ReloadCallerlistClick(self);
+ReloadCallerlistClick(self);    
 end;
 
 procedure TForm1.ToolButton3Click(Sender: TObject);
@@ -1239,12 +1536,6 @@ begin
                'telcfg:settings/HotDialEntry'+inttostr(i)+'/Vanity=' + Phonebook[i].vanity + '&' +
                'telcfg:settings/HotDialEntry'+inttostr(i)+'/Number=' + Phonebook[i].Number + '&' +
                'telcfg:settings/HotDialEntry'+inttostr(i)+'/Name='   + EName               + '&';
-
-//       Data := Data + 'telcfg:settings/HotDialEntry'+inttostr(Phonebook[i].No)+'/Code=0'+ Phonebook[i].short + '&' +
-//               'telcfg:settings/HotDialEntry'+inttostr(Phonebook[i].No)+'/Vanity=' + '&' +
-//               'telcfg:settings/HotDialEntry'+inttostr(Phonebook[i].No)+'/Number='+Phonebook[i].Number + '&' +
-//               'telcfg:settings/HotDialEntry'+inttostr(Phonebook[i].No)+'/Name='+ EName + '&';
-
     end;
 
     Data:= Data + 'Submit=Submit';
@@ -1367,8 +1658,10 @@ begin
    PBName.text  := Callerlist.items[index].SubItems.Strings[1];
    PBNumber.text:= numberstring;
    PBVanity.text:= '';
+   Pbshort.ItemIndex:=0;
 
    PageControl1.ActivePageIndex:= 2;
+   PageControl1Change(nil);
   end;
 
 end;
@@ -1395,6 +1688,40 @@ begin
    end;
 
   end;
+end;
+
+procedure TForm1.deleteitemClick(Sender: TObject);
+var index          : integer;
+    DelString   : string;
+    i: integer;
+    SL: TStringlist;
+begin
+
+  if CallerList.ItemIndex > -1 then
+  begin
+   index        := CallerList.ItemIndex;
+
+   DelString:= inttostr(CallerList.items[index].ImageIndex-1);
+   for i:= 0 to Callerlist.items[index].SubItems.count-2 do
+     Delstring := DelString + ';'+Callerlist.items[index].SubItems.Strings[i];
+
+  end;
+
+ sl:= TStringlist.Create;
+ sl.loadfromfile('anrufliste.csv');
+ if sl.indexof(DelString) >-1 then
+ begin
+   sl.Delete(sl.indexof(DelString));
+   sl.SaveToFile('anrufliste.csv');
+   LoadCallersFromFile(ToolButton3.Tag); //neuladen mit eingestelltem Filter
+ end;  
+ sl.free;
+
+end;
+
+procedure TForm1.ToolButton10Click(Sender: TObject);
+begin
+  DeleteListFritzBox;
 end;
 
 end.

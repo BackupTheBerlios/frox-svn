@@ -51,6 +51,10 @@ type
     MSN: TEdit;
     CityCode: TEdit;
     Label9: TLabel;
+    NotifyOnlyInTray: TCheckBox;
+    TabSheet3: TTabSheet;
+    DeleteListAutomatically: TCheckBox;
+    LoadListAutomatically: TCheckBox;
     procedure FBPortKeyPress(Sender: TObject; var Key: Char);
     procedure PriceKeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -140,9 +144,12 @@ begin
  sett.WriteBool('FritzBox','AutoClose',closefinished.checked);
  sett.WriteBool('FritzBox','CloseTimer',closetimer.checked);
  sett.WriteInteger('FritzBox','CloseTime',closeafter.value);
+ sett.WriteBool('FritzBox','NotifyOnlyInTray',NotifyOnlyInTray.checked);
  sett.writestring('Fritzbox','IP',FBIP.Text);
  sett.WriteInteger('FritzBox','Port',strtoint(FBPort.text));
  sett.writeString('FritzBox','reverse', revpath.Text);
+ sett.WriteBool('FritzBox','DeleteListAutomatically',DeleteListAutomatically.checked);
+ sett.WriteBool('FritzBox','LoadListAutomatically', LoadListAutomatically.checked);
 
  sett.WriteBool('FritzBox','OneMSN', OneMSN.checked);
  sett.WriteString('FritzBox','MSN', MSN.text);
@@ -189,6 +196,9 @@ begin
  closetimer.Checked    := sett.ReadBool('FritzBox','CloseTimer',false);
  closeafter.value      := sett.ReadInteger('FritzBox','CloseTime',15);
  revpath.text          := sett.ReadString('FritzBox','reverse', 'http://www1.dasoertliche.de/?form_name=search_inv&ph=%NUMBER%');
+ NotifyOnlyInTray.checked := sett.ReadBool('FritzBox','NotifyOnlyInTray',false);
+ DeleteListAutomatically.checked := sett.ReadBool('FritzBox','DeleteListAutomatically',false);
+ LoadListAutomatically.checked   := sett.ReadBool('FritzBox','LoadListAutomatically',false);
 
  OneMSN.checked        := sett.ReadBool('FritzBox','OneMSN', false );
  MSN.text              := sett.ReadString('FritzBox','MSN', MSN.text);

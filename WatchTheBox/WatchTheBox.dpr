@@ -15,8 +15,6 @@ uses
   password in 'password.pas' {PWForm},
   CallManagement in 'CallManagement.pas';
 
-
-
 {$R *.res}
 
 begin
