@@ -104,6 +104,10 @@ type
     Label4: TLabel;
     deleteitem: TMenuItem;
     ToolButton10: TToolButton;
+    vcfimport: TToolButton;
+    sendtoBox: TCheckBox;
+    procedure sendtoBoxClick(Sender: TObject);
+    procedure vcfimportClick(Sender: TObject);
     procedure ToolButton10Click(Sender: TObject);
     procedure deleteitemClick(Sender: TObject);
     procedure addpictureClick(Sender: TObject);
@@ -185,7 +189,7 @@ var
 
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
-     CallManagement;
+     CallManagement, PBMess;
 
 {$R arrows.res}
 
@@ -866,7 +870,6 @@ var data: string;
     sep    : string;
     liItem : TListItem;
     oldcount: integer;
-    newcount: integer;
 begin
  Callerliste.Clear;
  SL:= TSTringlist.Create;
@@ -888,8 +891,8 @@ begin
  if loadedFromBox then
  begin
   OldData:= TStringList.Create;
-  if fileexists('anrufliste.csv') then
-       OldData.LoadFromFile('anrufliste.csv');
+  if fileexists(ExtractFilePath(ParamStr(0))+'anrufliste.csv') then
+       OldData.LoadFromFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
 
  //wenn MSN vorgegeben, dann die anderen MSN löschen
   if sett.Readbool('FritzBox','OneMSN',false) then DeleteOtherMSN(OldData);
@@ -909,7 +912,7 @@ begin
       SL.Append(OldData.Strings[j]);
 
   slb.addstrings(sl);
-  SL.SaveToFile('anrufliste.csv'); //speichert dumerweise mit Windowszeilenende
+  SL.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv'); //speichert dumerweise mit Windowszeilenende
   OldData.Free;
 //-----------------------------------------------------------------------------
   //Alles Löschen, was kein einkommender Anruf war -> Alte Liste
@@ -920,7 +923,7 @@ begin
    for j:= slb.count-1 downto 0 do
     if (StartsStr('2;', slb.strings[j])=false) then SLb.Delete(j);
 
-   newcount:= Sl.Count;
+//   newcount:= Sl.Count;
    if (sender = nil) then
    begin
      if (slb.count > sla.count)
@@ -1013,17 +1016,34 @@ end;
 function isinphonebook(number: string): integer;
 var i: integer;
 begin
-
+ Result:= -1;
  for i:= 0 to length(phonebook)-1 do
- begin
   if (number = phonebook[i].number) then
   begin
     Result:= i;
-    exit;
+    break;
   end;
- end;
+end;
 
- Result:= -1;
+function equal(l: integer; nam, num, sho, van: string): boolean;
+begin
+ Result:= false;
+ if (l > -1) then
+ if ((phonebook[l].Name = nam)
+    and (phonebook[l].number  = num)
+    and (phonebook[l].short   = sho)
+    and (phonebook[l].vanity =  van))
+    then Result:= True else Result:= false;
+end;
+
+function equal_b(l: integer; nam, num, van: string): boolean;
+begin
+ Result:= false;
+ if (l > -1) then
+ if ((phonebook[l].Name = nam)
+    and (phonebook[l].number  = num)
+    and (phonebook[l].vanity =  van))
+    then Result:= True else Result:= false;
 end;
 
 function ParsePhoneBook(s:TStream): boolean;
@@ -1031,7 +1051,8 @@ var data: string;
     r: TRegExpr;
     SL: TStringList;
     i: integer;
-    len: integer;
+    len, res: integer;
+    nnam, nnum, nvan, nshort: string;
 begin
  Result:=false;
  s.Position:= 0;
@@ -1044,57 +1065,68 @@ begin
  r.Split(Data,SL);
 
  r.Expression:= '.*TrFon\(\"(.*)\", \"(.*)\", \"(.*)\", \"(.*)\"\).*';
- //setlength(Phonebook, 0);
  for i:=0 to SL.Count-1 do
   if r.Exec(SL.strings[i]) then
   begin
     Result:= true;
+
+    res   := 0;
+    nnam  := r.Replace(SL.strings[i],'$1',true);
+    nnum  := r.Replace(SL.strings[i],'$2',true);
+    nvan  := r.Replace(SL.strings[i],'$4',true);
+    nshort:= r.Replace(SL.strings[i],'$3',true);
+
+    nnam   := AnsireplaceStr(nnam, '&auml;','ä');
+    nnam   := AnsireplaceStr(nnam, '&ouml;','ö');
+    nnam   := AnsireplaceStr(nnam, '&uuml;','ü');
+    nnam   := AnsireplaceStr(nnam, '&Auml;','Ä');
+    nnam   := AnsireplaceStr(nnam, '&Ouml;','Ö');
+    nnam   := AnsireplaceStr(nnam, '&Uuml;','Ü');
+    nnam   := AnsireplaceStr(nnam, '&szlig;','ß');
+    nnam   := AnsireplaceStr(nnam, '&eacute;','é');
+
     //Prüfen ob die Nummer schon existiert
     len:= isinPhoneBook(r.Replace(SL.strings[i],'$2',true));
-    
+
+    if equal(len, nnam, nnum, nshort, nvan) then continue;
+
+    //wenn im Telefonbuch
+     if (len > -1) then
+        if not PBMessage.CheckBox1.Checked then //wenn letzte Entscheidung
+        begin
+          PBMessage.FillEntry(len);
+          PBMessage.n1.text:= nnam;
+          PBMessage.n2.text:= nnum;
+          PBMessage.n3.text:= PBMessage.o3.text;
+          PBMessage.n4.text:= PBMessage.o4.text;
+          res:= PBMessage.ShowModal; //1 alten behalten, 2 Neueintrag an der Stelle
+          if res = 2 then
+          begin
+           nnam:= PBMessage.n1.text;
+           nnum:= PBMessage.n2.text;
+           nvan:= PBMessage.n4.text;
+          end;
+        end
+        else res:= PBMessage.lastResult;
+
+      // wenn noch nicht im Phonebook, dann eintragen
+   if (res <> 1) then
+   begin
+    //Array um einen Platz verlängern
     if (len = -1) then
     begin
      setlength(Phonebook, length(Phonebook)+1);
      len:= Length(phonebook) -1;
     end;
-    
-    Phonebook[len].Name   := r.Replace(SL.strings[i],'$1',true);
-    Phonebook[len].Number := r.Replace(SL.strings[i],'$2',true);
-    Phonebook[len].short  := r.Replace(SL.strings[i],'$3',true);
-    Phonebook[len].vanity := r.Replace(SL.strings[i],'$4',true);
+
+    Phonebook[len].Name   := nnam;
+    Phonebook[len].Number := nnum;
+    Phonebook[len].short  := nshort;
+    Phonebook[len].vanity := nvan;
     Phonebook[len].No     := len;
-
-    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&auml;','ä');
-    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&ouml;','ö');
-    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&uuml;','ü');
-    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Auml;','Ä');
-    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Ouml;','Ö');
-    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Uuml;','Ü');
-    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&szlig;','ß');
+   end;
   end;
-
-//   setlength(Phonebook, 0);
-// for i:=0 to SL.Count-1 do
-//  if r.Exec(SL.strings[i]) then
-//  begin
-//    Result:= true;
-//    setlength(Phonebook, length(Phonebook)+1);
-//    len:= Length(phonebook) -1;
-//    Phonebook[len].Name   := r.Replace(SL.strings[i],'$1',true);
-//    Phonebook[len].Number := r.Replace(SL.strings[i],'$2',true);
-//    Phonebook[len].short  := r.Replace(SL.strings[i],'$3',true);
-//    Phonebook[len].vanity := r.Replace(SL.strings[i],'$4',true);
-//    Phonebook[len].No     := len;
-//
-//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&auml;','ä');
-//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&ouml;','ö');
-//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&uuml;','ü');
-//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Auml;','Ä');
-//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Ouml;','Ö');
-//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&Uuml;','Ü');
-//    Phonebook[len].Name   := AnsireplaceStr(Phonebook[len].Name, '&szlig;','ß');
-//  end;
-
+  PBMessage.CheckBox1.Checked:= false;
 
  r.Free;
  SL.Free;
@@ -1105,15 +1137,7 @@ var  f: Tfilestream;
      b: string;
      i: integer;
 begin
-
- f:= TFileStream.Create('phonebook.csv',fmcreate);
-//      Name     : string;
-//      Number   : string;
-//      short    : string;
-//      vanity   : string;
-//      No       : integer;
-//      important: boolean;
-
+ f:= TFileStream.Create(ExtractFilepath(Paramstr(0))+'phonebook.csv',fmcreate);
  Result:=false;
  for i:=0 to (Length(phonebook) -1) do
   begin
@@ -1222,6 +1246,7 @@ ToolButton6.Visible:=  (PageControl1.ActivePageIndex = 1);
 ToolButton7.Visible:=  (PageControl1.ActivePageIndex = 2);
 ToolButton8.Visible:=  (PageControl1.ActivePageIndex = 2);
 ToolButton10.Visible:=  (PageControl1.ActivePageIndex = 1);
+vcfimport.Visible:=  (PageControl1.ActivePageIndex = 2);
 end;
 
 procedure TForm1.PopupMenu1Popup(Sender: TObject);
@@ -1264,13 +1289,13 @@ var s  : TStringlist;
     sl : TStringList;
     i, l: integer;
 begin
-   if not fileExists('phonebook.csv') then exit;
+   if not fileExists(ExtractFilePath(ParamStr(0))+'phonebook.csv') then exit;
 
    r:= TRegExpr.create;
    s:= TStringList.Create;
    sl:= TStringList.Create;
 
-   s.LoadFromFile('phonebook.csv');
+   s.LoadFromFile(ExtractFilePath(ParamStr(0))+'phonebook.csv');
    r.Expression:= ';';
    setlength(phonebook, 0);
    for i:=0 to s.count -1 do
@@ -1287,7 +1312,7 @@ begin
         Phonebook[l].Number := sl.strings[1];
         Phonebook[l].short  := sl.strings[2];
         Phonebook[l].vanity := sl.strings[3];
-        phonebook[l].important := (sl[0][1]='!');
+        phonebook[l].important := (sl.strings[0][1]='!');
         Phonebook[l].no := l;
       end;
    end;
@@ -1303,9 +1328,9 @@ Procedure TForm1.LoadCallersFromFile(filter: integer);
 var f  : TFileStream;
     str: TStringStream;
 begin
-   if not fileExists('anrufliste.csv') then exit;
+   if not fileExists(ExtractFilePath(ParamStr(0))+'anrufliste.csv') then exit;
 
-   f:= TFileStream.Create('anrufliste.csv',fmOpenRead);
+   f:= TFileStream.Create(ExtractFilePath(ParamStr(0))+'anrufliste.csv',fmOpenRead);
    str:= TStringStream.Create('');
    str.CopyFrom(f,f.Size);
    f.free;
@@ -1407,12 +1432,14 @@ var i: integer;
     index: integer;
 begin
  PBShort.Clear;
+ //0 bis 99 auffüllen
  for i:= 0 to 99 do
   if i < 10 then
     Form1.PBShort.Items.Append(Format('0%d',[i]))
     else
     Form1.PBShort.Items.Append(Format('%d',[i]));
 
+ //alle löschen die schon vergeben sind;   
  for i:= 0 to length(Phonebook)-1 do
  begin
     index:= Form1.PBShort.Items.IndexOf(PhoneBook[i].short);
@@ -1456,8 +1483,17 @@ begin
    begin
      PhoneBook[i].Name   := NameStr;
      PhoneBook[i].Number := PBNumber.Text;
+     if sendtoBox.Checked then
+     begin
      PhoneBook[i].vanity := PBVanity.Text;
      PhoneBook[i].Short  := PBShort.Text;
+     end
+     else
+     begin
+     PhoneBook[i].vanity := '';
+     PhoneBook[i].Short  := '';
+     end;
+     
      PhoneBook[i].No     := i;
      FillPhonebook;
      Phonebooklist.ItemIndex:= i;
@@ -1475,6 +1511,7 @@ PBName.Text:= item.Caption;
 PBNumber.Text:= item.SubItems[0];
 PBVanity.Text:= item.SubItems[2];
 PBimportant.checked:= (item.Caption[1] = '!');
+sendToBox.checked:= (item.SubItems[1] <> '') ;
 
 PBShortFill;
 i:= PBShort.items.Add(item.SubItems[1]);
@@ -1511,9 +1548,8 @@ begin
 end;
 
 Procedure TForm1.UpdatePhonebook;
-var i: integer;
+var i, cnt: integer;
     Data : String;
-    EName: string;
 begin
    Form1.Phonebooklist.Cursor:= crHourGlass;
    Form1.Phonebooklist.Enabled:= false;
@@ -1528,18 +1564,19 @@ begin
     httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
 
     Data:= '';
+    cnt:= 0;
     For i:= 0 to length(Phonebook)-1 do
+    if (phonebook[i].short <> '') then
     begin
-       if Phonebook[i].important then EName:= '!'+Phonebook[i].Name else EName:= Phonebook[i].Name;
         Data := Data +
-               'telcfg:settings/HotDialEntry'+inttostr(i)+'/Code=0'  + Phonebook[i].short  + '&' +
-               'telcfg:settings/HotDialEntry'+inttostr(i)+'/Vanity=' + Phonebook[i].vanity + '&' +
-               'telcfg:settings/HotDialEntry'+inttostr(i)+'/Number=' + Phonebook[i].Number + '&' +
-               'telcfg:settings/HotDialEntry'+inttostr(i)+'/Name='   + EName               + '&';
+               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Code=0'  + Phonebook[i].short  + '&' +
+               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Vanity=' + Phonebook[i].vanity + '&' +
+               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Number=' + Phonebook[i].Number + '&' +
+               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Name='   + Phonebook[i].Name   + '&';
+       inc(cnt);
     end;
 
-    Data:= Data + 'Submit=Submit';
-
+   Data:= Data + 'Submit=Submit';
    httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
    unsaved_phonebook:= false;
 
@@ -1708,11 +1745,11 @@ begin
   end;
 
  sl:= TStringlist.Create;
- sl.loadfromfile('anrufliste.csv');
+ sl.loadfromfile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
  if sl.indexof(DelString) >-1 then
  begin
    sl.Delete(sl.indexof(DelString));
-   sl.SaveToFile('anrufliste.csv');
+   sl.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
    LoadCallersFromFile(ToolButton3.Tag); //neuladen mit eingestelltem Filter
  end;  
  sl.free;
@@ -1722,6 +1759,139 @@ end;
 procedure TForm1.ToolButton10Click(Sender: TObject);
 begin
   DeleteListFritzBox;
+end;
+
+function ShortExists(s: string): boolean;
+var i: integer;
+begin
+  for i:= 0 to length(phonebook)-1 do
+   if phonebook[i].short = s then begin Result:= true; exit; end;
+  Result:= false;
+
+  if s='00' then showmessage(phonebook[0].short + ' ' + booltostr(result));
+
+end;
+
+function FindFreeShort(): string;
+var i: integer;
+    s: string;
+begin
+
+Result:= '-1';
+
+for i:= 0 to 99 do
+begin
+
+  if i < 10 then s:= '0'+inttostr(i)
+  else s:= inttostr(i);
+
+  if not shortexists(s) then begin result:= s; break; end;
+
+end;
+
+end;
+
+
+procedure TForm1.vcfimportClick(Sender: TObject);
+var vcf: TOpenDialog;
+    s  : TStringlist;
+    i, len  : integer;
+    t,tname,number, short, van: string;
+    res: integer;
+begin
+  vcf := TOpenDialog.Create(Self);
+  with vcf do
+  begin
+    Name := 'vcf';
+    Filter := 'VCard|*.vcf;*.VCF';
+    Title := 'VCard Import';
+  end;
+
+  if vcf.Execute then
+  begin
+   s := TStringlist.create;
+   PBMessage.CheckBox1.Checked:= false;
+
+   s.LoadFromFile(vcf.FileName);
+
+   for i:= 0 to s.Count -1 do
+   begin
+    t:= s.strings[i];
+    if (t = 'BEGIN:VCARD') then begin tname:= ''; number:= ''; end
+    else
+    if (StartsStr('N:',t) or StartsStr('N;',t) or  StartsStr('N:;',t)) then
+    begin
+      if  StartsStr('N:;',t) then delete(t,1,pos(';', t))
+      else
+      delete(t,1,pos(':', t));
+      tname:= AnsireplaceStr(UTF8Decode(t), ';',',');
+    end
+    else
+    if (StartsStr('TEL:',t) or StartsStr('TEL;',t)) then
+    begin
+      van:= '';
+      delete(t,1,pos(':', t));
+      number:= AnsireplaceStr(t, '+','00');
+      short:= FindFreeShort;
+      if short='-1' then short:= '';
+      res:= 0;
+      len:= isinPhoneBook(number); //eintrag suchen
+
+      if equal_b(len, tname, number, van) then continue;
+
+      //wenn im Telefonbuch
+      if (len > -1) then
+        if not PBMessage.CheckBox1.Checked then //wenn letzte Entscheidung
+        begin
+          PBMessage.FillEntry(len);
+          PBMessage.n1.text:= tname;
+          PBMessage.n2.text:= number;
+          PBMessage.n3.text:= PBMessage.o3.text;
+          PBMessage.n4.text:= '';
+          res:= PBMessage.ShowModal; //1 alten behalten, 2 Neueintrag an der Stelle
+          if res=2 then
+           begin
+            tname:= PBMessage.n1.text;
+            number:= PBMessage.n2.text;
+            van:= PBMessage.n4.text;
+           end;
+        end
+        else res:= PBMessage.lastResult;
+
+      // wenn noch nicht im Phonebook, dann eintragen
+      if (res <> 1) then
+      begin
+       if len = -1 then //wenn nicht im Array, dann neue Position
+        begin
+         setlength(Phonebook, length(Phonebook)+1);
+         len:= Length(phonebook)-1;
+        end;
+
+       Phonebook[len].Name   := tname;
+       Phonebook[len].Number := number;
+       Phonebook[len].short  := short;
+       Phonebook[len].vanity := van;
+       Phonebook[len].No     := len;
+
+      end;  //der letzten if-bedingung
+
+    end; // if TEL:
+   end; //der Schleife
+   PBMessage.CheckBox1.Checked:= false;
+
+   s.Free;
+   SavePhoneBook;
+   FillPhonebook;
+  end; //if vcf.execute
+
+  vcf.Free;
+
+end;
+
+procedure TForm1.sendtoBoxClick(Sender: TObject);
+begin
+PBShort.enabled:= sendtobox.checked;
+PBVanity.enabled:= sendtobox.checked;
 end;
 
 end.
