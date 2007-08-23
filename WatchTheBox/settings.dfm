@@ -25,7 +25,7 @@ object Form3: TForm3
     Top = 0
     Width = 335
     Height = 321
-    ActivePage = TabSheet3
+    ActivePage = TabSheet2
     Align = alTop
     Style = tsFlatButtons
     TabOrder = 0

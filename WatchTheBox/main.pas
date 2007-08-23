@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls,
   IpHlpApi,IpIfConst,IpRtrMib,ipFunctions,iptypes, ExtCtrls, StrUtils,
   scktcomp, CoolTrayIcon, ComCtrls, Buttons, inifiles, HttpProt, Menus, ImgList,
-  Gauges, BomeOneInstance, ToolWin;
+  Gauges, BomeOneInstance, ToolWin, winsock;
 
 type
 
@@ -64,13 +64,6 @@ type
     Tab2: TTabSheet;
     CallerList: TListView;
     Tab3: TTabSheet;
-    PhoneBookList: TListView;
-    PBName: TEdit;
-    PBNumber: TEdit;
-    PBadd: TButton;
-    PBimportant: TCheckBox;
-    PBVanity: TEdit;
-    PBClear: TButton;
     ImageList1: TImageList;
     ToolBar1: TToolBar;
     ToolButton1: TToolButton;
@@ -78,7 +71,6 @@ type
     ToolButton2: TToolButton;
     Status: TStatusBar;
     error: TLabel;
-    PBShort: TComboBox;
     ToolButton3: TToolButton;
     ToolButton4: TToolButton;
     ToolButton5: TToolButton;
@@ -105,7 +97,25 @@ type
     deleteitem: TMenuItem;
     ToolButton10: TToolButton;
     vcfimport: TToolButton;
+    wakeup: TTimer;
+    searchpanel: TGroupBox;
+    LabeledEdit1: TLabeledEdit;
+    sname: TRadioButton;
+    snumber: TRadioButton;
+    ToolButton11: TToolButton;
+    GroupBox1: TGroupBox;
+    PhoneBookList: TListView;
+    PBName: TEdit;
+    PBNumber: TEdit;
+    PBadd: TButton;
+    PBimportant: TCheckBox;
+    PBVanity: TEdit;
+    PBClear: TButton;
+    PBShort: TComboBox;
     sendtoBox: TCheckBox;
+    procedure ToolButton11Click(Sender: TObject);
+    procedure LabeledEdit1Change(Sender: TObject);
+    procedure wakeupTimer(Sender: TObject);
     procedure sendtoBoxClick(Sender: TObject);
     procedure vcfimportClick(Sender: TObject);
     procedure ToolButton10Click(Sender: TObject);
@@ -127,6 +137,9 @@ type
     procedure ToolButton1Click(Sender: TObject);
     procedure ToolButton2Click(Sender: TObject);
     procedure PBClearClick(Sender: TObject);
+    procedure PhonebookListColumnClick(Sender: TObject; Column: TListColumn);
+    procedure PhonebookListCompare(Sender: TObject; Item1,
+      Item2: TListItem; Data: Integer; var Compare: Integer);
     procedure PhoneBookListSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure PBaddClick(Sender: TObject);
@@ -160,6 +173,7 @@ type
     procedure httppost(URL,Data: string);
     procedure SaveTrafficData;
     procedure ReverseLookUp(Call: TCaller);
+    procedure WMPowerBroadcast(var Msg: TMessage); message WM_POWERBROADCAST;
   private
     { Private-Deklarationen }
     PBselected: integer;
@@ -186,12 +200,19 @@ var
   offsetIN, offsetOUT: cardinal;
   TIN, TOUT          : cardinal;
   LastIN, LastOUT    : cardinal;
-
+  ColumnToSort       : Integer;
+  LastSorted         : Integer;
+  SortDir            : Integer;
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
      CallManagement, PBMess;
 
 {$R arrows.res}
+
+Procedure TForm1.WMPowerBroadcast(var Msg: TMessage);
+begin
+wakeup.Enabled:= true;
+end;
 
 procedure TForm1.SocketConnectTimer(Sender: TObject);
 begin //versuche alle 5 s mit der FritzBox zu Verbinden
@@ -531,7 +552,7 @@ begin
   BoxAdress    := sett.ReadString('FritzBox','IP','192.168.178.1');
 
   Application.ShowMainForm:= not sett.Readbool('program','minimized',false); //Mainform nicht anzeigen
-
+  Phonebooklist.Height:= tab3.height - groupbox1.height;
   Form1.Left   := sett.Readinteger('MainForm','left',0);
   Form1.top    := sett.Readinteger('MainForm','top',0);
   Form1.width  := sett.Readinteger('MainForm','width',464);
@@ -935,53 +956,6 @@ begin
  end;
  sla.free;
  slb.free;
-//-----------------------------------------------------------------------------
-//   Tray blinken lassen, wenn neuer Anruf
-//   showmessage(sl.strings[3]);
-//   newcount:= Sl.Count;
-//   if (sender = nil) then
-//   begin
-//     if ( ((oldcount > 0) and (newcount > oldcount)) //wenn Datei schon existiert
-//      or  ((oldcount = 0) and (newcount > 2)))  //wenn noch keine Datei existiert
-//      then
-//      begin tray.tag:= 2; tray.iconindex:= 4; end;
-//   end;
-// end;
-
- //-----------------------------------------------------------------------------
-//  if loadedFromBox then
-// begin
-//  OldData:= TStringList.Create;
-//  if fileexists('anrufliste.csv') then
-//       OldData.LoadFromFile('anrufliste.csv');
-//
-//  oldcount:= OldData.Count;
-//  if oldcount > 0 then
-//  begin
-//    Olddata.Delete(0); //die Beschreibungszeilen löschen
-//    Olddata.Delete(0);
-//  end;
-//    //die letzten Leerzeichen löschen
-//    while (SL.strings[sl.count-1]='') do sl.delete(sl.count-1);
-//
-//    for j:= 0 to olddata.count-1 do
-//     if (SL.IndexOf(OldData.Strings[j])= -1) then
-//      SL.Append(OldData.Strings[j]);
-//
-//  SL.SaveToFile('anrufliste.csv'); //speichert dumerweise mit Windowszeilenende
-//  OldData.Free;
-//
-////   Tray blinken lassen, wenn neuer Anruf
-//   showmessage(sl.strings[3]);
-//   newcount:= Sl.Count;
-//   if (sender = nil) then
-//   begin
-//     if ( ((oldcount > 0) and (newcount > oldcount)) //wenn Datei schon existiert
-//      or  ((oldcount = 0) and (newcount > 2)))  //wenn noch keine Datei existiert
-//      then
-//      begin tray.tag:= 2; tray.iconindex:= 4; end;
-//   end;
-// end;
 
  if sl.Count > 2 then
  begin
@@ -1502,6 +1476,77 @@ begin
    end;
 end;
 
+procedure TForm1.PhonebookListColumnClick(Sender: TObject; Column: TListColumn);
+begin
+  ColumnToSort := Column.Index;
+  if ColumnToSort = LastSorted then
+    SortDir := 1 - SortDir
+  else
+    SortDir := 0;
+  LastSorted := ColumnToSort;
+//  showmessage(inttostr(columnTosort));
+  (Sender as TCustomListView).AlphaSort;
+end;
+
+procedure TForm1.PhonebookListCompare(Sender: TObject; Item1,
+  Item2: TListItem; Data: Integer; var Compare: Integer);
+var
+  TempStr, TextToSort1, TextToSort2: String;
+begin
+//Texte zuweisen
+  if ColumnToSort = 0 then
+  begin
+    TextToSort1 := Item1.Caption;
+    TextToSort2 := Item2.Caption;
+  end //if ColumnToSort = 0 then
+  else
+  begin
+    TextToSort1 := Item1.SubItems[ColumnToSort - 1];
+    TextToSort2 := Item2.SubItems[ColumnToSort - 1];
+  end; //if ColumnToSort <> 0 then
+
+//Je nach Sortierrichtung evtl. Texte vertauschen
+  if SortDir <> 0 then
+  begin
+    TempStr := TextToSort1;
+    TextToSort1 := TextToSort2;
+    TextToSort2 := TempStr;
+  end; //if SortDir <> 0 then
+
+//Texte je nach Tag der Spalte unterschiedlich vergleichen
+  case (Sender as TListView).Columns[ColumnToSort].Tag of
+//Integer-Werte
+    1: Compare := StrToInt(TextToSort1)-StrToInt(TextToSort2);
+//Float-Werte
+    2: begin
+      Compare := 0;
+      if StrToFloat(TextToSort1) > StrToFloat(TextToSort2) then
+        Compare := Trunc(StrToFloat(TextToSort1)-StrToFloat(TextToSort2))+1;
+      if StrToFloat(TextToSort1) < StrToFloat(TextToSort2) then
+        Compare := Trunc(StrToFloat(TextToSort1)-StrToFloat(TextToSort2))-1;
+    end; //2
+//DateTime-Werte
+    3: begin
+      Compare := 0;
+      if StrToDateTime(TextToSort1) > StrToDateTime(TextToSort2) then
+        Compare := Trunc(StrToDateTime(TextToSort1)-StrToDateTime(TextToSort2))+1;
+      if StrToDateTime(TextToSort1) < StrToDateTime(TextToSort2) then
+        Compare := Trunc(StrToDateTime(TextToSort1)-StrToDateTime(TextToSort2))-1;
+    end; //3
+//IPs
+    4: begin
+      Compare := 0;
+      if ntohl(inet_addr(PAnsiChar(TextToSort1))) > ntohl(inet_addr(PAnsiChar(TextToSort2))) then
+        Compare := Trunc(ntohl(inet_addr(PAnsiChar(TextToSort1)))-ntohl(inet_addr(PAnsiChar(TextToSort2))))+1;
+      if ntohl(inet_addr(PAnsiChar(TextToSort1))) < ntohl(inet_addr(PAnsiChar(TextToSort2))) then
+        Compare := Trunc(ntohl(inet_addr(PAnsiChar(TextToSort1)))-ntohl(inet_addr(PAnsiChar(TextToSort2))))-1;
+    end; // 4
+//Alles andere sind Strings
+    else
+      Compare := CompareText(TextToSort1,TextToSort2);
+  end; //case (Sender as TListView).Columns[ColumnToSort].Tag of
+end; //procedure TForm1.ListView1Compare
+
 procedure TForm1.PhoneBookListSelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 var i: integer;
@@ -1530,6 +1575,7 @@ PBimportant.checked:= false;
 PBShortFill;
 PBshort.ItemIndex:= 0;
 PBadd.Caption:= 'add';
+sendtoBoxClick(nil);
 end;
 
 procedure TForm1.ToolButton2Click(Sender: TObject);
@@ -1767,9 +1813,6 @@ begin
   for i:= 0 to length(phonebook)-1 do
    if phonebook[i].short = s then begin Result:= true; exit; end;
   Result:= false;
-
-  if s='00' then showmessage(phonebook[0].short + ' ' + booltostr(result));
-
 end;
 
 function FindFreeShort(): string;
@@ -1892,6 +1935,47 @@ procedure TForm1.sendtoBoxClick(Sender: TObject);
 begin
 PBShort.enabled:= sendtobox.checked;
 PBVanity.enabled:= sendtobox.checked;
+end;
+
+procedure TForm1.wakeupTimer(Sender: TObject);
+begin
+ if sett.ReadBool('FritzBox','useMonitor',false) then
+     StartMySocket; //Fritz!Box Listener started
+ wakeup.enabled:= false;
+end;
+
+procedure TForm1.LabeledEdit1Change(Sender: TObject);
+var
+  i: Integer;
+  lTemp: String;
+  stext: string;
+  lItem: TListItem;
+begin
+  lTemp := AnsiUpperCase(LabeledEdit1.Text);
+
+  for i := 0 to PhoneBookList.Items.Count-1 do
+  begin
+    lItem := PhoneBookList.Items[i];
+    if sname.Checked then stext:= lItem.Caption else stext:= lItem.SubItems.Text;
+    //    if Pos(lTemp, AnsiUpperCase(lItem.SubItems.Text)) <> 0 then
+//    if Pos(lTemp, AnsiUpperCase(lItem.Caption)) <> 0 then
+    if Pos(lTemp, AnsiUpperCase(stext)) <> 0 then
+    begin
+     PhoneBookList.HideSelection := true;
+     PhoneBookList.Selected := lItem;
+     lItem.MakeVisible(false);
+     Break;
+    end;
+  end;
+end;
+procedure TForm1.ToolButton11Click(Sender: TObject);
+begin
+searchpanel.Visible:= not searchpanel.Visible;
+if (searchpanel.Visible) then
+ Phonebooklist.Height:= Phonebooklist.height - searchpanel.height
+else
+ Phonebooklist.Height:= tab3.height - groupbox1.height;
+ToolButton11.down:= searchpanel.Visible;
 end;
 
 end.
