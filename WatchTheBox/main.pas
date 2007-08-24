@@ -42,6 +42,8 @@ type
       Start           : cardinal;
     end;
 
+  type TFilterArray = array[1..3] of boolean;
+
   TForm1 = class(TForm)
     Timer: TTimer;
     Tray: TCoolTrayIcon;
@@ -74,7 +76,6 @@ type
     ToolButton3: TToolButton;
     ToolButton4: TToolButton;
     ToolButton5: TToolButton;
-    ToolButton6: TToolButton;
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
     EdtPrice: TEdit;
@@ -145,7 +146,7 @@ type
     procedure PBaddClick(Sender: TObject);
     procedure reloadCallerListClick(Sender: TObject);
     Procedure LoadPhonebookFromFile;
-    Procedure LoadCallersFromFile(filter: integer);
+    Procedure LoadCallersFromFile();
     procedure ReloadPhonebookClick(Sender: TObject);
     procedure Eintraglschen1Click(Sender: TObject);
     procedure PopupMenu1Popup(Sender: TObject);
@@ -162,7 +163,7 @@ type
     procedure SocketErr(Sender:TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
     Procedure SocketMessage(Sender: TObject; Socket: TCustomWinSocket);
     Procedure DocData(sender: TObject; Buffer: Pointer; len: integer);
-    Procedure ParseCallList(s:TStream; filterindex: integer; LoadedFromBox: Boolean;Sender: TObject);
+    Procedure ParseCallList(s:TStream; filter: TFilterArray; LoadedFromBox: Boolean;Sender: TObject);
     procedure FillPhonebook;
     procedure PBShortFill;
     Procedure StartMySocket;
@@ -596,7 +597,8 @@ begin
  tab2.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
  tab3.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
 
- LoadCallersFromFile(0);
+// LoadCallersFromFile(0);
+ LoadCallersFromFile();
  LoadPhonebookFromFile;
  if sett.ReadBool('FritzBox','LoadListAutomatically',false)
   then
@@ -881,7 +883,7 @@ s.free;
 r.Free;
 end;
 
-procedure TForm1.ParseCallList(s:TStream; filterindex: integer; LoadedFromBox: Boolean; Sender: TObject);
+procedure TForm1.ParseCallList(s:TStream; filter: TFilterArray; LoadedFromBox: Boolean; Sender: TObject);
 var data: string;
     r      : TRegExpr;
     SL, CL : TStringList;
@@ -944,15 +946,10 @@ begin
    for j:= slb.count-1 downto 0 do
     if (StartsStr('2;', slb.strings[j])=false) then SLb.Delete(j);
 
-//   newcount:= Sl.Count;
    if (sender = nil) then
-   begin
-     if (slb.count > sla.count)
-     //(((sla.count > 0) and ) //wenn Datei schon existiert
-//      or  ((oldcount = 0) and (newcount > 2)))  //wenn noch keine Datei existiert
-      then
+     if (slb.count > sla.count) then
       begin tray.tag:= 2; tray.iconindex:= 4; end;
-   end;
+
  end;
  sla.free;
  slb.free;
@@ -970,7 +967,11 @@ begin
     cl.Clear;
     r.Split(sl.strings[i],cl);
     if cl.Count = 7 then
-     if ((filterindex= 0) or (filterindex>4) or (strtoint(cl.strings[0])+1 = filterindex)) then //filtern
+    //Daten filtern
+     if  ((filter[1] and ((strtoint(cl.strings[0]))=1)) //einkommende rufe
+       or (filter[2] and ((strtoint(cl.strings[0]))=2)) //verpasste Rufe
+       or (filter[3] and ((strtoint(cl.strings[0]))=3)))//abgehende
+     then
      begin
       liItem := CallerListe.Add;
       liItem.Caption := '';
@@ -980,7 +981,6 @@ begin
       liItem.SubItems:=cl;
       end;
    end;
-   ToolButton3.Tag:= filterindex;
  end;
 
 SL.Free;
@@ -1212,15 +1212,16 @@ case PageControl1.ActivePageIndex of
       if sender = PageControl1 then PbClear.click;
     end;
  end;
-ToolButton1.Visible:=  (PageControl1.ActivePageIndex = 1);
-ToolButton3.Visible:=  (PageControl1.ActivePageIndex = 1);
-ToolButton4.Visible:=  (PageControl1.ActivePageIndex = 1);
-ToolButton5.Visible:=  (PageControl1.ActivePageIndex = 1);
-ToolButton6.Visible:=  (PageControl1.ActivePageIndex = 1);
-ToolButton7.Visible:=  (PageControl1.ActivePageIndex = 2);
-ToolButton8.Visible:=  (PageControl1.ActivePageIndex = 2);
+ToolButton1.Visible :=  (PageControl1.ActivePageIndex = 1);
+ToolButton3.Visible :=  (PageControl1.ActivePageIndex = 1);
+ToolButton4.Visible :=  (PageControl1.ActivePageIndex = 1);
+ToolButton5.Visible :=  (PageControl1.ActivePageIndex = 1);
 ToolButton10.Visible:=  (PageControl1.ActivePageIndex = 1);
-vcfimport.Visible:=  (PageControl1.ActivePageIndex = 2);
+
+ToolButton7.Visible :=  (PageControl1.ActivePageIndex = 2);
+ToolButton8.Visible :=  (PageControl1.ActivePageIndex = 2);
+ToolButton11.Visible:=  (PageControl1.ActivePageIndex = 2);
+vcfimport.Visible   :=  (PageControl1.ActivePageIndex = 2);
 end;
 
 procedure TForm1.PopupMenu1Popup(Sender: TObject);
@@ -1298,11 +1299,16 @@ begin
  FillPhoneBook;
 end;
 
-Procedure TForm1.LoadCallersFromFile(filter: integer);
+Procedure TForm1.LoadCallersFromFile();
 var f  : TFileStream;
     str: TStringStream;
+    filter: TFilterArray;
 begin
    if not fileExists(ExtractFilePath(ParamStr(0))+'anrufliste.csv') then exit;
+
+   filter[1]:= ToolButton3.Down;
+   filter[2]:= ToolButton4.Down;
+   filter[3]:= ToolButton5.Down;
 
    f:= TFileStream.Create(ExtractFilePath(ParamStr(0))+'anrufliste.csv',fmOpenRead);
    str:= TStringStream.Create('');
@@ -1375,6 +1381,7 @@ end;
 procedure TForm1.reloadCallerListClick(Sender: TObject);
 var url : string;
     str : TStringStream;
+    filter: TFilterArray;
 begin
  Callerlist.Cursor:= crHourGlass;
  Callerlist.Enabled:= false;
@@ -1389,7 +1396,11 @@ begin
      str:= TStringStream.Create('');
       URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/FRITZ!Box_Anrufliste.csv';
       httpget(URL,str);
-      ParseCallList(str,0, true, sender);
+//      ParseCallList(str,0, true, sender);
+      filter[1]:= true;
+      filter[2]:= true;
+      filter[3]:= true;
+      ParseCallList(str,filter, true, sender);
       callerlist.Tag:= 1;
     str.free;
 
@@ -1590,7 +1601,8 @@ end;
 
 procedure TForm1.ToolButton3Click(Sender: TObject);
 begin
- LoadCallersFromFile((sender as TToolButton).ImageIndex);
+// LoadCallersFromFile((sender as TToolButton).ImageIndex);
+ LoadCallersFromFile();
 end;
 
 Procedure TForm1.UpdatePhonebook;
@@ -1796,7 +1808,8 @@ begin
  begin
    sl.Delete(sl.indexof(DelString));
    sl.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
-   LoadCallersFromFile(ToolButton3.Tag); //neuladen mit eingestelltem Filter
+//   LoadCallersFromFile(ToolButton3.Tag); //neuladen mit eingestelltem Filter
+   LoadCallersFromFile(); //neuladen mit eingestelltem Filter
  end;  
  sl.free;
 
@@ -1968,6 +1981,7 @@ begin
     end;
   end;
 end;
+
 procedure TForm1.ToolButton11Click(Sender: TObject);
 begin
 searchpanel.Visible:= not searchpanel.Visible;
@@ -1975,7 +1989,6 @@ if (searchpanel.Visible) then
  Phonebooklist.Height:= Phonebooklist.height - searchpanel.height
 else
  Phonebooklist.Height:= tab3.height - groupbox1.height;
-ToolButton11.down:= searchpanel.Visible;
 end;
 
 end.
