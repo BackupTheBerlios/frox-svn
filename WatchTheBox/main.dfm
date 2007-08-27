@@ -15,11 +15,13 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnKeyUp = FormKeyUp
   PixelsPerInch = 96
   TextHeight = 13
   object PageControl1: TPageControl
@@ -27,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = Tab3
+    ActivePage = Tab1
     Align = alClient
     PopupMenu = PopupMenu1
     TabOrder = 0
@@ -379,7 +381,7 @@ object Form1: TForm1
         Align = alBottom
         TabOrder = 0
         Visible = False
-        object LabeledEdit1: TLabeledEdit
+        object PBsearch: TLabeledEdit
           Left = 48
           Top = 10
           Width = 121
@@ -389,7 +391,7 @@ object Form1: TForm1
           EditLabel.Caption = 'search :'
           LabelPosition = lpLeft
           TabOrder = 0
-          OnChange = LabeledEdit1Change
+          OnChange = PBsearchChange
         end
         object sname: TRadioButton
           Left = 184
@@ -581,7 +583,7 @@ object Form1: TForm1
     object ToolButton4: TToolButton
       Left = 102
       Top = 0
-      Hint = 'filter: outgoing (failed)'
+      Hint = 'filter: incoming (missed)'
       Caption = 'ToolButton4'
       Down = True
       ImageIndex = 3
@@ -1155,7 +1157,7 @@ object Form1: TForm1
     Left = 384
     Top = 264
     Bitmap = {
-      494C01010B000E00040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C01010B000E00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1687,7 +1689,8 @@ object Form1: TForm1
       00001FFFF801F80300000FFFF003F003000087FFE007E0070000C3FFC08FC08F
       0000E1FF81DF81DF0000F1FF83FF03FF0000FCFB018107FF0000FE7101010381
       0000FF31010101810000FF87030003810000FF87878087810000FF8FCF80CF81
-      0000FC1FFFB0FF810000FC7FFFF8FFFF}
+      0000FC1FFFB0FF810000FC7FFFF8FFFF00000000000000000000000000000000
+      000000000000}
   end
   object OneInstance: TBomeOneInstance
     Left = 360

@@ -193,9 +193,7 @@ CallIn.top := sett.Readinteger('Call','top',-1);
 if (CallIn.left = -1) or (CallIn.top = -1) then SetFormPosition;
 AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
 
-//AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, topbox.Checked);
-
- if sett.ReadBool('FritzBox','CloseTimer',false) then
+if sett.ReadBool('FritzBox','CloseTimer',false) then
  begin
   timer.Interval:= sett.ReadInteger('FritzBox','CloseTime',15) * 1000;
   timer.Enabled:= true;

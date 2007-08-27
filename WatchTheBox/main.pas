@@ -100,7 +100,7 @@ type
     vcfimport: TToolButton;
     wakeup: TTimer;
     searchpanel: TGroupBox;
-    LabeledEdit1: TLabeledEdit;
+    PBsearch: TLabeledEdit;
     sname: TRadioButton;
     snumber: TRadioButton;
     ToolButton11: TToolButton;
@@ -114,8 +114,10 @@ type
     PBClear: TButton;
     PBShort: TComboBox;
     sendtoBox: TCheckBox;
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ToolButton11Click(Sender: TObject);
-    procedure LabeledEdit1Change(Sender: TObject);
+    procedure PBsearchChange(Sender: TObject);
+    procedure PBsearchChangeBackwards;
     procedure wakeupTimer(Sender: TObject);
     procedure sendtoBoxClick(Sender: TObject);
     procedure vcfimportClick(Sender: TObject);
@@ -251,12 +253,16 @@ begin
  if SocketConnected then MySocket.Close;
 end;
 
-function findnames(number: string): string;
+function findnames(number: string; return : integer): string;
 var i: integer;
 begin
- Result:= number;
+ if (return=1) then
+   Result:= number
+   else Result:= '';
+
  for i:= 0 to length(PhoneBook)-1 do
-  if PhoneBook[i].number = number then
+  if AnsiEndsText(number,PhoneBook[i].number) then //prüfen ob die Nummern gleich sind
+//  if PhoneBook[i].number = number then
   begin
     Result:= Phonebook[i].name;
     if Result[1] = '!' then delete(Result,1,1);
@@ -322,7 +328,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
       Call.Rufnummer  := s.strings[3];
-      Call.Name       := FindNames(s.strings[3]);
+      Call.Name       := FindNames(s.strings[3],1);
       Call.Nebenstelle:= '';
       Call.MSN        := s.strings[4];
       Call.Dauer      := '';
@@ -347,7 +353,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
       Call.Rufnummer  := s.strings[5];
-      Call.Name       := FindNames(s.strings[5]);
+      Call.Name       := FindNames(s.strings[5],1);
       Call.Nebenstelle:= s.strings[3];
       Call.MSN        := s.strings[4];
       Call.Dauer      := '';
@@ -537,12 +543,24 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 var f: TFileStream;
+    c: integer;
 begin
 
   unsaved_phonebook := false;
+
   PBSelected        := -1;
   PhonebookListe    := Tlistitems.Create(PhonebookList);
   CallerListe       := Tlistitems.Create(CallerList);
+
+ if Paramcount > 0 then
+  for c:= 0 to Paramcount do
+    if ParamStr(c)='-OnlyIncoming' then //zeige in der Anrufliste nur eingehende Gespräche an
+    begin
+     Toolbutton5.Down         := false;
+     Toolbutton5.Enabled      := false;
+     Toolbutton5.Indeterminate:= true;
+     break;
+    end;
 
   sett:= TMemIniFile.Create(ExtractFilePath(ParamStr(0)) + 'settings.cfg');
 
@@ -558,6 +576,15 @@ begin
   Form1.top    := sett.Readinteger('MainForm','top',0);
   Form1.width  := sett.Readinteger('MainForm','width',464);
   Form1.height := sett.Readinteger('MainForm','height',404);
+
+  //Sortiertypen festlegen
+  for c:= 0 to CallerList.Columns.Count-1 do
+   CallerList.Column[c].tag:= 5; //string
+
+  for c:= 0 to phonebooklist.Columns.Count-1 do
+   phonebooklist.Column[c].tag:= 5; //string
+  Callerlist.Columns[1].Tag := 3; //Date/time
+  phonebooklist.Columns[4].Width:= 0;   //Spalte ausblenden
 
  if fileexists(ExtractFilePath(ParamStr(0)) + 'traffic.dat') then
     begin
@@ -906,9 +933,8 @@ begin
  r.Expression:= #10;
  r.Split(Data,SL);
 
- //wenn MSN vorgegeben, dann die anderen MSN löschen
+ //wenn MSN vorgegeben, dann die Einträge mit anderen MSN löschen
  if sett.Readbool('FritzBox','OneMSN',false) then DeleteOtherMSN(SL);
-// oldcount:= sl.count; //merken wie viele Einträge
 
  //daten, die lokal gespeichert sind, aber nicht mehr auf der Box liegen an die Datei anhängen
  if loadedFromBox then
@@ -978,6 +1004,8 @@ begin
       liitem.ImageIndex:= strtoint(cl.strings[0])+1;
       cl.Delete(0);
       cl.Append(inttostr(liitem.ImageIndex));
+//      Namen suchen
+      if ((cl.strings[1]='') and (cl.strings[2]<>'')) then cl.strings[1]:= findnames(cl.strings[2],0);
       liItem.SubItems:=cl;
       end;
    end;
@@ -1230,10 +1258,9 @@ begin
  if callerlist.ItemIndex > -1 then
  begin
     number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
-{    if length(number) <= 8 then number := '030' + number;
-    searchnumber.caption:= 'reverse lookup: ' + number;}
+//    if length(number) <= 8 then number := '030' + number;
+    searchnumber.caption:= 'reverse lookup: ' + number;
  end;
-// searchNumber.visible:= (callerlist.ItemIndex > -1)
 end;
 
 procedure TForm1.Eintraglschen1Click(Sender: TObject);
@@ -1340,21 +1367,17 @@ begin
  Phonebooklist.Cursor:= crHourGlass;
  Phonebooklist.Enabled:= false;
 
-//nicht mehr notwendig, da die Daten für eine Rufnummer nicht mehr überschrieben werden
-//  if unsaved_phonebook then
-//    if AskforUpdate then exit;
+ str:= TStringStream.Create('');
 
-   str:= TStringStream.Create('');
+ if CheckForPassword then PWForm.showmodal;
 
-   if CheckForPassword then PWForm.showmodal;
+ URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/fon/ppFonbuch.html&var:lang=de';
+ httpget(URL,str);
 
-   URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/fon/ppFonbuch.html&var:lang=de';
-   httpget(URL,str);
-
-   ParsePhonebook(str);
-   SavePhonebook; //in einer Datei abspeichern
-   FillPhoneBook;
-  str.free;
+ ParsePhonebook(str);
+ SavePhonebook; //in einer Datei abspeichern
+ FillPhoneBook;
+ str.free;
 
  CheckImageEntries;
 
@@ -1396,10 +1419,9 @@ begin
      str:= TStringStream.Create('');
       URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/FRITZ!Box_Anrufliste.csv';
       httpget(URL,str);
-//      ParseCallList(str,0, true, sender);
-      filter[1]:= true;
-      filter[2]:= true;
-      filter[3]:= true;
+      filter[1]:= ToolButton3.down;
+      filter[2]:= ToolButton4.down;
+      filter[3]:= ToolButton5.down;
       ParseCallList(str,filter, true, sender);
       callerlist.Tag:= 1;
     str.free;
@@ -1748,12 +1770,14 @@ begin
    index        := CallerList.ItemIndex;
 
    NumberString := Callerlist.items[index].SubItems.Strings[2];
+
    if ((NumberString[1] <> '0') and (NumberString <> '+')) then NumberString:= Citycode+NumberString;
 
    PBName.text  := Callerlist.items[index].SubItems.Strings[1];
    PBNumber.text:= numberstring;
    PBVanity.text:= '';
    Pbshort.ItemIndex:=0;
+   PBadd.Caption:= 'add';
 
    PageControl1.ActivePageIndex:= 2;
    PageControl1Change(nil);
@@ -1957,38 +1981,98 @@ begin
  wakeup.enabled:= false;
 end;
 
-procedure TForm1.LabeledEdit1Change(Sender: TObject);
+procedure TForm1.ToolButton11Click(Sender: TObject);
+begin
+searchpanel.Visible:= not searchpanel.Visible;
+PhoneBookList.Tag:= 0;
+if (searchpanel.Visible) then
+begin
+ Phonebooklist.Height:= Phonebooklist.height - searchpanel.height;
+ PBsearch.SetFocus;
+end
+else
+ Phonebooklist.Height:= tab3.height - groupbox1.height;
+end;
+
+procedure TForm1.PBsearchChange(Sender: TObject);
 var
   i: Integer;
   lTemp: String;
   stext: string;
   lItem: TListItem;
 begin
-  lTemp := AnsiUpperCase(LabeledEdit1.Text);
+  if PhoneBookList.Items.Count=0 then exit;
 
-  for i := 0 to PhoneBookList.Items.Count-1 do
+  lTemp := AnsiUpperCase(PBsearch.Text);
+
+  if ((sender = PBSearch) or (PhoneBooklist.Tag+1 > PhoneBookList.Items.Count-1))
+   then PhoneBookList.Tag:= -1;
+
+  for i := PhoneBooklist.Tag+1 to PhoneBookList.Items.Count-1 do
   begin
     lItem := PhoneBookList.Items[i];
     if sname.Checked then stext:= lItem.Caption else stext:= lItem.SubItems.Text;
-    //    if Pos(lTemp, AnsiUpperCase(lItem.SubItems.Text)) <> 0 then
-//    if Pos(lTemp, AnsiUpperCase(lItem.Caption)) <> 0 then
     if Pos(lTemp, AnsiUpperCase(stext)) <> 0 then
     begin
      PhoneBookList.HideSelection := true;
      PhoneBookList.Selected := lItem;
+     Phonebooklist.Tag:= i; //speichern welches Ergebnis zuletzt gefunden wurde
      lItem.MakeVisible(false);
-     Break;
+     exit;
     end;
   end;
+PhoneBookList.Tag:= -1;
 end;
 
-procedure TForm1.ToolButton11Click(Sender: TObject);
+procedure TForm1.PBsearchChangeBackwards;
+var
+  i: Integer;
+  lTemp: String;
+  stext: string;
+  lItem: TListItem;
 begin
-searchpanel.Visible:= not searchpanel.Visible;
-if (searchpanel.Visible) then
- Phonebooklist.Height:= Phonebooklist.height - searchpanel.height
+  if PhoneBookList.Items.Count=0 then exit;
+
+  lTemp := AnsiUpperCase(PBsearch.Text);
+
+  if (PhoneBooklist.Tag-1 < 0)
+   then PhoneBookList.Tag:= PhoneBookList.Items.Count-1;
+
+  for i := PhoneBookList.Tag-1 downto 0 do
+  begin
+    lItem := PhoneBookList.Items[i];
+    if sname.Checked then stext:= lItem.Caption else stext:= lItem.SubItems.Text;
+    if Pos(lTemp, AnsiUpperCase(stext)) <> 0 then
+    begin
+     PhoneBookList.HideSelection := true;
+     PhoneBookList.Selected := lItem;
+     Phonebooklist.Tag:= i; //speichern welches Ergebnis zuletzt gefunden wurde
+     lItem.MakeVisible(false);
+     exit;
+    end;
+  end;
+PhoneBookList.Tag:= PhoneBookList.Items.Count-1;
+end;
+
+
+procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+
+//STRG-F
+if (not ToolButton11.Down) and (ssCTRL in Shift) and (Key=70) then
+begin
+  ToolButton11.Click;
+  ToolButton11.Down:= true;
+end
 else
- Phonebooklist.Height:= tab3.height - groupbox1.height;
+//UMSCHALT-F3
+if searchpanel.visible and (key = 114)and (ssSHIFT in Shift) {F3} then
+  PBsearchChangeBackWards
+else
+//F3
+if searchpanel.visible and (key = 114) {F3} then
+  PBsearchChange(sender);
+
 end;
 
 end.
