@@ -1976,9 +1976,9 @@ end;
 
 procedure TForm1.wakeupTimer(Sender: TObject);
 begin
+ wakeup.enabled:= false;
  if sett.ReadBool('FritzBox','useMonitor',false) then
      StartMySocket; //Fritz!Box Listener started
- wakeup.enabled:= false;
 end;
 
 procedure TForm1.ToolButton11Click(Sender: TObject);

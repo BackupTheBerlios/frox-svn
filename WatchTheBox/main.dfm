@@ -1711,7 +1711,7 @@ object Form1: TForm1
   object wakeup: TTimer
     Enabled = False
     Interval = 30000
-    OnTimer = reloadCallerListClick
+    OnTimer = wakeupTimer
     Left = 40
     Top = 192
   end
