@@ -114,6 +114,22 @@ type
     PBClear: TButton;
     PBShort: TComboBox;
     sendtoBox: TCheckBox;
+    N3: TMenuItem;
+    Dial1: TMenuItem;
+    Fon11: TMenuItem;
+    Fon21: TMenuItem;
+    Fon31: TMenuItem;
+    S0Bus1: TMenuItem;
+    Hangupbutton: TToolButton;
+    N4: TMenuItem;
+    Dial2: TMenuItem;
+    Fon12: TMenuItem;
+    Fon22: TMenuItem;
+    Fon32: TMenuItem;
+    S01: TMenuItem;
+    procedure Fon12Click(Sender: TObject);
+    procedure HangupbuttonClick(Sender: TObject);
+    procedure Fon11Click(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ToolButton11Click(Sender: TObject);
     procedure PBsearchChange(Sender: TObject);
@@ -177,6 +193,7 @@ type
     procedure SaveTrafficData;
     procedure ReverseLookUp(Call: TCaller);
     procedure WMPowerBroadcast(var Msg: TMessage); message WM_POWERBROADCAST;
+    procedure HangUpFritzBox();
   private
     { Private-Deklarationen }
     PBselected: integer;
@@ -395,6 +412,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
  //Zustandegekommene Verbindung: datum;CONNECT;ConnectionID;Nebenstelle;Nummer;
   if (s.strings[1] = 'CONNECT') then
    begin
+      Hangupbutton.Visible:= false;
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
       Call.Nebenstelle:= s.strings[3];
@@ -1623,7 +1641,6 @@ end;
 
 procedure TForm1.ToolButton3Click(Sender: TObject);
 begin
-// LoadCallersFromFile((sender as TToolButton).ImageIndex);
  LoadCallersFromFile();
 end;
 
@@ -2073,6 +2090,98 @@ else
 if searchpanel.visible and (key = 114) {F3} then
   PBsearchChange(sender);
 
+end;
+
+//wählt eine Nummer auf der Fritz Box
+//Port: (bei 7170)
+//1: Fon 1
+//2: Fon 2
+//3: Fon 3
+//50: ISDN
+procedure DialNumberFritzBox(Number, Port:string; hangup: boolean);
+var Data: String;
+begin
+//<input type="hidden" name="var:showsetup" value="0" id="uiPostKonfig">
+//<input type="hidden" name="var:TestPort" value="" id="uiTestPort">
+//<input type="hidden" name="telcfg:settings/UseClickToDial" value="1" id="uiPostClickToDial" disabled>
+//<input type="hidden" name="telcfg:settings/DialPort" value="1" id="uiPostDialPort" disabled>
+//<input type="hidden" name="telcfg:command/Dial" value="" id="uiPostDial" disabled>
+//<input type="hidden" name="telcfg:command/Hangup" value="" id="uiPostHangup" disabled>
+
+ Data:= 'telcfg:settings/UseClickToDial=1&';
+ Data:= Data + 'telcfg:settings/DialPort='+Port+'&';
+ if hangup then
+  Data:= Data + 'telcfg:command/Hangup=1&'
+ else
+  Data:= Data + 'telcfg:command/Dial='+Number+'&';
+ Data:= Data + 'Submit=Submit';
+
+Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+
+//if (MessageDlg('Dialing in progress ... Click the button to hang up ?', mtInformation, [mbAbort], 0) in [mrAbort, mrNone]) then
+//begin
+//
+//end;
+
+end;
+
+procedure TForm1.HangUpFritzBox();
+var Data: String;
+begin
+ Data:= 'telcfg:settings/UseClickToDial=1&';
+ Data:= Data + 'telcfg:settings/DialPort=1&';
+ Data:= Data + 'telcfg:command/Hangup=2&';
+ Data:= Data + 'Submit=Submit';
+
+ Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+ status.SimpleText   := 'Dialing cancelled.';
+ hangupbutton.Visible:= false;
+end;
+
+
+procedure TForm1.Fon11Click(Sender: TObject);
+var number: string;
+    index : integer;
+    Port  : string;
+begin
+
+ case ((sender as TMenuItem).tag) of
+  1: Port := 'Fon 1';
+  2: Port := 'Fon 2';
+  3: Port := 'Fon 3';
+  50:Port := 'S0';
+ end;
+
+ hangupbutton.Visible:= true;
+ index               := CallerList.ItemIndex;
+ Number              := Callerlist.items[index].SubItems.Strings[2];
+ DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag), false);
+ status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
+end;
+
+procedure TForm1.HangupbuttonClick(Sender: TObject);
+begin
+ HangUpFritzBox;
+end;
+
+procedure TForm1.Fon12Click(Sender: TObject);
+var number: string;
+    index : integer;
+    Port  : string;
+begin
+
+ case ((sender as TMenuItem).tag) of
+  1: Port := 'Fon 1';
+  2: Port := 'Fon 2';
+  3: Port := 'Fon 3';
+  50:Port := 'S0';
+ end;
+
+ hangupbutton.Visible:= true;
+ index               := PhonebookList.ItemIndex;
+ Number              := Phonebooklist.items[index].SubItems.Strings[0];
+ DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag), false);
+ status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
 end;
 
 end.

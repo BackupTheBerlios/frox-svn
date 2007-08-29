@@ -87,7 +87,7 @@ object CallIn: TCallIn
     Proportional = True
   end
   object BitBtn1: TBitBtn
-    Left = 272
+    Left = 280
     Top = 104
     Width = 65
     Height = 24
