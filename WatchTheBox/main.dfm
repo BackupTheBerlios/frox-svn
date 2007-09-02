@@ -29,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = Tab1
+    ActivePage = TabSheet1
     Align = alClient
     PopupMenu = PopupMenu1
     TabOrder = 0
@@ -516,7 +516,7 @@ object Form1: TForm1
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 6
         end

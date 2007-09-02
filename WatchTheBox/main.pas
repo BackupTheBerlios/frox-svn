@@ -1876,7 +1876,8 @@ end;
 
 procedure TForm1.deleteitemClick(Sender: TObject);
 var index          : integer;
-    DelString   : string;
+    DelString      : string;
+    DelString1     : string;
     i: integer;
     SL: TStringlist;
 begin
@@ -1886,20 +1887,36 @@ begin
    index        := CallerList.ItemIndex;
 
    DelString:= inttostr(CallerList.items[index].ImageIndex-1);
+   DelString1:= inttostr(CallerList.items[index].ImageIndex-1);
    for i:= 0 to Callerlist.items[index].SubItems.count-2 do
+   begin
      Delstring := DelString + ';'+Callerlist.items[index].SubItems.Strings[i];
+     if i = 1 then
+       Delstring1 := DelString1 + ';!'+Callerlist.items[index].SubItems.Strings[i]
+     else
+       Delstring1 := DelString1 + ';'+Callerlist.items[index].SubItems.Strings[i]
+   end;
 
   end;
+
+//showmessage(Delstring +#13#10 + Delstring1);
 
  sl:= TStringlist.Create;
  sl.loadfromfile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
  if sl.indexof(DelString) >-1 then
  begin
    sl.Delete(sl.indexof(DelString));
-   sl.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
+ end
+ else
+ if sl.indexof(DelString1) >-1 then
+ begin
+   sl.Delete(sl.indexof(DelString1));
+ end;
+
+ sl.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
 //   LoadCallersFromFile(ToolButton3.Tag); //neuladen mit eingestelltem Filter
-   LoadCallersFromFile(); //neuladen mit eingestelltem Filter
- end;  
+ LoadCallersFromFile(); //neuladen mit eingestelltem Filter
+
  sl.free;
 
 end;
@@ -2278,6 +2295,8 @@ end;
 procedure TForm1.restarttelefonClick(Sender: TObject);
 var c: string;
 begin
+StopMySocket;
+setlength(ActiveCalls, 0); //alle aktiven Gesrp‰che werden jetzt beendet
 try //Fehler fangen
   c:= 'killall telefon';
   telnet.SendStr(c+#10);  //Telefondienst killen (beendet ALLE laufenden Gespraeche)
@@ -2288,6 +2307,8 @@ try //Fehler fangen
 except
   telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
 end;
+if assigned(CallIn) then CallIn.Close;  //Benachrichtigungsfenster schlieﬂen
+StartMySocket;
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
