@@ -92,6 +92,7 @@ object CallIn: TCallIn
     Width = 65
     Height = 24
     Anchors = [akTop, akRight]
+    Caption = 'ok'
     TabOrder = 0
     OnClick = BitBtn1Click
     Kind = bkOK
@@ -147,6 +148,17 @@ object CallIn: TCallIn
       TabOrder = 1
       OnClick = BleftClick
     end
+  end
+  object reject: TBitBtn
+    Left = 208
+    Top = 104
+    Width = 65
+    Height = 24
+    Anchors = [akTop, akRight]
+    Caption = 'reject'
+    TabOrder = 3
+    OnClick = rejectClick
+    Kind = bkNo
   end
   object Timer: TTimer
     Enabled = False

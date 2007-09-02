@@ -418,6 +418,7 @@ object Form1: TForm1
         Width = 448
         Height = 192
         Align = alTop
+        Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
             AutoSize = True
@@ -528,6 +529,78 @@ object Form1: TForm1
           TabOrder = 7
           OnClick = sendtoBoxClick
         end
+      end
+    end
+    object TabSheet1: TTabSheet
+      Caption = 'Telnet'
+      ImageIndex = 3
+      object Label5: TLabel
+        Left = 16
+        Top = 8
+        Width = 36
+        Height = 13
+        Caption = 'Telnet  '
+      end
+      object Label6: TLabel
+        Left = 312
+        Top = 0
+        Width = 136
+        Height = 112
+        Align = alRight
+        AutoSize = False
+        Caption = 
+          'To enable telnet on your Fritz!Box dial #96*7*. To disable telne' +
+          't dial #96*8* on a telephone connected to the Fritz!Box.'
+        WordWrap = True
+      end
+      object Button2: TButton
+        Left = 80
+        Top = 32
+        Width = 105
+        Height = 25
+        Caption = 'Info LED on'
+        TabOrder = 0
+        OnClick = Button2Click
+      end
+      object Button3: TButton
+        Left = 200
+        Top = 32
+        Width = 105
+        Height = 25
+        Caption = 'Info LED off'
+        TabOrder = 1
+        OnClick = Button3Click
+      end
+      object restarttelefon: TButton
+        Left = 80
+        Top = 64
+        Width = 105
+        Height = 25
+        Caption = 'restart '#39'telefon'#39
+        TabOrder = 2
+        OnClick = restarttelefonClick
+      end
+      object Button5: TButton
+        Left = 200
+        Top = 64
+        Width = 105
+        Height = 25
+        Caption = 'renew IP'
+        TabOrder = 3
+        OnClick = Button5Click
+      end
+      object TelnetLog: TMemo
+        Left = 0
+        Top = 112
+        Width = 448
+        Height = 184
+        Align = alBottom
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Lines.Strings = (
+          'TelnetLog')
+        ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 4
       end
     end
   end
@@ -686,8 +759,8 @@ object Form1: TForm1
   end
   object Timer: TTimer
     OnTimer = TimerTimer
-    Left = 336
-    Top = 232
+    Left = 80
+    Top = 312
   end
   object Tray: TCoolTrayIcon
     DesignPreview = True
@@ -708,13 +781,13 @@ object Form1: TForm1
     IconIndex = 0
     MinimizeToTray = True
     OnMouseDown = TrayMouseDown
-    Left = 336
-    Top = 264
+    Left = 416
+    Top = 320
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
-    Left = 328
-    Top = 184
+    Left = 120
+    Top = 312
     object reloadCallerList: TMenuItem
       Caption = 'retrieve list of calls'
       OnClick = reloadCallerListClick
@@ -762,8 +835,9 @@ object Form1: TForm1
     end
   end
   object PopupMenu2: TPopupMenu
-    Left = 272
-    Top = 184
+    OnPopup = PopupMenu2Popup
+    Left = 160
+    Top = 312
     object ReloadPhonebook: TMenuItem
       Caption = 'retrieve phonebook'
       OnClick = ReloadPhonebookClick
@@ -807,10 +881,10 @@ object Form1: TForm1
     end
   end
   object ImageList1: TImageList
-    Left = 384
-    Top = 216
+    Left = 352
+    Top = 320
     Bitmap = {
-      494C010107000900040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010107000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1210,13 +1284,14 @@ object Form1: TForm1
       F01CF01CF01CF01CF808F808F808F80800000000000000000000000000000000
       0000000000000000018001800180018000000000000000000000000000000000
       0000000000000000101F101F101F101F380F380F380F380F7C077C077C077C07
-      FE0FFE0FFE0FFE0FFF1FFF1FFF1FFF1F}
+      FE0FFE0FFE0FFE0FFF1FFF1FFF1FFF1F00000000000000000000000000000000
+      000000000000}
   end
   object ImageList2: TImageList
     Left = 384
-    Top = 264
+    Top = 320
     Bitmap = {
-      494C01010C000E00040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C01010C000E00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1748,29 +1823,50 @@ object Form1: TForm1
       E00F1FFFF801F803C0070FFFF003F003818387FFE007E00787C3C3FFC08FC08F
       C1E3E1FF81DF81DFC7E3F1FF83FF03FFFFE3FCFB018107FF8783FE7101010381
       8783FF3101010181C381FF8703000381C001FF8787808781E00FFF8FCF80CF81
-      F00FFC1FFFB0FF81F81FFC7FFFF8FFFF}
+      F00FFC1FFFB0FF81F81FFC7FFFF8FFFF00000000000000000000000000000000
+      000000000000}
   end
   object OneInstance: TBomeOneInstance
-    Left = 360
-    Top = 72
+    Left = 248
+    Top = 320
   end
   object SocketConnect: TTimer
     Enabled = False
     Interval = 5000
     OnTimer = SocketConnectTimer
-    Left = 120
-    Top = 296
+    Left = 48
+    Top = 312
   end
   object ImgDlg: TOpenDialog
     Filter = 'jpg|*.jpg; *.JPG'
-    Left = 368
-    Top = 128
+    Left = 312
+    Top = 320
   end
   object wakeup: TTimer
     Enabled = False
     Interval = 30000
     OnTimer = wakeupTimer
-    Left = 40
-    Top = 192
+    Left = 8
+    Top = 312
+  end
+  object telnet: TTnCnx
+    Port = '23'
+    Host = 'fritz.box'
+    Location = 'TNCNX'
+    TermType = 'VT100'
+    LocalEcho = True
+    OnSessionConnected = telnetSessionConnected
+    OnSessionClosed = telnetSessionClosed
+    OnDataAvailable = telnetDataAvailable
+    OnDisplay = telnetDisplay
+    OnSendLoc = telnetSendLoc
+    Left = 24
+    Top = 88
+  end
+  object StartupTimer: TTimer
+    Enabled = False
+    OnTimer = StartupTimerTimer
+    Left = 8
+    Top = 280
   end
 end

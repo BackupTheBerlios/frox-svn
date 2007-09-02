@@ -23,6 +23,8 @@ type
     Timer: TTimer;
     durationTimer: TTimer;
     Image1: TImage;
+    reject: TBitBtn;
+    procedure rejectClick(Sender: TObject);
     procedure durationTimerTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -198,7 +200,7 @@ if sett.ReadBool('FritzBox','CloseTimer',false) then
   timer.Interval:= sett.ReadInteger('FritzBox','CloseTime',15) * 1000;
   timer.Enabled:= true;
  end;
-
+reject.Visible:= form1.telnet.IsConnected;
 end;
 
 
@@ -208,6 +210,11 @@ begin
     and (ActiveCalls[CallID].start > 0))
   then
        duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[CallID].start/1000)]);
+end;
+
+procedure TCallIn.rejectClick(Sender: TObject);
+begin
+ Form1.restarttelefon.Click;
 end;
 
 end.

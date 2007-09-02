@@ -8,41 +8,42 @@
   resources were bound to the produced executable.
 */
 
-#define JConsts_sChangeJPGSize 65264
-#define JConsts_sJPEGError 65265
-#define JConsts_sJPEGImageFile 65266
-#define HelpIntfs_hNoContextFound 65280
-#define HelpIntfs_hNoTopics 65281
-#define IPFunctions_sNotImplemented 65282
-#define IPFunctions_sInvalidParameter 65283
-#define IPFunctions_sNoData 65284
-#define IPFunctions_sNotSupported 65285
-#define ComStrs_sTabFailClear 65286
-#define ComStrs_sTabFailDelete 65287
-#define ComStrs_sTabFailRetrieve 65288
-#define ComStrs_sTabFailGetObject 65289
-#define ComStrs_sTabFailSet 65290
-#define ComStrs_sTabFailSetObject 65291
-#define ComStrs_sTabMustBeMultiLine 65292
-#define ComStrs_sInvalidOwner 65293
-#define ComStrs_sPageIndexError 65294
-#define ComStrs_sInvalidComCtl32 65295
-#define Consts_SDockedCtlNeedsName 65296
-#define Consts_SDockTreeRemoveError 65297
-#define Consts_SDockZoneNotFound 65298
-#define Consts_SDockZoneHasNoCtl 65299
-#define Consts_SDockZoneVersionConflict 65300
-#define Consts_SSeparator 65301
-#define Consts_SNoGetItemEventHandler 65302
-#define Consts_SANSIEncoding 65303
-#define Consts_SASCIIEncoding 65304
-#define Consts_SUnicodeEncoding 65305
-#define Consts_SBigEndianEncoding 65306
-#define Consts_SUTF8Encoding 65307
-#define Consts_SUTF7Encoding 65308
-#define HelpIntfs_hNoTableOfContents 65309
-#define HelpIntfs_hNothingFound 65310
-#define HelpIntfs_hNoContext 65311
+#define ComStrs_sInvalidComCtl32 65264
+#define JConsts_sChangeJPGSize 65265
+#define JConsts_sJPEGError 65266
+#define JConsts_sJPEGImageFile 65267
+#define HelpIntfs_hNoContext 65280
+#define HelpIntfs_hNoContextFound 65281
+#define HelpIntfs_hNoTopics 65282
+#define IPFunctions_sNotImplemented 65283
+#define IPFunctions_sInvalidParameter 65284
+#define IPFunctions_sNoData 65285
+#define IPFunctions_sNotSupported 65286
+#define ComStrs_sTabFailClear 65287
+#define ComStrs_sTabFailDelete 65288
+#define ComStrs_sTabFailRetrieve 65289
+#define ComStrs_sTabFailGetObject 65290
+#define ComStrs_sTabFailSet 65291
+#define ComStrs_sTabFailSetObject 65292
+#define ComStrs_sTabMustBeMultiLine 65293
+#define ComStrs_sInvalidOwner 65294
+#define ComStrs_sPageIndexError 65295
+#define Consts_SDuplicateMenus 65296
+#define Consts_SDockedCtlNeedsName 65297
+#define Consts_SDockTreeRemoveError 65298
+#define Consts_SDockZoneNotFound 65299
+#define Consts_SDockZoneHasNoCtl 65300
+#define Consts_SDockZoneVersionConflict 65301
+#define Consts_SSeparator 65302
+#define Consts_SNoGetItemEventHandler 65303
+#define Consts_SANSIEncoding 65304
+#define Consts_SASCIIEncoding 65305
+#define Consts_SUnicodeEncoding 65306
+#define Consts_SBigEndianEncoding 65307
+#define Consts_SUTF8Encoding 65308
+#define Consts_SUTF7Encoding 65309
+#define HelpIntfs_hNoTableOfContents 65310
+#define HelpIntfs_hNothingFound 65311
 #define Consts_SmkcEnd 65312
 #define Consts_SmkcHome 65313
 #define Consts_SmkcLeft 65314
@@ -58,7 +59,7 @@
 #define Consts_SInsertLineError 65324
 #define Consts_SIconToClipboard 65325
 #define Consts_SCannotOpenClipboard 65326
-#define Consts_SDuplicateMenus 65327
+#define Consts_SInvalidMemoSize 65327
 #define Consts_SMsgDlgOK 65328
 #define Consts_SMsgDlgCancel 65329
 #define Consts_SMsgDlgHelp 65330
@@ -269,9 +270,11 @@
 #define SysConst_SInvalidInput 65535
 STRINGTABLE
 BEGIN
+	ComStrs_sInvalidComCtl32,	"Dieses Element benötigt COMCTL32.DLL in der Version 4.70 oder höher"
 	JConsts_sChangeJPGSize,	"Die Größe einer JPEG-Grafik kann nicht verändert werden"
 	JConsts_sJPEGError,	"JPEG-Fehler #%d"
 	JConsts_sJPEGImageFile,	"JPEG-Grafikdatei"
+	HelpIntfs_hNoContext,	"Keine kontextsensitive Hilfe installiert"
 	HelpIntfs_hNoContextFound,	"Keine Hilfe für Kontext gefunden"
 	HelpIntfs_hNoTopics,	"Kein themenbezogenes Hilfesystem installiert"
 	IPFunctions_sNotImplemented,	"Function %s is not implemented."
@@ -287,7 +290,7 @@ BEGIN
 	ComStrs_sTabMustBeMultiLine,	"Bei TabPosition tpLeft und tpRight muss MultiLine True sein"
 	ComStrs_sInvalidOwner,	"Ungültiger Besitzer"
 	ComStrs_sPageIndexError,	"%d ist ein ungültiger Wert für PageIndex. PageIndex muss zwischen 0 und %d liegen"
-	ComStrs_sInvalidComCtl32,	"Dieses Element benötigt COMCTL32.DLL in der Version 4.70 oder höher"
+	Consts_SDuplicateMenus,	"Menü '%s' wird bereits von einem anderen Formular benutzt"
 	Consts_SDockedCtlNeedsName,	"Angedocktes Steuerelement muss einen Namen haben."
 	Consts_SDockTreeRemoveError,	"Fehler beim Entfernen des Steuerelements aus der Andock-Hierarchie"
 	Consts_SDockZoneNotFound,	" - Andockzone nicht gefunden"
@@ -303,7 +306,6 @@ BEGIN
 	Consts_SUTF7Encoding,	"UTF-7"
 	HelpIntfs_hNoTableOfContents,	"Inhaltsverzeichnis nicht gefunden"
 	HelpIntfs_hNothingFound,	"Keine Hilfe für %s gefunden"
-	HelpIntfs_hNoContext,	"Keine kontextsensitive Hilfe installiert"
 	Consts_SmkcEnd,	"Ende"
 	Consts_SmkcHome,	"Pos1"
 	Consts_SmkcLeft,	"Links"
@@ -319,7 +321,7 @@ BEGIN
 	Consts_SInsertLineError,	"Zeile kann nicht eingefügt werden"
 	Consts_SIconToClipboard,	"Zwischenablage unterstützt keine Symbole"
 	Consts_SCannotOpenClipboard,	"Zwischenablage kann nicht geöffnet werden"
-	Consts_SDuplicateMenus,	"Menü '%s' wird bereits von einem anderen Formular benutzt"
+	Consts_SInvalidMemoSize,	"Text überschreitet Memo-Kapazität"
 	Consts_SMsgDlgOK,	"OK"
 	Consts_SMsgDlgCancel,	"Abbrechen"
 	Consts_SMsgDlgHelp,	"&Hilfe"

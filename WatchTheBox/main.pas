@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls,
   IpHlpApi,IpIfConst,IpRtrMib,ipFunctions,iptypes, ExtCtrls, StrUtils,
   scktcomp, CoolTrayIcon, ComCtrls, Buttons, inifiles, HttpProt, Menus, ImgList,
-  Gauges, BomeOneInstance, ToolWin, winsock;
+  Gauges, BomeOneInstance, ToolWin, winsock, TnCnx;
 
 type
 
@@ -127,6 +127,28 @@ type
     Fon22: TMenuItem;
     Fon32: TMenuItem;
     S01: TMenuItem;
+    TabSheet1: TTabSheet;
+    Button2: TButton;
+    Button3: TButton;
+    telnet: TTnCnx;
+    restarttelefon: TButton;
+    Button5: TButton;
+    TelnetLog: TMemo;
+    Label5: TLabel;
+    Label6: TLabel;
+    StartupTimer: TTimer;
+    procedure StartupTimerTimer(Sender: TObject);
+    procedure telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
+      Len: Integer);
+    procedure PopupMenu2Popup(Sender: TObject);
+    procedure telnetSessionClosed(Sender: TTnCnx; Error: Word);
+    procedure telnetSendLoc(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure restarttelefonClick(Sender: TObject);
+    procedure telnetDisplay(Sender: TTnCnx; Str: string);
+    procedure telnetSessionConnected(Sender: TTnCnx; Error: Word);
+    procedure Button3Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
     procedure Fon12Click(Sender: TObject);
     procedure HangupbuttonClick(Sender: TObject);
     procedure Fon11Click(Sender: TObject);
@@ -522,7 +544,7 @@ then
 else
   Result:= false;
 
-  str.Free;
+str.Free;
 end;
 
 procedure GetSessionTraffic(var Tin, Tout:Cardinal);
@@ -625,7 +647,7 @@ begin
     TData.Price        := 0.0;
     sett.writeDate('Traffic','DateofReset', dateof(now));
     sett.writeinteger('Traffic','lastReset',monthof(now));
-    Status.Simpletext  := 'Click on the hammer icon to open the settings window.';  
+    Status.Simpletext  := 'Click on the hammer icon to open the settings window.';
    end;
 
  TIn      := 0;
@@ -645,11 +667,6 @@ begin
 // LoadCallersFromFile(0);
  LoadCallersFromFile();
  LoadPhonebookFromFile;
- if sett.ReadBool('FritzBox','LoadListAutomatically',false)
-  then
-  try
-    ReloadCallerlistClick(nil);
-  except end;
 
  if tab1.Visible then
    PageControl1.ActivePageIndex:= 0
@@ -666,6 +683,8 @@ begin
 
  if sett.ReadBool('FritzBox','useMonitor',false) then
      StartMySocket; //Fritz!Box Listener started
+ startuptimer.Enabled:= true;
+
 end;
 
 procedure TForm1.SaveTrafficData;
@@ -683,7 +702,8 @@ end;
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   canclose:= false;
-  if unsaved_phonebook then AskforUpdate;
+  //mit der neuen lokalen Telefonnummerverwaltung eigentlich unnötig
+//  if unsaved_phonebook then AskforUpdate;
 
   SaveTrafficData;
 
@@ -697,6 +717,8 @@ end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+
+  if telnet.isconnected then telnet.close;
   sett.Free;
   Phonebookliste.Free;
   Callerliste.Free;
@@ -788,7 +810,7 @@ begin
   except
    Tin := 0;
    Tout:= 0;
-  end; 
+  end;
 
   inCurrent   := TIn-OffsetIN;
   outCurrent  := TOut-OffsetOUT;
@@ -877,13 +899,13 @@ begin
    begin
     SaveTrafficData; timer.Tag:= 0;
    end;
-   
+
    ResetData;
 
    Case tray.IconIndex of
      4: tray.IconIndex:= 5;
      5: tray.IconIndex:= 4;
-   end;  
+   end;
 end;
 
 procedure TForm1.TrayMouseDown(Sender: TObject; Button: TMouseButton;
@@ -938,6 +960,7 @@ var data: string;
     sep    : string;
     liItem : TListItem;
     oldcount: integer;
+    temp   : string;
 begin
  Callerliste.Clear;
  SL:= TSTringlist.Create;
@@ -979,7 +1002,7 @@ begin
       SL.Append(OldData.Strings[j]);
 
   slb.addstrings(sl);
-  SL.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv'); //speichert dumerweise mit Windowszeilenende
+  SL.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv'); //speichert dummerweise mit Windowszeilenende
   OldData.Free;
 //-----------------------------------------------------------------------------
   //Alles Löschen, was kein einkommender Anruf war -> Alte Liste
@@ -1024,6 +1047,15 @@ begin
       cl.Append(inttostr(liitem.ImageIndex));
 //      Namen suchen
       if ((cl.strings[1]='') and (cl.strings[2]<>'')) then cl.strings[1]:= findnames(cl.strings[2],0);
+
+      if (length(cl.strings[1]) > 0) then
+        if cl.strings[1][1] ='!' then
+        begin
+          temp:= cl.strings[1];
+          delete(temp,1,1);
+          cl.strings[1]:= temp;
+        end;
+
       liItem.SubItems:=cl;
       end;
    end;
@@ -1271,13 +1303,29 @@ vcfimport.Visible   :=  (PageControl1.ActivePageIndex = 2);
 end;
 
 procedure TForm1.PopupMenu1Popup(Sender: TObject);
-var number: string;
+var number, name: string;
 begin
  if callerlist.ItemIndex > -1 then
  begin
     number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
+    name  :=Callerlist.Items[Callerlist.itemindex].SubItems.strings[1];
 //    if length(number) <= 8 then number := '030' + number;
     searchnumber.caption:= 'reverse lookup: ' + number;
+    dial1.caption         := 'dial: ' + number;
+    dial1.visible         := not (number ='');
+    searchnumber.Visible  := not (number ='');
+    addtoPhonebook.Visible:= (name = '') and (number <> '');
+ end;
+end;
+
+procedure TForm1.PopupMenu2Popup(Sender: TObject);
+var number: string;
+begin
+ if Phonebooklist.ItemIndex > -1 then
+ begin
+    number:=Phonebooklist.Items[Phonebooklist.itemindex].SubItems.strings[0];
+    dial2.caption := 'dial: ' + number;
+    dial2.visible := not (number ='');
  end;
 end;
 
@@ -2098,7 +2146,7 @@ end;
 //2: Fon 2
 //3: Fon 3
 //50: ISDN
-procedure DialNumberFritzBox(Number, Port:string; hangup: boolean);
+procedure DialNumberFritzBox(Number, Port:string);
 var Data: String;
 begin
 //<input type="hidden" name="var:showsetup" value="0" id="uiPostKonfig">
@@ -2110,10 +2158,7 @@ begin
 
  Data:= 'telcfg:settings/UseClickToDial=1&';
  Data:= Data + 'telcfg:settings/DialPort='+Port+'&';
- if hangup then
-  Data:= Data + 'telcfg:command/Hangup=1&'
- else
-  Data:= Data + 'telcfg:command/Dial='+Number+'&';
+ Data:= Data + 'telcfg:command/Dial='+Number+'&';
  Data:= Data + 'Submit=Submit';
 
 Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
@@ -2155,7 +2200,7 @@ begin
  hangupbutton.Visible:= true;
  index               := CallerList.ItemIndex;
  Number              := Callerlist.items[index].SubItems.Strings[2];
- DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag), false);
+ DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag));
  status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
 end;
 
@@ -2180,8 +2225,134 @@ begin
  hangupbutton.Visible:= true;
  index               := PhonebookList.ItemIndex;
  Number              := Phonebooklist.items[index].SubItems.Strings[0];
- DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag), false);
+ DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag));
  status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+var c: string;
+begin
+try
+ c:= 'echo 7,2 >/var/led';
+ telnet.SendStr(c+#10);
+ telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+except
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+end;
+end;
+
+procedure TForm1.Button3Click(Sender: TObject);
+var c: string;
+begin
+try
+ c:= 'echo 7,1 >/var/led';
+ telnet.SendStr(c+#10);
+ telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+except
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+end;
+end;
+
+procedure TForm1.telnetSessionConnected(Sender: TTnCnx; Error: Word);
+begin
+if error = 0 then
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session connected')
+else
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session could not connect ('+inttostr(error)+')');
+
+if error = 10061 then //telnet not active 
+ begin
+  label5.caption:='Telnet: inactive';
+ end
+else
+ begin
+  label5.caption:='Telnet: active';
+ end
+end;
+
+procedure TForm1.telnetDisplay(Sender: TTnCnx; Str: string);
+begin
+telnetlog.Lines.Add(DateTimetoStr(now) + #9 + str);
+end;
+
+procedure TForm1.restarttelefonClick(Sender: TObject);
+var c: string;
+begin
+try //Fehler fangen
+  c:= 'killall telefon';
+  telnet.SendStr(c+#10);  //Telefondienst killen (beendet ALLE laufenden Gespraeche)
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+  c:= 'telefon a127.0.0.1';
+  telnet.SendStr(c+#10);          //Telefondienst neu starten
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+except
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+end;
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var c: string;
+begin
+//Dsl-Daemon stoppen (alle Internet-Verbindungen werden getrennt
+//2s warten
+//dsld neu starten > Reconnect
+try
+  telnet.sendstr('dsld -s' +#10+'sleep 2'+#10+'dsld'+#10);
+except
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+end;
+end;
+
+procedure TForm1.telnetSendLoc(Sender: TObject);
+begin
+telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'send');
+end;
+
+procedure TForm1.telnetSessionClosed(Sender: TTnCnx; Error: Word);
+begin
+telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session closed ('+inttostr(error)+')');
+end;
+
+procedure TForm1.telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
+  Len: Integer);
+var
+  lString:String;
+  aus    : string;
+begin
+  SetLength(lString,Len);
+  Move(Buffer^,lString[1],Len);
+  aus:=aus+lString;
+  TelnetLog.lines.Add(aus);
+
+  if ansicontainsstr(aus, 'password') then //telnet.SendStr(pw+#10);
+   begin
+    PWForm.Tag:= 1;
+    try
+    PWForm.showmodal
+    except
+      telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+    end;
+   end;
+
+
+end;
+
+procedure TForm1.StartupTimerTimer(Sender: TObject);
+begin
+ StartupTimer.Enabled:= false;
+
+ //Telnet verbinden
+ telnet.Host:= 'fritz.box';
+ telnet.Port:= '23';
+ telnet.Connect;
+
+ //Anrufliste laden
+ if sett.ReadBool('FritzBox','LoadListAutomatically',false)
+  then
+  try
+    ReloadCallerlistClick(nil);
+  except LoadCallersFromFile(); end;
+
 end;
 
 end.

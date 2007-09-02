@@ -59,4 +59,16 @@ object PWForm: TPWForm
     OnClick = BitBtn1Click
     NumGlyphs = 2
   end
+  object BitBtn2: TBitBtn
+    Left = 160
+    Top = 24
+    Width = 51
+    Height = 21
+    Caption = 'Send'
+    Default = True
+    ModalResult = 1
+    TabOrder = 3
+    OnClick = BitBtn2Click
+    NumGlyphs = 2
+  end
 end
