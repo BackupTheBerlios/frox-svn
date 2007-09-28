@@ -188,11 +188,13 @@ CallIn:= nil;
 end;
 
 procedure TCallIn.FormCreate(Sender: TObject);
+var forgetPosition: boolean;
 begin
 
 CallIn.Left:= sett.Readinteger('Call','left',-1);
 CallIn.top := sett.Readinteger('Call','top',-1);
-if (CallIn.left = -1) or (CallIn.top = -1) then SetFormPosition;
+forgetPosition := sett.ReadBool('Call','forgetpos',false);
+if (CallIn.left = -1) or (CallIn.top = -1) or forgetposition then SetFormPosition;
 AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
 
 if sett.ReadBool('FritzBox','CloseTimer',false) then

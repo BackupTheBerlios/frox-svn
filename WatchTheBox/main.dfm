@@ -29,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = TabSheet1
+    ActivePage = Tab2
     Align = alClient
     PopupMenu = PopupMenu1
     TabOrder = 0
@@ -1860,13 +1860,20 @@ object Form1: TForm1
     OnDataAvailable = telnetDataAvailable
     OnDisplay = telnetDisplay
     OnSendLoc = telnetSendLoc
-    Left = 24
-    Top = 88
+    Left = 416
+    Top = 272
   end
   object StartupTimer: TTimer
     Enabled = False
     OnTimer = StartupTimerTimer
     Left = 8
+    Top = 280
+  end
+  object WaitForReconnect: TTimer
+    Enabled = False
+    Interval = 10000
+    OnTimer = WaitForReconnectTimer
+    Left = 48
     Top = 280
   end
 end

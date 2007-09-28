@@ -55,6 +55,7 @@ type
     TabSheet3: TTabSheet;
     DeleteListAutomatically: TCheckBox;
     LoadListAutomatically: TCheckBox;
+    forgetpos: TCheckBox;
     procedure FBPortKeyPress(Sender: TObject; var Key: Char);
     procedure PriceKeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -140,6 +141,7 @@ begin
  sett.WriteInteger('Traffic','PriceUnit',PUnit);
 
  sett.WriteBool('FritzBox','useMonitor',FBMon.Checked);
+ sett.WriteBool('Call','forgetpos',forgetpos.checked);
  sett.WriteBool('FritzBox','monout',monout.checked);
  sett.WriteBool('FritzBox','AutoClose',closefinished.checked);
  sett.WriteBool('FritzBox','CloseTimer',closetimer.checked);
@@ -188,6 +190,7 @@ begin
  price.text            := FloattoStr(sett.ReadFloat('Traffic','Price',0.0));
 
  FBMon.Checked         := sett.ReadBool('FritzBox','useMonitor', false);
+ forgetpos.Checked     := sett.ReadBool('Call','forgetpos',false);
  monout.checked        := sett.ReadBool('FritzBox','monout',true);
  FBIP.Text             := sett.readstring('Fritzbox','IP','192.168.178.1');
  FBPort.text           := sett.ReadString('FritzBox','Port','1012');

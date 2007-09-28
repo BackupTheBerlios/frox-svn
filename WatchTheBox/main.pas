@@ -137,6 +137,8 @@ type
     Label5: TLabel;
     Label6: TLabel;
     StartupTimer: TTimer;
+    WaitForReconnect: TTimer;
+    procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
     procedure telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
       Len: Integer);
@@ -268,7 +270,11 @@ begin
  SocketConnected  := false;
  MySocket.Host    := sett.readstring('Fritzbox','IP','192.168.178.1');
  MySocket.Port    := sett.ReadInteger('FritzBox','Port',1012);
- MySocket.Open;
+ try
+   MySocket.Open;
+ except
+  status.SimpleText:= 'Connection refused. Check your firewall.';
+ end; 
 end;
 
 procedure tForm1.SocketConn(Sender: TObject; Socket: TCustomWinSocket);
@@ -282,6 +288,7 @@ begin
  If ErrorCode <> 0 then
  begin
     Status.Simpletext:= 'Could not connect to your Fritz!Box';
+    SocketConnected  := false;
     SocketConnect.enabled:= true;
     ErrorCode:= 0;
  end;
@@ -289,7 +296,10 @@ end;
 
 procedure TForm1.StopMySocket;
 begin
- if SocketConnected then MySocket.Close;
+ try
+  if SocketConnected then MySocket.Close;
+ except
+ end;
 end;
 
 function findnames(number: string; return : integer): string;
@@ -483,10 +493,16 @@ begin
 
   http.URL:= URL;
   http.RcvdStream:= TStringStream.Create('');
-  http.get;
+  try
+    http.get;
+    http.RcvdStream.Position:= 0;
+    str.CopyFrom(http.RcvdStream,http.RcvdStream.size);
+  except
+   on ESocketError do
+     status.SimpleText:= 'Http error. Check your firewall.';
+  end;
 
-  http.RcvdStream.Position:= 0;
-  str.CopyFrom(http.RcvdStream,http.RcvdStream.size);
+
 
   http.RcvdStream.free;
   http.RcvdStream:= nil;
@@ -525,7 +541,12 @@ begin
   Http.SendStream.Seek(0, 0);
   Http.RcvdStream := TMemoryStream.Create;
   Http.URL := URL;
-  Http.Post;
+  try
+    Http.Post;
+  except
+    on ESocketError do
+         status.SimpleText:= 'Http error. Check your firewall.';
+  end;
 
   http.RcvdStream.Free;
   http.RcvdStream:= nil;
@@ -606,6 +627,10 @@ begin
 
   Timer.Enabled   := sett.ReadBool('Traffic','enabled',false);
   tab1.tabvisible := sett.ReadBool('Traffic','enabled',false);
+  if tab1.Visible then
+    PageControl1.ActivePage:= tab1
+  else
+    PageControl1.ActivePage:= tab2;
 
   NetWorkDevice:= Sett.ReadInteger('Traffic','Device',0);
   BoxAdress    := sett.ReadString('FritzBox','IP','192.168.178.1');
@@ -681,9 +706,13 @@ begin
  MySocket.OnConnect:= SocketConn;
  MySocket.OnRead   := SocketMessage;
 
- if sett.ReadBool('FritzBox','useMonitor',false) then
-     StartMySocket; //Fritz!Box Listener started
- startuptimer.Enabled:= true;
+ try
+  if sett.ReadBool('FritzBox','useMonitor',false) then
+      StartMySocket; //Fritz!Box Listener started
+  startuptimer.Enabled:= true;
+ except
+  status.SimpleText:= 'Connection Error';
+ end;  
 
 end;
 
@@ -961,6 +990,7 @@ var data: string;
     liItem : TListItem;
     oldcount: integer;
     temp   : string;
+    start  : integer;
 begin
  Callerliste.Clear;
  SL:= TSTringlist.Create;
@@ -1021,14 +1051,23 @@ begin
  sla.free;
  slb.free;
 
- if sl.Count > 2 then
+ if sl.Count > 1 then
  begin
    sl.Strings[0]:= AnsireplaceStr(sl.strings[0], #13,''); //Windowszeilenende killen
    r.Expression:= 'sep=(.*)';
-   sep:= r.Replace(sl.strings[0],'$1',true);
+   if r.Exec(sl.strings[0]) then
+   begin
+     sep:= r.Replace(sl.strings[0],'$1',true);
+     start:= 2;
+   end
+   else
+   begin
+     sep:= ';';
+     start:= 1;
+   end;
    r.Expression:= sep;
 
-   for i:= 2 to sl.count -1 do
+   for i:= start to sl.count -1 do
    begin //die zweite Zeile ist die Beschreibungszeile, daher erst beim index 2 beginnen
     sl.Strings[i]:= AnsireplaceStr(sl.strings[i], #13,''); //das leidige Windows_Zeilenende killen
     cl.Clear;
@@ -1534,23 +1573,8 @@ begin
   else
       NameStr:= PBName.text;
 
-  if (PBSelected = -1) then
-  begin
-   for i:= 0 to Phonebookliste.Count-1 do
-   if NameStr = Phonebook[i].Name then
-      begin //wenn schon in der Liste
-        ok:= false;
-        error.Caption:= 'Name already exists !';
-        break;
-      end;
-  end
-  else i:= PBSelected;
-
-   if i > length(Phonebook)-1 then
-   begin
-    i:= length(Phonebook);
-    setlength(PhoneBook, i+1);
-   end;
+  i:= length(Phonebook);
+  setlength(PhoneBook, i+1);
 
    if ok then
    begin
@@ -2060,7 +2084,10 @@ procedure TForm1.wakeupTimer(Sender: TObject);
 begin
  wakeup.enabled:= false;
  if sett.ReadBool('FritzBox','useMonitor',false) then
+ begin
      StartMySocket; //Fritz!Box Listener started
+     telnet.Connect;
+ end;
 end;
 
 procedure TForm1.ToolButton11Click(Sender: TObject);
@@ -2308,11 +2335,10 @@ except
   telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
 end;
 if assigned(CallIn) then CallIn.Close;  //Benachrichtigungsfenster schlieﬂen
-StartMySocket;
+WaitForReconnect.Enabled:= true;
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
-var c: string;
 begin
 //Dsl-Daemon stoppen (alle Internet-Verbindungen werden getrennt
 //2s warten
@@ -2365,7 +2391,12 @@ begin
  //Telnet verbinden
  telnet.Host:= 'fritz.box';
  telnet.Port:= '23';
- telnet.Connect;
+ try
+  if sett.ReadBool('FritzBox','useMonitor',false) then
+   telnet.Connect;
+ except
+  status.SimpleText:= 'Connection refused. Check your firewall.';
+ end;
 
  //Anrufliste laden
  if sett.ReadBool('FritzBox','LoadListAutomatically',false)
@@ -2374,6 +2405,12 @@ begin
     ReloadCallerlistClick(nil);
   except LoadCallersFromFile(); end;
 
+end;
+
+procedure TForm1.WaitForReconnectTimer(Sender: TObject);
+begin
+WaitForReconnect.Enabled:= false;
+StartMySocket;
 end;
 
 end.
