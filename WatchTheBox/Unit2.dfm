@@ -7,6 +7,7 @@ object CallIn: TCallIn
   ClientWidth = 353
   Color = 14600382
   TransparentColorValue = clMoneyGreen
+  Constraints.MinWidth = 252
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11

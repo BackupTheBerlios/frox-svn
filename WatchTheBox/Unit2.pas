@@ -70,6 +70,7 @@ end;
 
 procedure TCallIn.showCall(p: integer);
 var image: string;
+    top, right,tw: integer;
 begin
       if p >= length(ActiveCalls) then p:=0;
       if length(ActiveCalls)=0 then exit;
@@ -91,19 +92,29 @@ begin
        duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);
       durationTimer.Enabled:= true;
 
+      top            := sett.Readinteger('Call','top' ,-1);
+      right          := sett.Readinteger('Call','right',-1);
+
+       tw:= info2.Canvas.TextWidth(info2.Caption) - callin.Constraints.MinWidth;
+       if tw < 0 then tw:= 0;
+
       //Anruferbild laden
       image:= sett.readString('Images', ActiveCalls[p].name, '');
       if (image <> '') and FileExists(image) then
       begin
        Image1.Picture.LoadFromFile(image);
        image1.Visible:= true;
-       callin.Width:= 252 + Image1.width;
+
+       callin.Width:= callin.Constraints.MinWidth + tw + Image1.width;
+       callin.left:= right - callin.width;
       end
       else
       begin
        image1.Visible:= false;
-       callin.Width:= 252;
-      end; 
+//       callin.Width:= 252;
+       callin.Width := callin.Constraints.MinWidth + tw;
+       callin.left:= right - callin.width;
+      end;
 end;
 
 procedure SetFormPosition;
@@ -119,7 +130,7 @@ begin
       THeight:= Taskbar.Bottom - Taskbar.Top;
 
       if TWidth > THeight then
-      begin
+      begin //Taskbar ist oben oder unten)
         if Taskbar.Bottom = Screen.Height then
         begin
          Callin.top  := Taskbar.Top  - Callin.Height;
@@ -181,6 +192,7 @@ end;
 procedure TCallIn.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 sett.Writeinteger('Call','left',CallIn.Left);
+sett.Writeinteger('Call','right',CallIn.Left + Callin.width);
 sett.Writeinteger('Call','top' ,CallIn.top);
 durationTimer.Enabled:= false;
 CallIn.Release;
@@ -189,11 +201,21 @@ end;
 
 procedure TCallIn.FormCreate(Sender: TObject);
 var forgetPosition: boolean;
+    top, left: integer;
 begin
 
-CallIn.Left:= sett.Readinteger('Call','left',-1);
-CallIn.top := sett.Readinteger('Call','top',-1);
+top            := sett.Readinteger('Call','top' ,-1);
+//left           := sett.Readinteger('Call','left',-1);
+left           := sett.Readinteger('Call','right',-1)-self.width;
 forgetPosition := sett.ReadBool('Call','forgetpos',false);
+
+if (Screen.Width-self.width < left) or (left < 0) then left:= -1;
+if (Screen.height-self.height < top) or (top < 0) then top:= -1;
+
+CallIn.Left    := left;
+CallIn.top     := top;
+
+
 if (CallIn.left = -1) or (CallIn.top = -1) or forgetposition then SetFormPosition;
 AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
 

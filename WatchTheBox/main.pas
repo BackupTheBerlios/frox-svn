@@ -138,6 +138,8 @@ type
     Label6: TLabel;
     StartupTimer: TTimer;
     WaitForReconnect: TTimer;
+    delpicture: TMenuItem;
+    procedure delpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
     procedure telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
@@ -748,10 +750,10 @@ procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 
   if telnet.isconnected then telnet.close;
-  sett.Free;
-  Phonebookliste.Free;
-  Callerliste.Free;
-  MySocket.Free;
+//  sett.Free;
+//  Phonebookliste.Free;
+//  Callerliste.Free;
+//  MySocket.Free;
 end;
 
 procedure MakeArrowsBlink(diffIn, DiffOut: longint; threshold: integer);
@@ -1343,28 +1345,79 @@ end;
 
 procedure TForm1.PopupMenu1Popup(Sender: TObject);
 var number, name: string;
+    CityCode,t  : string;
+    l           : TStringList;
+    cnt, i      : integer;
 begin
  if callerlist.ItemIndex > -1 then
  begin
     number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
     name  :=Callerlist.Items[Callerlist.itemindex].SubItems.strings[1];
-//    if length(number) <= 8 then number := '030' + number;
+
+    l:= TStringList.Create;
+    if fileexists(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt') then
+    begin
+      l.LoadFromFile(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt');
+      if (l.count >0) then
+      for i:= 0 to l.count-1 do
+      begin
+       t:= l.Strings[i];
+       if (t[1] = '#') or (length(t) = 0) then continue; //ignore comments
+       cnt:= length(t);
+       while AnsiEndsStr('*',t) do delete(t,length(t),1);
+
+       if AnsiStartsStr(t, number) then delete(number,1,cnt)
+
+      end;
+    end;
+    l.free;
+
+    //Vorwahlstring hinzufügen
+    if (number[1] <> '0') and (number[1] <> '+') then
+    begin
+       CityCode := sett.ReadString('FritzBox','CityCode', '');
+       number   := CityCode + number;
+    end;
+
+    searchnumber.Tag:=Integer(NewStr(number));
+    dial1.Tag       :=Integer(NewStr(number));
+
     searchnumber.caption:= 'reverse lookup: ' + number;
     dial1.caption         := 'dial: ' + number;
-    dial1.visible         := not (number ='');
-    searchnumber.Visible  := not (number ='');
+    dial1.visible         := not (number = '');
+    searchnumber.Visible  := not (number = '');
     addtoPhonebook.Visible:= (name = '') and (number <> '');
  end;
 end;
 
 procedure TForm1.PopupMenu2Popup(Sender: TObject);
 var number: string;
+    name  : string;
+    l     : TStringlist;
+    index : integer;
+    b     : boolean;
 begin
  if Phonebooklist.ItemIndex > -1 then
  begin
-    number:=Phonebooklist.Items[Phonebooklist.itemindex].SubItems.strings[0];
+    index := PhoneBookList.ItemIndex;
+    Name  := PhoneBooklist.items[index].Caption;
+    if name[1] = '!' then delete(name,1,1);
+
+    number:=Phonebooklist.Items[index].SubItems.strings[0];
     dial2.caption := 'dial: ' + number;
     dial2.visible := not (number ='');
+
+    l:= TStringList.Create;
+
+    sett.ReadSection('Images',l);
+    b:= (l.IndexOf(name) <> -1); //checks if name is in picture list
+
+    delpicture.Visible := b;
+    addpicture.Visible := not b; 
+
+
+    l.Free;
+    
  end;
 end;
 
@@ -1830,22 +1883,32 @@ end;
 procedure TForm1.searchNumberClick(Sender: TObject);
 var index          : integer;
     reverseAdress  : string;
-    CityCode       : string;
+//    CityCode       : string;
     SearchString   : string;
 begin
- CityCode      := sett.ReadString('FritzBox','CityCode', '');
+// CityCode      := sett.ReadString('FritzBox','CityCode', '');
  reverseAdress := sett.ReadString('FritzBox','reverse', '');
- if CallerList.ItemIndex > -1 then
+ if PString(searchnumber.Tag)^ <> '' then
   begin
-   index        := CallerList.ItemIndex;
-   searchstring := Callerlist.items[index].SubItems.Strings[2];
+   searchstring := PString(searchnumber.Tag)^;
    if (searchstring <> '') then
    begin
-    if ((searchstring[1] <> '0') and (searchstring[1] <> '+')) then searchstring:= Citycode+searchstring;
     reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',searchstring);
     Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
    end;
+   DisposeStr(PString(searchnumber.Tag));
   end;
+// if CallerList.ItemIndex > -1 then
+//  begin
+//   index        := CallerList.ItemIndex;
+//   searchstring := Callerlist.items[index].SubItems.Strings[2];
+//   if (searchstring <> '') then
+//   begin
+//    if ((searchstring[1] <> '0') and (searchstring[1] <> '+')) then searchstring:= Citycode+searchstring;
+//    reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',searchstring);
+//    Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
+//   end;
+//  end;
 end;
 
 procedure TForm1.addtoPhonebookClick(Sender: TObject);
@@ -1883,8 +1946,6 @@ begin
   if PhoneBookList.ItemIndex > -1 then
   begin
    index        := PhoneBookList.ItemIndex;
-//   NumberString := PhoneBooklist.items[index].SubItems.Strings[0];
-//   if (NumberString[1] <> '0') then NumberString:= Citycode+NumberString;
 
    NumberString := PhoneBooklist.items[index].Caption;
    if numberstring[1] = '!' then delete(numberstring,1,1);
@@ -1896,6 +1957,22 @@ begin
    end;
 
   end;
+end;
+
+procedure TForm1.delpictureClick(Sender: TObject);
+var index: integer;
+    name: string;
+begin
+//  is shown, when a pic is present
+if PhoneBookList.ItemIndex > -1 then
+  begin
+   index := PhoneBookList.ItemIndex;
+   Name  := PhoneBooklist.items[index].Caption;
+   if name[1] = '!' then delete(name,1,1);
+
+   sett.DeleteKey('Images',name);
+  end;
+
 end;
 
 procedure TForm1.deleteitemClick(Sender: TObject);
@@ -2331,6 +2408,11 @@ try //Fehler fangen
   c:= 'telefon a127.0.0.1';
   telnet.SendStr(c+#10);          //Telefondienst neu starten
   telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+  c:= 'echo 14,1 >/var/led'+#10+'echo 13,1 >/var/led';
+  telnet.SendStr(c+#10);          //TelefonLEDs ausschalten
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+
+
 except
   telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
 end;
@@ -2412,5 +2494,7 @@ begin
 WaitForReconnect.Enabled:= false;
 StartMySocket;
 end;
+
+
 
 end.

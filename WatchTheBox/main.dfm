@@ -29,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = Tab2
+    ActivePage = Tab1
     Align = alClient
     PopupMenu = PopupMenu1
     TabOrder = 0
@@ -516,7 +516,7 @@ object Form1: TForm1
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 6
         end
@@ -848,6 +848,10 @@ object Form1: TForm1
     object Eintraglschen1: TMenuItem
       Caption = 'delete entry'
       OnClick = Eintraglschen1Click
+    end
+    object delpicture: TMenuItem
+      Caption = 'delete picture'
+      OnClick = delpictureClick
     end
     object addpicture: TMenuItem
       Caption = 'add picture'

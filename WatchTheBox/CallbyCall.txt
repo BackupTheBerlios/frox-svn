@@ -1,0 +1,10 @@
+# Call by Call prefix numbers for germany
+# You may add own numbers. Be careful editing this file. 
+# The file is read line by line. For example if you want to 
+# match numbers 0100xy and numbers with 010xy you have to 
+# enter the 0100xy firstly. 
+# Stars indicate the length of the number which is important 
+# to filter the prefix correctly. 
+# For germany the following two lines should be convenient.
+0100**
+010**
