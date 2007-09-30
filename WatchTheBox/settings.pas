@@ -167,6 +167,7 @@ begin
 
  Form1.tab2.tabvisible:= FBMOn.Checked;
  Form1.tab3.tabvisible:= FBMOn.Checked;
+ Form1.tab4.tabvisible:= FBMOn.Checked;
 
  Form1.timer.enabled:= tmenabled.Checked;
  Form1.tab1.tabvisible:= tmenabled.Checked;

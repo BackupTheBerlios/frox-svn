@@ -127,7 +127,7 @@ type
     Fon22: TMenuItem;
     Fon32: TMenuItem;
     S01: TMenuItem;
-    TabSheet1: TTabSheet;
+    Tab4: TTabSheet;
     Button2: TButton;
     Button3: TButton;
     telnet: TTnCnx;
@@ -139,6 +139,7 @@ type
     StartupTimer: TTimer;
     WaitForReconnect: TTimer;
     delpicture: TMenuItem;
+    Button1: TButton;
     procedure delpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
@@ -334,7 +335,7 @@ end;
  and not assigned(CallIN) then
  begin
    Application.CreateForm(TCallIn, CallIn);
-   Callin.ShowCall(0);
+   Callin.ShowCall(0,1);
    CallIn.Show;
  end;
 end;
@@ -392,7 +393,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
         count:= AddACall(Call);
         if count = 1 then ShowNotification(False, 'incomming');
         if assigned(CallIn) then
-          Callin.ShowCall(count - 1);
+          Callin.ShowCall(count - 1,0);
         ReverseLookUp(Call);
       end;
     end
@@ -417,7 +418,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
         count := AddACall(Call);
         if Count = 1 then ShowNotification(false, 'outgoing');
         if assigned(CallIn) then
-          Callin.ShowCall(count -1);
+          Callin.ShowCall(count -1,0);
         ReverseLookUp(Call);
       end;
     end
@@ -430,7 +431,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       Call.Dauer      := s.strings[3];;
       count:=  RemoveACall(Call);
       if assigned(CallIn) then 
-        if Count > 0 then Callin.ShowCall(0);  //den ersten Anruf zeigen, wenn der letzte wegfällt
+        if Count > 0 then Callin.ShowCall(0,0);  //den ersten Anruf zeigen, wenn der letzte wegfällt
 
       if sett.ReadBool('FritzBox','AutoClose',true) and (count = 0)
           then
@@ -454,7 +455,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       Call.Start      := getTickCount;
       count := StartAConnection(Call);
       if assigned(callIn) then
-        CallIn.ShowCall(count);
+        CallIn.ShowCall(count,0);
    end;
 
   s.free;
@@ -690,6 +691,7 @@ begin
 
  tab2.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
  tab3.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
+ tab4.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
 
 // LoadCallersFromFile(0);
  LoadCallersFromFile();
@@ -1617,19 +1619,33 @@ procedure TForm1.PBaddClick(Sender: TObject);
 var i: integer;
     ok: boolean;
     namestr: string;
+    number: string;
+    found: boolean;
 begin
+  found:= false;
   if PBName.text = '' then exit;
-  
+
   ok:= true;
   if PBimportant.Checked then
       NameStr:= '!'+PBName.text
   else
       NameStr:= PBName.text;
 
-  i:= length(Phonebook);
-  setlength(PhoneBook, i+1);
+  number:= pbnumber.Text;
 
-   if ok then
+  for i:= 0 to length(phonebook)-1 do
+  begin
+    found := (number =  Phonebook[i].number);
+    if found then break;
+  end;
+
+  if not found then
+    begin
+      i:= length(phonebook);
+      setlength(PhoneBook, i+1);
+    end;
+
+  if ok then
    begin
      PhoneBook[i].Name   := NameStr;
      PhoneBook[i].Number := PBNumber.Text;
@@ -1643,7 +1659,7 @@ begin
      PhoneBook[i].vanity := '';
      PhoneBook[i].Short  := '';
      end;
-     
+
      PhoneBook[i].No     := i;
      FillPhonebook;
      Phonebooklist.ItemIndex:= i;
@@ -1726,9 +1742,12 @@ end; //procedure TForm1.ListView1Compare
 procedure TForm1.PhoneBookListSelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 var i: integer;
+    t: string;
 begin
 PBselected:= strtoint(Item.SubItems[3]);
-PBName.Text:= item.Caption;
+T:= item.Caption;
+if T[1]='!' then Delete(T,1,1);
+PBName.Text:= T;
 PBNumber.Text:= item.SubItems[0];
 PBVanity.Text:= item.SubItems[2];
 PBimportant.checked:= (item.Caption[1] = '!');

@@ -29,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = Tab1
+    ActivePage = Tab4
     Align = alClient
     PopupMenu = PopupMenu1
     TabOrder = 0
@@ -310,6 +310,14 @@ object Form1: TForm1
         TabOrder = 6
         OnClick = resetClick
       end
+      object Button1: TButton
+        Left = 352
+        Top = 184
+        Width = 75
+        Height = 25
+        Caption = 'Button1'
+        TabOrder = 7
+      end
     end
     object Tab2: TTabSheet
       Caption = 'List of calls'
@@ -531,7 +539,7 @@ object Form1: TForm1
         end
       end
     end
-    object TabSheet1: TTabSheet
+    object Tab4: TTabSheet
       Caption = 'Telnet'
       ImageIndex = 3
       object Label5: TLabel

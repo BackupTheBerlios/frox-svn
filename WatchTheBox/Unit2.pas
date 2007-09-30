@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  StdCtrls, ExtCtrls, Buttons, jpeg;
+  StdCtrls, ExtCtrls, Buttons, jpeg, dialogs;
 
 type
   TCallIn = class(TForm)
@@ -33,7 +33,7 @@ type
     procedure BrightClick(Sender: TObject);
     procedure topboxClick(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
-    procedure showCall(p: integer);
+    procedure showCall(p: integer; setpos: integer);
   private
     { Private-Deklarationen }
      procedure CreateParams(var Params : TCreateParams); override;
@@ -66,55 +66,6 @@ begin
   inherited;
   if M.Result = htClient then 
     M.Result := htCaption;
-end;
-
-procedure TCallIn.showCall(p: integer);
-var image: string;
-    top, right,tw: integer;
-begin
-      if p >= length(ActiveCalls) then p:=0;
-      if length(ActiveCalls)=0 then exit;
-
-      callID:= p;
-      CallType.caption:= ActiveCalls[p].typ;
-      info2.caption   := ActiveCalls[p].name;
-      info3.caption   := ActiveCalls[p].MSN;
-      info4.caption   := ActiveCalls[p].ConnID;
-      date.caption    := ActiveCalls[p].date;
-
-      if (info2.caption = '') then info2.caption:= 'unknown';
-
-      if ActiveCalls[p].typ = 'outgoing call' then
-         info3.caption   := ActiveCalls[p].Nebenstelle+'@'+ActiveCalls[p].MSN;
-
-      duration.caption:= '';
-      if ActiveCalls[p].start > 0 then
-       duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);
-      durationTimer.Enabled:= true;
-
-      top            := sett.Readinteger('Call','top' ,-1);
-      right          := sett.Readinteger('Call','right',-1);
-
-       tw:= info2.Canvas.TextWidth(info2.Caption) - callin.Constraints.MinWidth;
-       if tw < 0 then tw:= 0;
-
-      //Anruferbild laden
-      image:= sett.readString('Images', ActiveCalls[p].name, '');
-      if (image <> '') and FileExists(image) then
-      begin
-       Image1.Picture.LoadFromFile(image);
-       image1.Visible:= true;
-
-       callin.Width:= callin.Constraints.MinWidth + tw + Image1.width;
-       callin.left:= right - callin.width;
-      end
-      else
-      begin
-       image1.Visible:= false;
-//       callin.Width:= 252;
-       callin.Width := callin.Constraints.MinWidth + tw;
-       callin.left:= right - callin.width;
-      end;
 end;
 
 procedure SetFormPosition;
@@ -160,6 +111,90 @@ begin
 end;
 end;
 
+
+procedure TCallIn.showCall(p: integer; setpos: integer);
+var image: string;
+    top, right, left: integer;
+begin
+      right:= 0;  
+      if setpos = 0 then right := callin.left + callin.width;
+      if p >= length(ActiveCalls) then p:=0;
+      if length(ActiveCalls)=0 then exit;
+
+      callID:= p;
+      CallType.caption:= ActiveCalls[p].typ;
+      info2.caption   := ActiveCalls[p].name;
+      info3.caption   := ActiveCalls[p].MSN;
+      info4.caption   := ActiveCalls[p].ConnID;
+      date.caption    := ActiveCalls[p].date;
+
+      if (info2.caption = '') then info2.caption:= 'unknown';
+
+      if ActiveCalls[p].typ = 'outgoing call' then
+         info3.caption   := ActiveCalls[p].Nebenstelle+'@'+ActiveCalls[p].MSN;
+
+      duration.caption:= '';
+      if ActiveCalls[p].start > 0 then
+       duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);
+
+      durationTimer.Enabled:= true;
+      callin.Constraints.MaxWidth:= screen.Width;
+
+      //Anruferbild laden
+      image:= sett.readString('Images', ActiveCalls[p].name, '');
+      if (image <> '') and FileExists(image) then
+      begin
+       Image1.Picture.LoadFromFile(image);
+       image1.Visible:= true;
+       image1.Width:= 102;
+       callin.Width:= callin.Constraints.MinWidth + Image1.width;
+       panel.left := 104;
+       info2.Left := 120;
+       info3.left := 120;
+       topbox.left:= 120;
+      end
+      else
+      begin
+       image1.Visible:= false;
+       image1.Width:= 0;
+       callin.Width := callin.Constraints.MinWidth;
+       panel.left := 2;
+       info2.Left := 18;
+       info3.left := 18;
+       topbox.left:= 18;
+      end;
+
+      Callin.ClientWidth:= image1.Width + 50 + info2.Canvas.TextWidth(info2.Caption) + date.canvas.textwidth(date.caption);
+      panel.width:= Callin.ClientWidth - image1.width - 2;
+
+      if setpos <> 0 then
+      begin
+       top  := sett.Readinteger('Call','top' ,-1);
+       left := sett.Readinteger('Call','right',-1)- self.width;
+
+       if (left < 0) or (top < 0)
+          or sett.ReadBool('Call','forgetpos',false)
+          or (Screen.Width-self.width < left)
+          or (Screen.height-self.height < top)
+        then
+         SetFormPosition
+       else
+       begin
+         CallIn.Left    := left;
+         CallIn.top     := top;
+       end;
+       AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
+      end
+      else
+      begin
+       Callin.left:= right - CallIn.width;
+      end;
+
+      sett.Writeinteger('Call','left',CallIn.Left);
+      sett.Writeinteger('Call','right',CallIn.Left + Callin.width);
+      sett.Writeinteger('Call','top' ,CallIn.top);
+end;
+
 procedure TCallIn.BitBtn1Click(Sender: TObject);
 begin
 CallIn.close;
@@ -172,16 +207,16 @@ end;
 
 procedure TCallIn.BrightClick(Sender: TObject);
 begin
- if CallID+1 < length(ActiveCalls) then ShowCall(CallID+1)
+ if CallID+1 < length(ActiveCalls) then ShowCall(CallID+1, 0)
  else
- if CallID+1 >= length(ActiveCalls) then ShowCall(0)
+ if CallID+1 >= length(ActiveCalls) then ShowCall(0, 0)
 end;
 
 procedure TCallIn.BleftClick(Sender: TObject);
 begin
- if CallID-1 > -1 then ShowCall(CallID-1)
+ if CallID-1 > -1 then ShowCall(CallID-1,0)
  else
- if CallID-1 = -1 then ShowCall(length(ActiveCalls))
+ if CallID-1 = -1 then ShowCall(length(ActiveCalls),0)
 end;
 
 procedure TCallIn.TimerTimer(Sender: TObject);
@@ -203,21 +238,6 @@ procedure TCallIn.FormCreate(Sender: TObject);
 var forgetPosition: boolean;
     top, left: integer;
 begin
-
-top            := sett.Readinteger('Call','top' ,-1);
-//left           := sett.Readinteger('Call','left',-1);
-left           := sett.Readinteger('Call','right',-1)-self.width;
-forgetPosition := sett.ReadBool('Call','forgetpos',false);
-
-if (Screen.Width-self.width < left) or (left < 0) then left:= -1;
-if (Screen.height-self.height < top) or (top < 0) then top:= -1;
-
-CallIn.Left    := left;
-CallIn.top     := top;
-
-
-if (CallIn.left = -1) or (CallIn.top = -1) or forgetposition then SetFormPosition;
-AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
 
 if sett.ReadBool('FritzBox','CloseTimer',false) then
  begin

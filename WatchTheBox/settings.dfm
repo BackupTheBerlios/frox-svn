@@ -25,7 +25,7 @@ object Form3: TForm3
     Top = 0
     Width = 335
     Height = 321
-    ActivePage = FritzBox
+    ActivePage = TabSheet2
     Align = alTop
     Style = tsFlatButtons
     TabOrder = 0
@@ -88,7 +88,7 @@ object Form3: TForm3
           Width = 185
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ItemIndex = 0
           TabOrder = 0
           Text = 'Upload + Download'
@@ -199,7 +199,7 @@ object Form3: TForm3
             Width = 57
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             ItemIndex = 0
             TabOrder = 0
             Text = '1st'
@@ -250,7 +250,7 @@ object Form3: TForm3
           Top = 36
           Width = 313
           Height = 21
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           Text = 'NDev'
         end

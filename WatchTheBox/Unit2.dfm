@@ -1,10 +1,12 @@
 object CallIn: TCallIn
   Left = 0
   Top = 0
+  AlphaBlendValue = 1
+  Anchors = [akTop]
   BorderStyle = bsToolWindow
   Caption = 'CallIn'
-  ClientHeight = 109
-  ClientWidth = 353
+  ClientHeight = 107
+  ClientWidth = 352
   Color = 14600382
   TransparentColorValue = clMoneyGreen
   Constraints.MinWidth = 252
@@ -18,26 +20,24 @@ object CallIn: TCallIn
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    353
-    109)
+    352
+    107)
   PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel
-    Left = 102
+    Left = 105
     Top = 0
-    Width = 251
-    Height = 109
+    Width = 247
+    Height = 107
     Align = alClient
-    Anchors = [akTop, akRight]
     Shape = bsFrame
     Style = bsRaised
   end
   object info2: TLabel
-    Left = 122
+    Left = 120
     Top = 32
     Width = 52
     Height = 19
-    Anchors = [akTop, akRight, akBottom]
     Caption = 'InfoNr'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -47,28 +47,29 @@ object CallIn: TCallIn
     ParentFont = False
   end
   object info3: TLabel
-    Left = 123
-    Top = 72
+    Left = 119
+    Top = 71
     Width = 24
     Height = 13
-    Anchors = [akTop, akRight, akBottom]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'info3'
   end
   object Date: TLabel
-    Left = 315
+    Left = 309
     Top = 37
     Width = 23
-    Height = 13
+    Height = 12
     Alignment = taRightJustify
     Anchors = [akTop, akRight, akBottom]
     Caption = 'Date'
   end
   object duration: TLabel
-    Left = 264
-    Top = 65
+    Left = 263
+    Top = 64
     Width = 72
     Height = 19
-    Anchors = [akTop, akRight]
+    Alignment = taRightJustify
+    Anchors = [akTop, akRight, akBottom]
     Caption = '00:00:00'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -80,16 +81,16 @@ object CallIn: TCallIn
   object Image1: TImage
     Left = 0
     Top = 0
-    Width = 102
-    Height = 109
+    Width = 105
+    Height = 107
     Align = alLeft
-    Anchors = [akTop, akRight, akBottom]
     Center = True
     Proportional = True
+    Visible = False
   end
   object BitBtn1: TBitBtn
-    Left = 280
-    Top = 104
+    Left = 279
+    Top = 98
     Width = 65
     Height = 24
     Anchors = [akTop, akRight]
@@ -99,60 +100,67 @@ object CallIn: TCallIn
     Kind = bkOK
   end
   object topbox: TCheckBox
-    Left = 112
+    Left = 117
     Top = 104
-    Width = 81
+    Width = 80
     Height = 24
-    Anchors = [akTop, akRight]
+    Anchors = [akLeft, akTop, akRight]
     Caption = 'stay on top'
     TabOrder = 1
     OnClick = topboxClick
   end
   object Panel: TPanel
-    Left = 103
-    Top = 1
-    Width = 249
-    Height = 25
-    Anchors = [akTop, akRight]
+    Left = 104
+    Top = 0
+    Width = 248
+    Height = 21
+    Anchors = []
     BevelKind = bkFlat
     BevelOuter = bvNone
     TabOrder = 2
+    DesignSize = (
+      244
+      17)
     object Calltype: TLabel
-      Left = 8
-      Top = 4
+      Left = 0
+      Top = 2
       Width = 70
       Height = 13
       Caption = 'Incoming Call: '
     end
     object info4: TLabel
-      Left = 113
-      Top = 4
+      Left = 167
+      Top = 2
       Width = 24
       Height = 13
+      Alignment = taRightJustify
+      Anchors = [akTop, akRight]
       Caption = 'info4'
     end
     object Bright: TButton
-      Left = 221
-      Top = 2
+      Left = 225
+      Top = 0
       Width = 18
       Height = 17
+      Anchors = [akTop, akRight]
       Caption = '>'
       TabOrder = 0
       OnClick = BrightClick
     end
     object Bleft: TButton
-      Left = 201
-      Top = 2
+      Left = 202
+      Top = 0
       Width = 18
       Height = 17
+      Anchors = [akTop, akRight]
       Caption = '<'
       TabOrder = 1
       OnClick = BleftClick
     end
   end
   object reject: TBitBtn
-    Left = 208
-    Top = 104
+    Left = 207
+    Top = 98
     Width = 65
     Height = 24
     Anchors = [akTop, akRight]
@@ -165,13 +173,13 @@ object CallIn: TCallIn
     Enabled = False
     Interval = 15000
     OnTimer = TimerTimer
-    Left = 184
-    Top = 40
+    Left = 216
+    Top = 32
   end
   object durationTimer: TTimer
     Enabled = False
     OnTimer = durationTimerTimer
-    Left = 160
+    Left = 184
     Top = 32
   end
 end
