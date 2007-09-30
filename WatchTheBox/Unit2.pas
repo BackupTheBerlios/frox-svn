@@ -235,10 +235,7 @@ CallIn:= nil;
 end;
 
 procedure TCallIn.FormCreate(Sender: TObject);
-var forgetPosition: boolean;
-    top, left: integer;
 begin
-
 if sett.ReadBool('FritzBox','CloseTimer',false) then
  begin
   timer.Interval:= sett.ReadInteger('FritzBox','CloseTime',15) * 1000;

@@ -58,7 +58,7 @@ object CallIn: TCallIn
     Left = 309
     Top = 37
     Width = 23
-    Height = 12
+    Height = 13
     Alignment = taRightJustify
     Anchors = [akTop, akRight, akBottom]
     Caption = 'Date'
@@ -129,7 +129,7 @@ object CallIn: TCallIn
       Caption = 'Incoming Call: '
     end
     object info4: TLabel
-      Left = 167
+      Left = 163
       Top = 2
       Width = 24
       Height = 13
@@ -138,7 +138,7 @@ object CallIn: TCallIn
       Caption = 'info4'
     end
     object Bright: TButton
-      Left = 225
+      Left = 221
       Top = 0
       Width = 18
       Height = 17
@@ -148,7 +148,7 @@ object CallIn: TCallIn
       OnClick = BrightClick
     end
     object Bleft: TButton
-      Left = 202
+      Left = 198
       Top = 0
       Width = 18
       Height = 17

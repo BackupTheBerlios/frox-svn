@@ -139,7 +139,6 @@ type
     StartupTimer: TTimer;
     WaitForReconnect: TTimer;
     delpicture: TMenuItem;
-    Button1: TButton;
     procedure delpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
@@ -1900,12 +1899,9 @@ showmessage('WatchTheBox'
 end;
 
 procedure TForm1.searchNumberClick(Sender: TObject);
-var index          : integer;
-    reverseAdress  : string;
-//    CityCode       : string;
+var reverseAdress  : string;
     SearchString   : string;
 begin
-// CityCode      := sett.ReadString('FritzBox','CityCode', '');
  reverseAdress := sett.ReadString('FritzBox','reverse', '');
  if PString(searchnumber.Tag)^ <> '' then
   begin
