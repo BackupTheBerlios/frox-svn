@@ -29,9 +29,8 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = Tab1
+    ActivePage = Tab4
     Align = alClient
-    PopupMenu = PopupMenu1
     TabOrder = 0
     OnChange = PageControl1Change
     object Tab1: TTabSheet
@@ -845,17 +844,17 @@ object Form1: TForm1
     object N2: TMenuItem
       Caption = '-'
     end
-    object Eintraglschen1: TMenuItem
+    object pbdelete: TMenuItem
       Caption = 'delete entry'
-      OnClick = Eintraglschen1Click
+      OnClick = pbdeleteClick
     end
-    object delpicture: TMenuItem
+    object pbdelpicture: TMenuItem
       Caption = 'delete picture'
-      OnClick = delpictureClick
+      OnClick = pbdelpictureClick
     end
-    object addpicture: TMenuItem
+    object pbaddpicture: TMenuItem
       Caption = 'add picture'
-      OnClick = addpictureClick
+      OnClick = pbaddpictureClick
     end
     object N4: TMenuItem
       Caption = '-'

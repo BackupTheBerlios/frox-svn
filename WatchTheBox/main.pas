@@ -50,7 +50,7 @@ type
     PopupMenu1: TPopupMenu;
     searchNumber: TMenuItem;
     PopupMenu2: TPopupMenu;
-    Eintraglschen1: TMenuItem;
+    pbdelete: TMenuItem;
     ReloadPhonebook: TMenuItem;
     reloadCallerList: TMenuItem;
     PageControl1: TPageControl;
@@ -91,7 +91,7 @@ type
     N1: TMenuItem;
     ImgDlg: TOpenDialog;
     N2: TMenuItem;
-    addpicture: TMenuItem;
+    pbaddpicture: TMenuItem;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -138,8 +138,8 @@ type
     Label6: TLabel;
     StartupTimer: TTimer;
     WaitForReconnect: TTimer;
-    delpicture: TMenuItem;
-    procedure delpictureClick(Sender: TObject);
+    pbdelpicture: TMenuItem;
+    procedure pbdelpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
     procedure telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
@@ -165,7 +165,7 @@ type
     procedure vcfimportClick(Sender: TObject);
     procedure ToolButton10Click(Sender: TObject);
     procedure deleteitemClick(Sender: TObject);
-    procedure addpictureClick(Sender: TObject);
+    procedure pbaddpictureClick(Sender: TObject);
     procedure addtoPhonebookClick(Sender: TObject);
     procedure searchNumberClick(Sender: TObject);
     procedure SocketConnectTimer(Sender: TObject);
@@ -192,7 +192,7 @@ type
     Procedure LoadPhonebookFromFile;
     Procedure LoadCallersFromFile();
     procedure ReloadPhonebookClick(Sender: TObject);
-    procedure Eintraglschen1Click(Sender: TObject);
+    procedure pbdeleteClick(Sender: TObject);
     procedure PopupMenu1Popup(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
     procedure viewstatsClick(Sender: TObject);
@@ -1331,6 +1331,10 @@ case PageControl1.ActivePageIndex of
       PhoneBookList.PopupMenu:= PopupMenu2;
       if sender = PageControl1 then PbClear.click;
     end;
+3:  begin
+     Callerlist.PopupMenu:= nil;
+     PhoneBookList.PopupMenu:= nil;
+    end;
  end;
 ToolButton1.Visible :=  (PageControl1.ActivePageIndex = 1);
 ToolButton3.Visible :=  (PageControl1.ActivePageIndex = 1);
@@ -1352,6 +1356,9 @@ var number, name: string;
 begin
  if callerlist.ItemIndex > -1 then
  begin
+    addtoPhonebook.Visible:= true;
+    deleteitem.Visible:= true;
+
     number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
     name  :=Callerlist.Items[Callerlist.itemindex].SubItems.strings[1];
 
@@ -1374,7 +1381,7 @@ begin
     l.free;
 
     //Vorwahlstring hinzufügen
-    if (number[1] <> '0') and (number[1] <> '+') then
+    if (length(number) > 0) and (number[1] <> '0') and (number[1] <> '+') then
     begin
        CityCode := sett.ReadString('FritzBox','CityCode', '');
        number   := CityCode + number;
@@ -1388,6 +1395,13 @@ begin
     dial1.visible         := not (number = '');
     searchnumber.Visible  := not (number = '');
     addtoPhonebook.Visible:= (name = '') and (number <> '');
+ end
+ else
+ begin
+   searchNumber.Visible:= false;
+   addtoPhonebook.Visible:= false;
+   deleteitem.Visible:= false;
+   dial1.Visible:= false;
  end;
 end;
 
@@ -1398,8 +1412,10 @@ var number: string;
     index : integer;
     b     : boolean;
 begin
+
  if Phonebooklist.ItemIndex > -1 then
  begin
+    pbdelete.Visible:= true;
     index := PhoneBookList.ItemIndex;
     Name  := PhoneBooklist.items[index].Caption;
     if name[1] = '!' then delete(name,1,1);
@@ -1413,16 +1429,24 @@ begin
     sett.ReadSection('Images',l);
     b:= (l.IndexOf(name) <> -1); //checks if name is in picture list
 
-    delpicture.Visible := b;
-    addpicture.Visible := not b; 
+    pbdelpicture.Visible := b;
+    pbaddpicture.Visible := not b; 
 
 
     l.Free;
     
- end;
+ end
+ else
+ begin
+   pbdelete.Visible:= false;
+   pbaddpicture.Visible:= false;
+   pbdelpicture.Visible:= false;
+   dial2.Visible:= false;
+ end;  
+
 end;
 
-procedure TForm1.Eintraglschen1Click(Sender: TObject);
+procedure TForm1.pbdeleteClick(Sender: TObject);
 var i    : integer;
     ident: integer;
     index: integer;
@@ -1952,7 +1976,7 @@ begin
 
 end;
 
-procedure TForm1.addpictureClick(Sender: TObject);
+procedure TForm1.pbaddpictureClick(Sender: TObject);
 var index          : integer;
     NumberString   : string;
     CityCode       : string;
@@ -1974,7 +1998,7 @@ begin
   end;
 end;
 
-procedure TForm1.delpictureClick(Sender: TObject);
+procedure TForm1.pbdelpictureClick(Sender: TObject);
 var index: integer;
     name: string;
 begin
