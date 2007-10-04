@@ -25,7 +25,7 @@ object Form3: TForm3
     Top = 0
     Width = 335
     Height = 321
-    ActivePage = TabSheet2
+    ActivePage = FritzBox
     Align = alTop
     Style = tsFlatButtons
     TabOrder = 0
@@ -331,9 +331,9 @@ object Form3: TForm3
         TabOrder = 5
       end
       object revpath: TLabeledEdit
-        Left = 16
+        Left = 40
         Top = 260
-        Width = 289
+        Width = 265
         Height = 21
         EditLabel.Width = 224
         EditLabel.Height = 13
@@ -403,6 +403,14 @@ object Form3: TForm3
         Height = 17
         Caption = 'forget position of notification window'
         TabOrder = 4
+      end
+      object revenabled: TCheckBox
+        Left = 17
+        Top = 263
+        Width = 16
+        Height = 17
+        TabOrder = 13
+        OnClick = revenabledClick
       end
     end
     object TabSheet3: TTabSheet

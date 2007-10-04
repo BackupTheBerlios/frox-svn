@@ -120,7 +120,6 @@ begin
       if setpos = 0 then right := callin.left + callin.width;
       if p >= length(ActiveCalls) then p:=0;
       if length(ActiveCalls)=0 then exit;
-
       callID:= p;
       CallType.caption:= ActiveCalls[p].typ;
       info2.caption   := ActiveCalls[p].name;
@@ -132,7 +131,6 @@ begin
 
       if ActiveCalls[p].typ = 'outgoing call' then
          info3.caption   := ActiveCalls[p].Nebenstelle+'@'+ActiveCalls[p].MSN;
-
       duration.caption:= '';
       if ActiveCalls[p].start > 0 then
        duration.caption:= Format('%ds',[round(gettickcount/1000 - ActiveCalls[p].start/1000)]);

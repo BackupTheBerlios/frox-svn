@@ -56,6 +56,8 @@ type
     DeleteListAutomatically: TCheckBox;
     LoadListAutomatically: TCheckBox;
     forgetpos: TCheckBox;
+    revenabled: TCheckBox;
+    procedure revenabledClick(Sender: TObject);
     procedure FBPortKeyPress(Sender: TObject; var Key: Char);
     procedure PriceKeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -142,6 +144,7 @@ begin
 
  sett.WriteBool('FritzBox','useMonitor',FBMon.Checked);
  sett.WriteBool('Call','forgetpos',forgetpos.checked);
+
  sett.WriteBool('FritzBox','monout',monout.checked);
  sett.WriteBool('FritzBox','AutoClose',closefinished.checked);
  sett.WriteBool('FritzBox','CloseTimer',closetimer.checked);
@@ -149,6 +152,7 @@ begin
  sett.WriteBool('FritzBox','NotifyOnlyInTray',NotifyOnlyInTray.checked);
  sett.writestring('Fritzbox','IP',FBIP.Text);
  sett.WriteInteger('FritzBox','Port',strtoint(FBPort.text));
+ sett.writeBool('FritzBox','reverse_enabled', revenabled.checked);
  sett.writeString('FritzBox','reverse', revpath.Text);
  sett.WriteBool('FritzBox','DeleteListAutomatically',DeleteListAutomatically.checked);
  sett.WriteBool('FritzBox','LoadListAutomatically', LoadListAutomatically.checked);
@@ -199,6 +203,8 @@ begin
  closefinished.Checked := sett.ReadBool('FritzBox','AutoClose',true);
  closetimer.Checked    := sett.ReadBool('FritzBox','CloseTimer',false);
  closeafter.value      := sett.ReadInteger('FritzBox','CloseTime',15);
+ revenabled.Checked    := sett.ReadBool('FritzBox','reverse_enabled', true);
+ revenabledclick(nil);
  revpath.text          := sett.ReadString('FritzBox','reverse', 'http://www1.dasoertliche.de/?form_name=search_inv&ph=%NUMBER%');
  NotifyOnlyInTray.checked := sett.ReadBool('FritzBox','NotifyOnlyInTray',false);
  DeleteListAutomatically.checked := sett.ReadBool('FritzBox','DeleteListAutomatically',false);
@@ -259,6 +265,11 @@ procedure TForm3.FBPortKeyPress(Sender: TObject; var Key: Char);
 begin
    if not (Key in ['0'..'9', Char(VK_BACK)]) then
      Key := #0;            //  dann sofort löschen
+end;
+
+procedure TForm3.revenabledClick(Sender: TObject);
+begin
+ revpath.enabled :=revenabled.Checked;
 end;
 
 end.

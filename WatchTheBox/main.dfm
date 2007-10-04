@@ -29,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = Tab4
+    ActivePage = Tab3
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
@@ -353,6 +353,7 @@ object Form1: TForm1
         GridLines = True
         HotTrack = True
         HotTrackStyles = [htUnderlineCold]
+        MultiSelect = True
         RowSelect = True
         PopupMenu = PopupMenu1
         ShowWorkAreas = True
@@ -413,7 +414,7 @@ object Form1: TForm1
       end
       object PhoneBookList: TListView
         Left = 0
-        Top = 57
+        Top = 73
         Width = 448
         Height = 192
         Align = alTop
@@ -428,7 +429,7 @@ object Form1: TForm1
             Caption = 'number'
           end
           item
-            Caption = 'short dial'
+            Caption = 'quick dial'
             Width = 148
           end
           item
@@ -440,6 +441,7 @@ object Form1: TForm1
         FlatScrollBars = True
         GridLines = True
         HotTrackStyles = [htUnderlineCold]
+        MultiSelect = True
         ReadOnly = True
         RowSelect = True
         PopupMenu = PopupMenu2
@@ -455,28 +457,19 @@ object Form1: TForm1
         Left = 0
         Top = 0
         Width = 448
-        Height = 57
+        Height = 73
         Align = alTop
         TabOrder = 1
-        object PBName: TEdit
-          Left = 8
-          Top = 8
-          Width = 113
-          Height = 21
-          TabOrder = 0
-          Text = 'PBName'
-        end
-        object PBNumber: TEdit
-          Left = 128
-          Top = 8
-          Width = 113
-          Height = 21
-          TabOrder = 1
-          Text = 'PBNumber'
+        object Label7: TLabel
+          Left = 250
+          Top = 10
+          Width = 43
+          Height = 13
+          Caption = 'quick dial'
         end
         object PBadd: TButton
           Left = 366
-          Top = 8
+          Top = 25
           Width = 75
           Height = 17
           Caption = 'add'
@@ -485,23 +478,15 @@ object Form1: TForm1
         end
         object PBimportant: TCheckBox
           Left = 8
-          Top = 32
+          Top = 49
           Width = 73
           Height = 17
           Caption = 'important'
           TabOrder = 3
         end
-        object PBVanity: TEdit
-          Left = 312
-          Top = 8
-          Width = 41
-          Height = 21
-          Enabled = False
-          TabOrder = 4
-        end
         object PBClear: TButton
           Left = 366
-          Top = 27
+          Top = 44
           Width = 75
           Height = 17
           Caption = 'clear'
@@ -510,7 +495,7 @@ object Form1: TForm1
         end
         object PBShort: TComboBox
           Left = 248
-          Top = 8
+          Top = 25
           Width = 57
           Height = 21
           Style = csDropDownList
@@ -521,12 +506,43 @@ object Form1: TForm1
         end
         object sendtoBox: TCheckBox
           Left = 128
-          Top = 32
+          Top = 49
           Width = 217
           Height = 17
           Caption = 'send to Fritz!Box'
           TabOrder = 7
           OnClick = sendtoBoxClick
+        end
+        object PBName: TLabeledEdit
+          Left = 8
+          Top = 25
+          Width = 113
+          Height = 21
+          EditLabel.Width = 26
+          EditLabel.Height = 13
+          EditLabel.Caption = 'name'
+          TabOrder = 0
+        end
+        object PBNumber: TLabeledEdit
+          Left = 128
+          Top = 25
+          Width = 113
+          Height = 21
+          EditLabel.Width = 36
+          EditLabel.Height = 13
+          EditLabel.Caption = 'number'
+          TabOrder = 1
+        end
+        object PBVanity: TLabeledEdit
+          Left = 312
+          Top = 25
+          Width = 41
+          Height = 21
+          EditLabel.Width = 30
+          EditLabel.Height = 13
+          EditLabel.Caption = 'vanity'
+          Enabled = False
+          TabOrder = 4
         end
       end
     end

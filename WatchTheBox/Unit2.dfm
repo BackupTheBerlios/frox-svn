@@ -47,12 +47,11 @@ object CallIn: TCallIn
     ParentFont = False
   end
   object info3: TLabel
-    Left = 119
+    Left = 120
     Top = 71
-    Width = 24
+    Width = 23
     Height = 13
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Caption = 'info3'
+    Caption = 'Hallo'
   end
   object Date: TLabel
     Left = 309
@@ -67,7 +66,7 @@ object CallIn: TCallIn
     Left = 263
     Top = 64
     Width = 72
-    Height = 19
+    Height = 44
     Alignment = taRightJustify
     Anchors = [akTop, akRight, akBottom]
     Caption = '00:00:00'
@@ -101,10 +100,9 @@ object CallIn: TCallIn
   end
   object topbox: TCheckBox
     Left = 117
-    Top = 104
+    Top = 96
     Width = 80
     Height = 24
-    Anchors = [akLeft, akTop, akRight]
     Caption = 'stay on top'
     TabOrder = 1
     OnClick = topboxClick
@@ -129,7 +127,7 @@ object CallIn: TCallIn
       Caption = 'Incoming Call: '
     end
     object info4: TLabel
-      Left = 163
+      Left = 159
       Top = 2
       Width = 24
       Height = 13
@@ -138,7 +136,7 @@ object CallIn: TCallIn
       Caption = 'info4'
     end
     object Bright: TButton
-      Left = 221
+      Left = 217
       Top = 0
       Width = 18
       Height = 17
@@ -148,7 +146,7 @@ object CallIn: TCallIn
       OnClick = BrightClick
     end
     object Bleft: TButton
-      Left = 198
+      Left = 194
       Top = 0
       Width = 18
       Height = 17

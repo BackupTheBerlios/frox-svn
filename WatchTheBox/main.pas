@@ -106,11 +106,8 @@ type
     ToolButton11: TToolButton;
     GroupBox1: TGroupBox;
     PhoneBookList: TListView;
-    PBName: TEdit;
-    PBNumber: TEdit;
     PBadd: TButton;
     PBimportant: TCheckBox;
-    PBVanity: TEdit;
     PBClear: TButton;
     PBShort: TComboBox;
     sendtoBox: TCheckBox;
@@ -139,6 +136,10 @@ type
     StartupTimer: TTimer;
     WaitForReconnect: TTimer;
     pbdelpicture: TMenuItem;
+    PBName: TLabeledEdit;
+    PBNumber: TLabeledEdit;
+    PBVanity: TLabeledEdit;
+    Label7: TLabel;
     procedure pbdelpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
@@ -249,6 +250,7 @@ var
   ColumnToSort       : Integer;
   LastSorted         : Integer;
   SortDir            : Integer;
+  OldName            : string; //for changes of the actual selected name
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
      CallManagement, PBMess;
@@ -343,12 +345,14 @@ procedure TForm1.ReverseLookUp(Call: TCaller);
 var reverseAdress  : string;
     CityCode       : string;
     searchstring   : string;
+    enabled        : boolean; 
 begin
    CityCode      := sett.ReadString('FritzBox','CityCode', '');
    reverseAdress := sett.ReadString('FritzBox','reverse', '');
+   enabled       := sett.ReadBool('FritzBox','reverse_enabled', true);
 
    searchstring := Call.Rufnummer;
-   if reverseAdress <> '' then
+   if enabled and (reverseAdress <> '') then
      if (Call.Rufnummer <> '') and (Call.Name = Call.Rufnummer) then
        begin
         if ((searchstring[1] <> '0') and (searchstring[1] <> '+')) then searchstring:= Citycode+searchstring;
@@ -363,10 +367,26 @@ var m    : string;
     r    : TRegExpr;
     Call : TCaller;
     count: integer;
+    f : textfile;
 begin
  m:= Socket.ReceiveText;
  r:= TRegExpr.Create;
  r.Expression:= ';';
+
+ if Paramstr(1) = '-debug' then
+ begin
+  if not fileexists(ExtractFilepath(paramstr(0))+'monitor_messages.txt') then
+  begin
+    AssignFile(f, ExtractFilepath(paramstr(0))+'monitor_messages.txt');
+    rewrite(f);
+    Closefile(f);
+  end;
+  AssignFile(f, ExtractFilepath(paramstr(0))+'monitor_messages.txt');
+   append(f);
+   Write(f, m);
+  CloseFile(f);
+ end;
+  
 if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiContainsStr(m,';CALL;')or AnsiContainsStr(m,';CONNECT;')then
  begin
   s:= TStringlist.Create;
@@ -400,6 +420,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
 //Ausgehende Anrufe: datum;CALL;ConnectionID;Nebenstelle;GenutzteNummer;AngerufeneNummer;
   if (sett.ReadBool('FritzBox','monout',true) and (s.strings[1] = 'CALL')) then
     begin
+
       Call.typ        := 'Outgoing Call';
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
@@ -409,6 +430,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       Call.MSN        := s.strings[4];
       Call.Dauer      := '';
       Call.Start      :=  0;
+
       if (sett.Readbool('FritzBox','OneMSN',false)= false)
          or
          (sett.Readbool('FritzBox','OneMSN',false)=true and (Call.MSN = sett.ReadString('FritzBox','MSN','')))
@@ -1354,7 +1376,8 @@ var number, name: string;
     l           : TStringList;
     cnt, i      : integer;
 begin
- if callerlist.ItemIndex > -1 then
+
+ if (callerlist.ItemIndex > -1) and (Callerlist.SelCount = 1) then
  begin
     addtoPhonebook.Visible:= true;
     deleteitem.Visible:= true;
@@ -1400,9 +1423,11 @@ begin
  begin
    searchNumber.Visible:= false;
    addtoPhonebook.Visible:= false;
-   deleteitem.Visible:= false;
+   deleteitem.Visible:= (callerlist.SelCount > 0);
    dial1.Visible:= false;
  end;
+
+
 end;
 
 procedure TForm1.PopupMenu2Popup(Sender: TObject);
@@ -1413,7 +1438,7 @@ var number: string;
     b     : boolean;
 begin
 
- if Phonebooklist.ItemIndex > -1 then
+ if (Phonebooklist.ItemIndex > -1 ) and (phonebooklist.selcount=1) then
  begin
     pbdelete.Visible:= true;
     index := PhoneBookList.ItemIndex;
@@ -1438,7 +1463,7 @@ begin
  end
  else
  begin
-   pbdelete.Visible:= false;
+   pbdelete.Visible:= (PhoneBookList.SelCount > 0);
    pbaddpicture.Visible:= false;
    pbdelpicture.Visible:= false;
    dial2.Visible:= false;
@@ -1447,24 +1472,34 @@ begin
 end;
 
 procedure TForm1.pbdeleteClick(Sender: TObject);
-var i    : integer;
+var i,j    : integer;
     ident: integer;
     index: integer;
+    changes: boolean;
 begin
- if PhoneBookList.ItemIndex > -1 then
+ changes:= false;
+ if PhoneBookList.SelCount > 0 then
+ for j:= PhoneBookList.Items.Count-1 downto 0 do
+  if PhoneBookList.Items.Item[j].Selected then
   begin
-   index:= PhoneBookList.ItemIndex;
+//   index:= PhoneBookList.ItemIndex;
+   index:= j;
    ident:= strtoint(PhoneBooklist.items[index].SubItems.Strings[3]);
    for i:= length(Phonebook)-1 downto 0 do
     if PhoneBook[i].No = ident then
       begin
         PhoneBook[i] := Phonebook[length(PhoneBook)-1];
         setlength(PhoneBook, length(PhoneBook)-1);
-        FillPhoneBook;
-        SavePhoneBook; //lokal speichern
-        unsaved_phonebook:= true;
+        changes:= true;
         break;
       end;
+  end;
+
+  if changes then
+  begin
+    FillPhoneBook;
+    SavePhoneBook; //lokal speichern
+    unsaved_phonebook:= true;
   end;
 end;
 
@@ -1640,15 +1675,14 @@ end;
 
 procedure TForm1.PBaddClick(Sender: TObject);
 var i: integer;
-    ok: boolean;
     namestr: string;
     number: string;
     found: boolean;
+    image: string;
 begin
   found:= false;
   if PBName.text = '' then exit;
 
-  ok:= true;
   if PBimportant.Checked then
       NameStr:= '!'+PBName.text
   else
@@ -1668,27 +1702,33 @@ begin
       setlength(PhoneBook, i+1);
     end;
 
-  if ok then
-   begin
-     PhoneBook[i].Name   := NameStr;
-     PhoneBook[i].Number := PBNumber.Text;
-     if sendtoBox.Checked then
-     begin
-     PhoneBook[i].vanity := PBVanity.Text;
-     PhoneBook[i].Short  := PBShort.Text;
-     end
-     else
-     begin
-     PhoneBook[i].vanity := '';
-     PhoneBook[i].Short  := '';
-     end;
+    PhoneBook[i].Name   := NameStr;
+    PhoneBook[i].Number := PBNumber.Text;
+    if sendtoBox.Checked then
+    begin
+      PhoneBook[i].vanity := PBVanity.Text;
+      PhoneBook[i].Short  := PBShort.Text;
+    end
+    else
+    begin
+      PhoneBook[i].vanity := '';
+      PhoneBook[i].Short  := '';
+    end;
 
-     PhoneBook[i].No     := i;
-     FillPhonebook;
-     Phonebooklist.ItemIndex:= i;
-     SavePhonebook;
-     unsaved_phonebook:= true;
+   if found and (OldName <> PBName.text) then
+   if sett.ValueExists('Images',OldName) then
+   begin
+    image:=  sett.ReadString('Images',OldName,'');
+    sett.DeleteKey('Images',OldName);
+    sett.WriteString('Images',PBname.Text,image);
    end;
+
+   PhoneBook[i].No        := i;
+   FillPhonebook;
+   Phonebooklist.ItemIndex:= i;
+   SavePhonebook;
+   unsaved_phonebook      := true;
+
 end;
 
 procedure TForm1.PhonebookListColumnClick(Sender: TObject; Column: TListColumn);
@@ -1699,7 +1739,6 @@ begin
   else
     SortDir := 0;
   LastSorted := ColumnToSort;
-//  showmessage(inttostr(columnTosort));
   (Sender as TCustomListView).AlphaSort;
 end;
 
@@ -1781,6 +1820,7 @@ i:= PBShort.items.Add(item.SubItems[1]);
 PBshort.ItemIndex:= i;
 
 PBadd.Caption:= 'change';
+OldName:= PBName.Text;
 end;
 
 procedure TForm1.PBClearClick(Sender: TObject);
@@ -1937,17 +1977,6 @@ begin
    end;
    DisposeStr(PString(searchnumber.Tag));
   end;
-// if CallerList.ItemIndex > -1 then
-//  begin
-//   index        := CallerList.ItemIndex;
-//   searchstring := Callerlist.items[index].SubItems.Strings[2];
-//   if (searchstring <> '') then
-//   begin
-//    if ((searchstring[1] <> '0') and (searchstring[1] <> '+')) then searchstring:= Citycode+searchstring;
-//    reverseAdress:= AnsiReplaceStr(reverseAdress, '%NUMBER%',searchstring);
-//    Shellexecute( handle, nil, Pchar(reverseadress), nil, nil, SW_SHOWMaximized);
-//   end;
-//  end;
 end;
 
 procedure TForm1.addtoPhonebookClick(Sender: TObject);
@@ -2018,47 +2047,46 @@ procedure TForm1.deleteitemClick(Sender: TObject);
 var index          : integer;
     DelString      : string;
     DelString1     : string;
-    i: integer;
-    SL: TStringlist;
+    i, j           : integer;
+    SL             : TStringlist;
+    dellist        : TSTringlist;
 begin
-
-  if CallerList.ItemIndex > -1 then
-  begin
-   index        := CallerList.ItemIndex;
-
-   DelString:= inttostr(CallerList.items[index].ImageIndex-1);
-   DelString1:= inttostr(CallerList.items[index].ImageIndex-1);
-   for i:= 0 to Callerlist.items[index].SubItems.count-2 do
+ dellist:= TStringList.Create;
+ if Callerlist.SelCount > 0 then
+  for j := callerlist.Items.count-1 downto 0 do
+   if Callerlist.Items.Item[j].Selected then
    begin
-     Delstring := DelString + ';'+Callerlist.items[index].SubItems.Strings[i];
-     if i = 1 then
-       Delstring1 := DelString1 + ';!'+Callerlist.items[index].SubItems.Strings[i]
-     else
-       Delstring1 := DelString1 + ';'+Callerlist.items[index].SubItems.Strings[i]
-   end;
+    index:= j;
 
-  end;
+    DelString:= inttostr(CallerList.items[index].ImageIndex-1);
+    DelString1:= inttostr(CallerList.items[index].ImageIndex-1);
+    for i:= 0 to Callerlist.items[index].SubItems.count-2 do
+    begin
+      Delstring := DelString + ';'+Callerlist.items[index].SubItems.Strings[i];
+      if i = 1 then
+        Delstring1 := DelString1 + ';!'+Callerlist.items[index].SubItems.Strings[i]
+      else
+        Delstring1 := DelString1 + ';'+Callerlist.items[index].SubItems.Strings[i]
+    end;
 
-//showmessage(Delstring +#13#10 + Delstring1);
+    dellist.Append(Delstring);
+    dellist.Append(Delstring1);
+ end;
 
  sl:= TStringlist.Create;
  sl.loadfromfile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
- if sl.indexof(DelString) >-1 then
+ for i:= 0 to dellist.Count -1 do
  begin
-   sl.Delete(sl.indexof(DelString));
- end
- else
- if sl.indexof(DelString1) >-1 then
- begin
-   sl.Delete(sl.indexof(DelString1));
+  if sl.indexof(Dellist.Strings[i]) >-1 then
+     sl.Delete(sl.indexof(Dellist.Strings[i]));
  end;
 
  sl.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
-//   LoadCallersFromFile(ToolButton3.Tag); //neuladen mit eingestelltem Filter
+
  LoadCallersFromFile(); //neuladen mit eingestelltem Filter
 
  sl.free;
-
+ dellist.Free;
 end;
 
 procedure TForm1.ToolButton10Click(Sender: TObject);
@@ -2192,8 +2220,9 @@ end;
 
 procedure TForm1.sendtoBoxClick(Sender: TObject);
 begin
-PBShort.enabled:= sendtobox.checked;
+PBShort.enabled := sendtobox.checked;
 PBVanity.enabled:= sendtobox.checked;
+label7.enabled  := sendtobox.checked;
 end;
 
 procedure TForm1.wakeupTimer(Sender: TObject);
