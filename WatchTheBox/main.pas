@@ -250,7 +250,8 @@ var
   ColumnToSort       : Integer;
   LastSorted         : Integer;
   SortDir            : Integer;
-  OldName            : string; //for changes of the actual selected name
+  OldName, OldNumber : string; //for changes of the actual selected name
+  CallByCall         : TStringList;
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
      CallManagement, PBMess;
@@ -306,16 +307,39 @@ begin
  end;
 end;
 
+procedure filterCbc(var number: string);
+var t: string;
+    cnt,i: integer;
+begin
+ if (CallByCall.count >0) then
+      for i:= 0 to CallByCall.count-1 do
+      begin
+       t:= CallByCall.Strings[i];
+       if (t[1] = '#') or (length(t) = 0) then continue; //ignore comments
+       cnt:= length(t);
+       while AnsiEndsStr('*',t) do delete(t,length(t),1);
+
+       if AnsiStartsStr(t, number) then delete(number,1,cnt) //CallByCallNummer löschen
+      end;
+end;
+
 function findnames(number: string; return : integer): string;
 var i: integer;
+    t: string;  
 begin
  if (return=1) then
    Result:= number
    else Result:= '';
 
+ t:= number;  
+ filterCbc(t);
+
+ if (t[1] = '0') or (t[1]='+') then delete(t,1,1);
+
  for i:= 0 to length(PhoneBook)-1 do
-  if AnsiEndsText(number,PhoneBook[i].number) then //prüfen ob die Nummern gleich sind
-//  if PhoneBook[i].number = number then
+  if AnsiEndsText(t,PhoneBook[i].number)  // prüfen ob die Nummern gleich sind,
+   or AnsiEndsText(PhoneBook[i].number, t)// indem eine der Beiden Nummern in der
+  then                                    // anderen enthalten ist
   begin
     Result:= Phonebook[i].name;
     if Result[1] = '!' then delete(Result,1,1);
@@ -541,6 +565,8 @@ var Http: THttpCli;
 begin
   Http := THttpCli.Create(nil);
   http.OnDocData := Form1.DocData;
+  tray.IconIndex:= 6;
+  tray.tag:= 99;
   with Http do
   begin
     Name := 'Http';
@@ -575,6 +601,8 @@ begin
   http.RcvdStream.Free;
   http.RcvdStream:= nil;
   http.Free;
+  tray.IconIndex:= 0;
+  tray.tag:= 0;
 end;
 
 function CheckForPassword: boolean;
@@ -636,7 +664,10 @@ begin
   PBSelected        := -1;
   PhonebookListe    := Tlistitems.Create(PhonebookList);
   CallerListe       := Tlistitems.Create(CallerList);
-
+  CallbyCall        := TStringList.Create;
+  if fileexists(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt') then
+      CallByCall.LoadFromFile(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt');
+      
  if Paramcount > 0 then
   for c:= 0 to Paramcount do
     if ParamStr(c)='-OnlyIncoming' then //zeige in der Anrufliste nur eingehende Gespräche an
@@ -773,10 +804,12 @@ procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 
   if telnet.isconnected then telnet.close;
-//  sett.Free;
+  sett.Free;
+  CallByCall.Free;
+  MySocket.Free;
 //  Phonebookliste.Free;
 //  Callerliste.Free;
-//  MySocket.Free;
+
 end;
 
 procedure MakeArrowsBlink(diffIn, DiffOut: longint; threshold: integer);
@@ -1372,9 +1405,7 @@ end;
 
 procedure TForm1.PopupMenu1Popup(Sender: TObject);
 var number, name: string;
-    CityCode,t  : string;
-    l           : TStringList;
-    cnt, i      : integer;
+    CityCode    : string;
 begin
 
  if (callerlist.ItemIndex > -1) and (Callerlist.SelCount = 1) then
@@ -1385,23 +1416,7 @@ begin
     number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
     name  :=Callerlist.Items[Callerlist.itemindex].SubItems.strings[1];
 
-    l:= TStringList.Create;
-    if fileexists(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt') then
-    begin
-      l.LoadFromFile(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt');
-      if (l.count >0) then
-      for i:= 0 to l.count-1 do
-      begin
-       t:= l.Strings[i];
-       if (t[1] = '#') or (length(t) = 0) then continue; //ignore comments
-       cnt:= length(t);
-       while AnsiEndsStr('*',t) do delete(t,length(t),1);
-
-       if AnsiStartsStr(t, number) then delete(number,1,cnt)
-
-      end;
-    end;
-    l.free;
+    filterCbc(number);
 
     //Vorwahlstring hinzufügen
     if (length(number) > 0) and (number[1] <> '0') and (number[1] <> '+') then
@@ -1500,6 +1515,7 @@ begin
     FillPhoneBook;
     SavePhoneBook; //lokal speichern
     unsaved_phonebook:= true;
+    PBClear.click;
   end;
 end;
 
@@ -1692,7 +1708,7 @@ begin
 
   for i:= 0 to length(phonebook)-1 do
   begin
-    found := (number =  Phonebook[i].number);
+    found := (Oldnumber =  Phonebook[i].number);
     if found then break;
   end;
 
@@ -1704,6 +1720,7 @@ begin
 
     PhoneBook[i].Name   := NameStr;
     PhoneBook[i].Number := PBNumber.Text;
+    OldNumber:= '';
     if sendtoBox.Checked then
     begin
       PhoneBook[i].vanity := PBVanity.Text;
@@ -1728,7 +1745,7 @@ begin
    Phonebooklist.ItemIndex:= i;
    SavePhonebook;
    unsaved_phonebook      := true;
-
+   PBClear.click;
 end;
 
 procedure TForm1.PhonebookListColumnClick(Sender: TObject; Column: TListColumn);
@@ -1821,6 +1838,7 @@ PBshort.ItemIndex:= i;
 
 PBadd.Caption:= 'change';
 OldName:= PBName.Text;
+OldNumber:= PBNumber.text;
 end;
 
 procedure TForm1.PBClearClick(Sender: TObject);
@@ -1829,6 +1847,8 @@ PBSelected:= -1;
 PBName.Text:= '';
 PBNumber.Text:= '';
 PBVanity.Text:= '';
+OldName:= '';
+OldNumber:= '';
 PBimportant.checked:= false;
 PBShortFill;
 PBshort.ItemIndex:= 0;
@@ -1869,6 +1889,7 @@ begin
 
     Data:= '';
     cnt:= 0;
+
     For i:= 0 to length(Phonebook)-1 do
     if (phonebook[i].short <> '') then
     begin
@@ -1883,6 +1904,7 @@ begin
    Data:= Data + 'Submit=Submit';
    httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
    unsaved_phonebook:= false;
+   status.SimpleText:= 'Phonebook update ... ready';
 
    Form1.Phonebooklist.Cursor:= crDefault;
    Form1.Phonebooklist.Enabled:= true;

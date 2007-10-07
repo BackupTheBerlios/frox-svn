@@ -29,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 456
     Height = 324
-    ActivePage = Tab3
+    ActivePage = Tab1
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
@@ -1863,7 +1863,7 @@ object Form1: TForm1
   end
   object wakeup: TTimer
     Enabled = False
-    Interval = 30000
+    Interval = 60000
     OnTimer = wakeupTimer
     Left = 8
     Top = 312
