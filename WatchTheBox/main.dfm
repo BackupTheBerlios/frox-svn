@@ -532,6 +532,7 @@ object Form1: TForm1
           EditLabel.Height = 13
           EditLabel.Caption = 'number'
           TabOrder = 1
+          OnKeyPress = PBNumberKeyPress
         end
         object PBVanity: TLabeledEdit
           Left = 312

@@ -30,7 +30,7 @@ object Form3: TForm3
     Style = tsFlatButtons
     TabOrder = 0
     object TabSheet2: TTabSheet
-      Caption = 'program'
+      Caption = 'general'
       ImageIndex = 2
       object startHidden: TCheckBox
         Left = 8
@@ -40,16 +40,40 @@ object Form3: TForm3
         Caption = 'start minimized'
         TabOrder = 0
       end
+      object CityCode: TLabeledEdit
+        Left = 154
+        Top = 40
+        Width = 143
+        Height = 21
+        EditLabel.Width = 120
+        EditLabel.Height = 13
+        EditLabel.Caption = 'your city code (e.g. 030)'
+        LabelPosition = lpLeft
+        TabOrder = 1
+      end
+      object CountryCode: TLabeledEdit
+        Left = 154
+        Top = 64
+        Width = 143
+        Height = 21
+        EditLabel.Width = 146
+        EditLabel.Height = 13
+        EditLabel.Caption = 'your country code (e.g. 0049)'
+        LabelPosition = lpLeft
+        ParentShowHint = False
+        ShowHint = False
+        TabOrder = 2
+      end
     end
     object TabSheet1: TTabSheet
-      Caption = 'Traffic'
+      Caption = 'traffic'
       object GroupBox2: TGroupBox
         Left = 0
         Top = 65
         Width = 327
         Height = 88
         Align = alTop
-        Caption = 'Traffic Volume'
+        Caption = 'traffic volume'
         TabOrder = 0
         object Label3: TLabel
           Left = 32
@@ -129,7 +153,7 @@ object Form3: TForm3
           Width = 168
           Height = 83
           Align = alLeft
-          Caption = 'Prices'
+          Caption = 'prices'
           TabOrder = 0
           object Label6: TLabel
             Left = 16
@@ -177,7 +201,7 @@ object Form3: TForm3
           Width = 153
           Height = 83
           Align = alRight
-          Caption = 'Period settings'
+          Caption = 'period settings'
           TabOrder = 1
           object Label1: TLabel
             Left = 8
@@ -243,7 +267,7 @@ object Form3: TForm3
         Width = 327
         Height = 65
         Align = alTop
-        Caption = 'Network device'
+        Caption = 'network device'
         TabOrder = 2
         object NDev: TComboBox
           Left = 6
@@ -265,7 +289,7 @@ object Form3: TForm3
       end
     end
     object FritzBox: TTabSheet
-      Caption = 'Fritz!Box Monitor'
+      Caption = 'Fritz!Box monitor'
       ImageIndex = 1
       object Label7: TLabel
         Left = 19
@@ -279,17 +303,10 @@ object Form3: TForm3
       end
       object Label8: TLabel
         Left = 240
-        Top = 195
+        Top = 179
         Width = 39
         Height = 13
         Caption = 'seconds'
-      end
-      object Label9: TLabel
-        Left = 20
-        Top = 109
-        Width = 120
-        Height = 13
-        Caption = 'your city code (e.g. 030)'
       end
       object FBMon: TCheckBox
         Left = 16
@@ -324,97 +341,90 @@ object Form3: TForm3
       end
       object monout: TCheckBox
         Left = 16
-        Top = 152
+        Top = 136
         Width = 153
         Height = 17
         Caption = 'monitor outgoing calls, too'
-        TabOrder = 5
+        TabOrder = 4
       end
       object revpath: TLabeledEdit
         Left = 40
-        Top = 260
+        Top = 244
         Width = 265
         Height = 21
         EditLabel.Width = 224
         EditLabel.Height = 13
         EditLabel.Caption = 'reverse lookup (use %NUMBER% as identifier)'
-        TabOrder = 12
+        TabOrder = 11
       end
       object closefinished: TCheckBox
         Left = 16
-        Top = 173
+        Top = 157
         Width = 249
         Height = 17
         Caption = 'close notification when all calls are terminated'
-        TabOrder = 7
+        TabOrder = 6
       end
       object closetimer: TCheckBox
         Left = 16
-        Top = 195
+        Top = 179
         Width = 129
         Height = 17
         Caption = 'close notification after'
-        TabOrder = 8
+        TabOrder = 7
       end
       object closeafter: TSpinEdit
         Left = 154
-        Top = 191
+        Top = 175
         Width = 73
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 9
+        TabOrder = 8
         Value = 15
       end
       object OneMSN: TCheckBox
         Left = 16
-        Top = 222
+        Top = 206
         Width = 121
         Height = 17
         Caption = 'monitor only one MSN'
-        TabOrder = 10
+        TabOrder = 9
       end
       object MSN: TEdit
         Left = 152
-        Top = 218
+        Top = 202
         Width = 121
         Height = 21
-        TabOrder = 11
-      end
-      object CityCode: TEdit
-        Left = 154
-        Top = 104
-        Width = 121
-        Height = 21
-        TabOrder = 3
+        TabOrder = 10
       end
       object NotifyOnlyInTray: TCheckBox
         Left = 168
-        Top = 152
+        Top = 136
         Width = 137
         Height = 17
         Caption = 'notify only in tray'
-        TabOrder = 6
+        TabOrder = 5
       end
       object forgetpos: TCheckBox
         Left = 16
-        Top = 130
+        Top = 114
         Width = 281
         Height = 17
         Caption = 'forget position of notification window'
-        TabOrder = 4
+        TabOrder = 3
       end
       object revenabled: TCheckBox
         Left = 17
-        Top = 263
+        Top = 247
         Width = 16
         Height = 17
-        TabOrder = 13
+        TabOrder = 12
         OnClick = revenabledClick
       end
     end
     object TabSheet3: TTabSheet
-      Caption = 'List of Calls'
+      Caption = 'list of calls'
       ImageIndex = 3
       object DeleteListAutomatically: TCheckBox
         Left = 16

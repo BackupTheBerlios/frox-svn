@@ -140,6 +140,7 @@ type
     PBNumber: TLabeledEdit;
     PBVanity: TLabeledEdit;
     Label7: TLabel;
+    procedure PBNumberKeyPress(Sender: TObject; var Key: Char);
     procedure pbdelpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
@@ -323,28 +324,76 @@ begin
       end;
 end;
 
+function CompleteNumber(number:string): string;
+var City, Country: string;
+begin
+ City   := sett.ReadString('FritzBox','CityCode', '');
+ Country:= sett.ReadString('FritzBox','CountryCode', '');
+
+ if (length(City) > 0) and (City[1]='0') then delete(City,1,1); //führende Null löschen
+
+ if AnsiStartsText('00', number) or AnsiStartsText('+', number)
+ then //wenn Country-Code schon enthalten
+  begin
+    if AnsiStartsText('+', number) then
+    begin
+      delete(number,1,1);     //+ löschen
+      number:= '00'+number;  //+ durch 00 ersetzen
+    end;
+  end
+ else //City Code schon enthalten
+ if AnsiStartsText('0', number) then
+  begin
+   delete(number,1,1);    //die führende Null löschen
+   number:= Country+number;  //Landesvorwahl anfügen
+  end
+ else //keine Vorwahl angegeben -> volle Ergänzung
+ begin
+   number:= Country+City+number;
+ end;
+
+ Result:= number;
+end;
+
 function findnames(number: string; return : integer): string;
 var i: integer;
-    t: string;  
+    t: string;
+    vgl: string;
 begin
  if (return=1) then
    Result:= number
    else Result:= '';
 
- t:= number;  
+ t:= number;
  filterCbc(t);
 
- if (t[1] = '0') or (t[1]='+') then delete(t,1,1);
-
+ if length(PhoneBook) > 0 then
  for i:= 0 to length(PhoneBook)-1 do
-  if AnsiEndsText(t,PhoneBook[i].number)  // prüfen ob die Nummern gleich sind,
-   or AnsiEndsText(PhoneBook[i].number, t)// indem eine der Beiden Nummern in der
-  then                                    // anderen enthalten ist
-  begin
+ begin
+  vgl:= Phonebook[i].number;
+  vgl:= CompleteNumber(vgl);
+  t  := CompleteNumber(t);
+//  showmessage(t + ' ' + vgl);
+  if t = vgl then
+  begin                      // enthalten ist
     Result:= Phonebook[i].name;
-    if Result[1] = '!' then delete(Result,1,1);
     break;
+  end
+  else
+  if AnsiEndsText('-0',vgl) then //Zentralen-Rufnummer erkennen
+  begin
+   if length(vgl) > 2 then
+     delete(vgl,length(vgl)-1,2);
+//    showmessage(vgl + ' '+t);
+   if AnsiStartsText(vgl,t) then
+    begin                      // enthalten ist
+      Result:= Phonebook[i].name;
+      break;
+    end;
   end;
+
+ end;
+ if (length(Result) > 0) and (Result[1] = '!') then delete(Result,1,1);
 end;
 
 procedure ShowNotification(reallyShow: boolean; CallType: string);
@@ -697,12 +746,24 @@ begin
   Form1.width  := sett.Readinteger('MainForm','width',464);
   Form1.height := sett.Readinteger('MainForm','height',404);
 
-  //Sortiertypen festlegen
+  //Sortiertypen und Spaltenbreiten festlegen
   for c:= 0 to CallerList.Columns.Count-1 do
+  begin
    CallerList.Column[c].tag:= 5; //string
+   CallerList.Column[c].AutoSize:= false;
+
+   if sett.Readinteger( 'CallList','Col'+inttostr(c),-1) > 0 then
+     Callerlist.Column[c].Width:= sett.Readinteger( 'CallList','Col'+inttostr(c),-1);
+  end;
 
   for c:= 0 to phonebooklist.Columns.Count-1 do
+  begin
    phonebooklist.Column[c].tag:= 5; //string
+   phonebooklist.Column[c].AutoSize:= false; //string
+   if sett.Readinteger( 'PhonebookList','Col'+inttostr(c),-1) > 0 then
+     Phonebooklist.Column[c].Width:= sett.Readinteger( 'PhonebookList','Col'+inttostr(c),-1);
+  end;
+
   Callerlist.Columns[1].Tag := 3; //Date/time
   phonebooklist.Columns[4].Width:= 0;   //Spalte ausblenden
 
@@ -714,8 +775,8 @@ begin
     end
    else
    begin
-    TData.TotalIn          := 0;
-    TData.TotalOut         := 0;
+    TData.TotalIn      := 0;
+    TData.TotalOut     := 0;
     TData.todayD       := 0;
     TData.thisweekD    := 0;
     TData.thismonthD   := 0;
@@ -745,9 +806,8 @@ begin
  tab3.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
  tab4.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
 
-// LoadCallersFromFile(0);
- LoadCallersFromFile();
  LoadPhonebookFromFile;
+ LoadCallersFromFile();
 
  if tab1.Visible then
    PageControl1.ActivePageIndex:= 0
@@ -785,6 +845,7 @@ begin
 end;
 
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+var i: integer;
 begin
   canclose:= false;
   //mit der neuen lokalen Telefonnummerverwaltung eigentlich unnötig
@@ -796,6 +857,12 @@ begin
   sett.Writeinteger( 'MainForm','top'   ,Form1.top);
   sett.Writeinteger( 'MainForm','width' ,Form1.width);
   sett.Writeinteger( 'MainForm','height',Form1.height);
+  for i:= 0 to Callerlist.Columns.Count-1 do
+    sett.Writeinteger( 'CallList','Col'+inttostr(i),Callerlist.Column[i].Width);
+
+  for i:= 0 to Phonebooklist.Columns.Count-1 do
+    sett.Writeinteger( 'PhonebookList','Col'+inttostr(i),Phonebooklist.Column[i].Width);
+    
   sett.UpdateFile;
   canclose:= true;
 end;
@@ -1828,6 +1895,9 @@ T:= item.Caption;
 if T[1]='!' then Delete(T,1,1);
 PBName.Text:= T;
 PBNumber.Text:= item.SubItems[0];
+sendtoBox.Checked:= not AnsicontainsStr(pbnumber.text, '-');
+sendtobox.Enabled:= not AnsicontainsStr(pbnumber.text, '-');
+sendtoBoxClick(nil);
 PBVanity.Text:= item.SubItems[2];
 PBimportant.checked:= (item.Caption[1] = '!');
 sendToBox.checked:= (item.SubItems[1] <> '') ;
@@ -1853,6 +1923,7 @@ PBimportant.checked:= false;
 PBShortFill;
 PBshort.ItemIndex:= 0;
 PBadd.Caption:= 'add';
+sendtobox.Enabled:= true;
 sendtoBoxClick(nil);
 end;
 
@@ -1973,7 +2044,7 @@ procedure TForm1.ToolButton9Click(Sender: TObject);
 begin
 showmessage('WatchTheBox'
              + #13#10 +
-             'This is an early version, so it may be buggy. If your find bug or wish to have some new features, feel free to contact me at www.mehrsurfen.de > Forum.'
+             'This is an early version, so it may be buggy. If your find bug or wish to have some new features, feel free to contact me at www.LeastCosterXP.de > Forum.'
              + #13#10#13#10 +
              'This programm is free for personal use, but comes with no warranty. So you use it at your own risk.'
              + #13#10#13#10 +
@@ -2183,7 +2254,6 @@ begin
     begin
       van:= '';
       delete(t,1,pos(':', t));
-      number:= AnsireplaceStr(t, '+','00');
       short:= FindFreeShort;
       if short='-1' then short:= '';
       res:= 0;
@@ -2218,7 +2288,7 @@ begin
          setlength(Phonebook, length(Phonebook)+1);
          len:= Length(phonebook)-1;
         end;
-
+       ansireplacestr(number,'+','00');
        Phonebook[len].Name   := tname;
        Phonebook[len].Number := number;
        Phonebook[len].short  := short;
@@ -2586,5 +2656,17 @@ StartMySocket;
 end;
 
 
+
+procedure TForm1.PBNumberKeyPress(Sender: TObject; var Key: Char);
+begin
+sendtoBox.Checked:= not AnsicontainsStr(pbnumber.text, '-');
+sendtobox.Enabled:= not AnsicontainsStr(pbnumber.text, '-');
+sendtoBoxClick(nil);
+
+if not (Key in ['0'..'9','-', Char(VK_BACK)]) then
+  Key := #0;
+
+
+end;
 
 end.

@@ -49,14 +49,14 @@ type
     tmenabled: TCheckBox;
     OneMSN: TCheckBox;
     MSN: TEdit;
-    CityCode: TEdit;
-    Label9: TLabel;
     NotifyOnlyInTray: TCheckBox;
     TabSheet3: TTabSheet;
     DeleteListAutomatically: TCheckBox;
     LoadListAutomatically: TCheckBox;
     forgetpos: TCheckBox;
     revenabled: TCheckBox;
+    CityCode: TLabeledEdit;
+    CountryCode: TLabeledEdit;
     procedure revenabledClick(Sender: TObject);
     procedure FBPortKeyPress(Sender: TObject; var Key: Char);
     procedure PriceKeyPress(Sender: TObject; var Key: Char);
@@ -160,6 +160,7 @@ begin
  sett.WriteBool('FritzBox','OneMSN', OneMSN.checked);
  sett.WriteString('FritzBox','MSN', MSN.text);
  sett.writeString('FritzBox','CityCode', CityCode.Text);
+ sett.writeString('FritzBox','CountryCode', CountryCode.Text);
 
  BoxAdress:= sett.ReadString('FritzBox','IP','192.168.178.1');
  sett.UpdateFile;
@@ -213,6 +214,7 @@ begin
  OneMSN.checked        := sett.ReadBool('FritzBox','OneMSN', false );
  MSN.text              := sett.ReadString('FritzBox','MSN', MSN.text);
  CityCode.text         := sett.ReadString('FritzBox','CityCode', '');
+ CountryCode.text      := sett.ReadString('FritzBox','CountryCode', '');
 
  RadioMB.Checked       := (sett.ReadInteger('Traffic','VolumeUnit',1) = 0);
  RadioGB.Checked       := (sett.ReadInteger('Traffic','VolumeUnit',1) = 1);
