@@ -12,7 +12,7 @@
 #include "hauptfenster.h"
 
 HauptFenster::HauptFenster(PBModell& PM, QSettings& cfg)
-:PbWindow(NULL), PhoneBook(PM), settings(cfg)
+:PbWindow(NULL), PhoneBook(PM), settings(cfg), StartHidden(false)
 {	
 // 	PhoneBook = PM;
 
@@ -70,6 +70,8 @@ HauptFenster::HauptFenster(PBModell& PM, QSettings& cfg)
 // 	fritzbox = new FritzBox(this, settings.value("common/password", "").toString());
 	
 	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));	
+	
+	if (!StartHidden)  show();
 }
 
 HauptFenster::~HauptFenster(){
@@ -149,6 +151,7 @@ void HauptFenster::readSettings()
 	settings.beginGroup("HauptFenster");
 	QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
 	QSize size = settings.value("size", QSize(400, 400)).toSize();
+	StartHidden = settings.value("StartHidden", false).toBool();
 	settings.endGroup();
 	resize(size);
 	move(pos);

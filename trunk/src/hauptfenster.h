@@ -63,6 +63,7 @@ private:
 	AnrufModell *modell;
 	QTableView *tabelle;
 	QTabWidget *tabWidget;
+	bool StartHidden;
 };
 
 

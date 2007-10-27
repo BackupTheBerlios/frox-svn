@@ -72,6 +72,7 @@ void SettingsWindow::SaveSettings(){
 	settings.setValue("common/IP", 		FBAdress	->text());
 	settings.setValue("common/Port", 	FBPort		->text());
 	settings.setValue("common/password",FBPassword	->text());
+	settings.setValue("StartHidden", true);
 	settings.sync();
 	close();
 	emit SettingsChanged();

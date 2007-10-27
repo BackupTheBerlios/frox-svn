@@ -21,7 +21,6 @@ int main(int argc,char** argv){
 	QSettings cfg(QSettings::IniFormat,QSettings::UserScope,QCoreApplication::organizationName(),QCoreApplication::applicationName());
 	
 	HauptFenster mw(PM, cfg);
-	mw.show();
 		
 	Callmonitor temp(&app, &PM, cfg);
 	trayicon = &temp;
