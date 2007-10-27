@@ -57,6 +57,7 @@ HauptFenster::HauptFenster(PBModell& PM, QSettings& cfg)
 // 	QTabBar *tBar;
 // 	tBar = tabWidget->tabBar();
 // 	tabWidget->tabBar()->setVisible(false);
+	
 	tabWidget->addTab(tabelle,  tr("List of Calls"));	
 	tabWidget->addTab(PbWindow, tr("Phonebook"));	
 	connect(tabWidget,SIGNAL(currentChanged(int)), this, SLOT(TabChanged( int )));
@@ -71,7 +72,10 @@ HauptFenster::HauptFenster(PBModell& PM, QSettings& cfg)
 	
 	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));	
 	
-	if (!StartHidden)  show();
+	if (StartHidden==false) {
+		
+		show();
+	}
 }
 
 HauptFenster::~HauptFenster(){

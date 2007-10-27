@@ -50,6 +50,7 @@ class SettingsWindow : public QDialog
      QLineEdit *FBAdress;
      QLineEdit *FBPort;
      QLineEdit *FBPassword;
+     QCheckBox *hidden;
 
 
 };

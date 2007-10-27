@@ -33,12 +33,14 @@ SettingsWindow::SettingsWindow(QSettings& cfg)
 	FBAdress	= new QLineEdit;
 	FBPort 		= new QLineEdit;
 	FBPassword 	= new QLineEdit;
+	hidden = new QCheckBox("start hidden", this);
 	
 	LoadSettings();
 	
 	QLabel *FBAdressLabel 	= new QLabel("Adress of your Fritz!Box");
 	QLabel *FBPortLabel 	= new QLabel("Port");
 	QLabel *FBPasswordLabel = new QLabel("Your password");
+	
 	
 	FBAdressLabel	->setFrameStyle(frameStyle);
 	FBPortLabel		->setFrameStyle(frameStyle);
@@ -61,6 +63,7 @@ SettingsWindow::SettingsWindow(QSettings& cfg)
 	layout->addWidget(FBPort,1,1);
 	layout->addWidget(FBPasswordLabel,2,0);
 	layout->addWidget(FBPassword,2,1);
+	layout->addWidget(hidden,3,0);
 
 	layout->addWidget(cancelButton, 5, 0);
 	layout->addWidget(finishButton, 5, 1);
@@ -69,10 +72,14 @@ SettingsWindow::SettingsWindow(QSettings& cfg)
 }
 
 void SettingsWindow::SaveSettings(){
-	settings.setValue("common/IP", 		FBAdress	->text());
-	settings.setValue("common/Port", 	FBPort		->text());
-	settings.setValue("common/password",FBPassword	->text());
-	settings.setValue("StartHidden", true);
+	bool checked = false;
+	settings.setValue("common/IP",		FBAdress	->text());
+	settings.setValue("common/Port",	FBPort	->text());
+	settings.setValue("common/password",	FBPassword	->text());
+	checked = (hidden->checkState() == Qt::Checked)  ? true : false;
+	settings.beginGroup("HauptFenster");
+	settings.setValue("StartHidden", checked);
+	settings.endGroup();
 	settings.sync();
 	close();
 	emit SettingsChanged();
@@ -84,6 +91,10 @@ void SettingsWindow::LoadSettings()
 	FBAdress	->setText(settings.value("common/IP", "fritz.box").toString());
 	FBPort		->setText(settings.value("common/Port", "1012").toString());
 	FBPassword	->setText(settings.value("common/password", "").toString());
+	settings.beginGroup("HauptFenster");
+	if (settings.value("StartHidden", false) == true)
+		hidden->setCheckState(Qt::Checked);
+	settings.endGroup();
 }
 
 
