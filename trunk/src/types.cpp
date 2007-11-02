@@ -100,14 +100,17 @@ Person::Person(QStringList zeile)
 		vanity		= zeile.takeFirst().trimmed();	
 
 		name.remove("\"");
-		name.replace("&auml;","ä");
-		name.replace("&ouml;","ö");
-		name.replace("&uuml;","ü");
-		name.replace("&Auml;","Ä");
-		name.replace("&Ouml;","Ö");
-		name.replace("&Uuml;","Ü");
-		name.replace("&szlig;","ß");
-
+		
+		//Umwandlung der Umlaute
+		name.replace("&auml;",QString::fromLocal8Bit( "ä"));
+		name.replace("&ouml;",QString::fromLocal8Bit( "ö"));
+		name.replace("&uuml;",QString::fromLocal8Bit( "ü"));
+		name.replace("&Auml;",QString::fromLocal8Bit( "Ä"));
+		name.replace("&Ouml;",QString::fromLocal8Bit( "Ö"));
+		name.replace("&Uuml;",QString::fromLocal8Bit( "Ü"));
+		name.replace("&szlig;",QString::fromLocal8Bit( "ß"));
+		
+		
 		rufnr.remove("\"");
 		kurzwahl.remove("\"");
 		vanity.remove("\"");

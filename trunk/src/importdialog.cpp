@@ -118,8 +118,12 @@ Dialog::Dialog(QWidget *parent, QString FName)
 		return;
 
 	while (!file.atEnd()) {
-	     QByteArray line = file.readLine();
-	     Lines.append(line);
+// 	     QByteArray line = file.readLine();
+		QString line = QString::fromLocal8Bit(file.readLine());
+// 	     QString OneLine = "";
+// 	     OneLine = QString::QString(line);
+// 	     OneLine = QString::fromLocal8Bit(OneLine);
+		Lines.append(line);
 	}
 }
 void Dialog::toggleName() { SpinName ->setEnabled(!SpinName  -> isEnabled());}

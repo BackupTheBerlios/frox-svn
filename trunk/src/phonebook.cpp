@@ -14,8 +14,8 @@ PhonebookWindow::PhonebookWindow( QSettings& _settings, QWidget *parent, PBModel
 // 	PhoneBookModell 	= new PBModell();
 // 	PhoneBookModell 	= PM;
 	connect(&PhoneBookModell,SIGNAL(liste_geladen()), this, SLOT(Phonebook_loaded()));
-	tabelle			= new QTableView(this);
-	tabhead			= tabelle->horizontalHeader();
+	tabelle		= new QTableView(this);
+	tabhead		= tabelle->horizontalHeader();
 
 	PhoneBookModell.LoadFromFile("phonebook.csv");
 	tabelle->setSortingEnabled(true);

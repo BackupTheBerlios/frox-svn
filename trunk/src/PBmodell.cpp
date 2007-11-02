@@ -40,6 +40,30 @@ void PBModell::neue_liste(QString daten){
 	//std::cout << "Spalten "<<columnCount(index(0,0))<<" Zeilen "<< rowCount(index(0,0)) <<std::endl;
 }
 
+<<<<<<< .mine
+bool PBModell::DataValid(int col, QVariant value) {
+	int i=0;
+		
+	switch (col) {
+		case 0	: //moegliche Fehler im Namen abfangen
+			if (value.toString() == tr("<Neuer Eintrag>")) 
+				for (i=0;i<phonebook.count();i++) 
+ 					if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+			break;
+// 		case 1,2,3
+		default	: //moegliche Fehler in der Nummer abgfangen
+			if (value.toString() != "") //doppelter Eintrag ? 
+ 				for (i=0;i<phonebook.count();i++) 
+ 					if (phonebook[i][col].toLower() == value.toString().toLower()) return false;
+			break;
+// 		case 2: //moegliche Fehler in der Kurzwahl abfangen
+// 			break;
+// 		case 3: //moegliche Fehler im Vanity abfangen
+// 			break;
+	}
+	return true;
+}
+=======
 // bool PBModell::DataValid(int col, QVariant value) {
 // 	int i=0;
 // 		
@@ -62,6 +86,7 @@ void PBModell::neue_liste(QString daten){
 // 	}
 // 	return true;
 // }
+>>>>>>> .r64
 
 //Wird nur zum Editieren gebraucht
 Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
@@ -74,7 +99,7 @@ Qt::ItemFlags PBModell::flags( const QModelIndex& index ) const
 
 bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 {
-    if (index.isValid() && role == Qt::EditRole) {
+	if (index.isValid() && role == Qt::EditRole) {
 	//MW: Verstehe ich nicht
 	//if (DataValid(index.column(), value) == true)
 	//	phonebook[index.row()][index.column()] = value.toString();	
@@ -97,14 +122,22 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 
 //       emit dataChanged(index, index);
 	
+<<<<<<< .mine
+		if (DataValid(0,tr("<Neuer Eintrag>"))) {
+				phonebook.push_back(Person());
+				//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
+				reset ();
+			}
+=======
 	/*if (DataValid(0,tr("<Neuer Eintrag>"))) {
 		phonebook.push_back(Person());
 		//Änderung den Views bekanntgeben //geht ansacheindend besser ohne, weil dann nicht mehr rumgescrollt wird
 		reset ();
 	}*/
-        return true;
-     }
-     return false;
+>>>>>>> .r64
+	return true;
+	}
+	return false;
  }
  
  void  PBModell::sort ( int column, Qt::SortOrder order ){
@@ -125,7 +158,11 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 	
 	int count=0;
 	for( i=0; i<phonebook.count(); i++){
- 		if ((phonebook[i][0] != tr("<Neuer Eintrag>"))&&(phonebook[i][0] != ""))
+// 		Einträge die Auslassen mit de Merkmalen:
+// 		- Name ist '<Neuer Eintrag>'
+// 		- Nummer ist leer
+// 		- Kurzwahl ist leer
+		if ((phonebook[i][0] != tr("<Neuer Eintrag>"))&&(phonebook[i][0] != "")&& (phonebook[i][2]!=""))
 		{
 			
 			Data.append("telcfg:settings/HotDialEntry"+QString::number(count) +"/Code="  + phonebook[i][2]  + "&" +
@@ -231,10 +268,10 @@ void PBModell::LoadFromFile(QString FileName){
     //Einlesen der Daten und Schreiben der Liste
 	
 	do{
-		QString zeile = file.readLine();
-		if (!zeile.isEmpty()){
+		QString zeile = QString::fromLocal8Bit(file.readLine());
+		if (!zeile.isEmpty())
 			phonebook.push_back(Person(zeile.split("\t"))); //push_back() ist gleich append() 
-		}
+		
 	}while(!file.atEnd());
 	file.close();
 	
@@ -251,21 +288,20 @@ for (i=0; i<Lines.count(); i++)
  			zeile_sort.clear();
 			zeile = Lines[i].split(sep);
 			
-			if ( N_Name == -1 ) { 
-						zeile_sort.append(tr("<unbekannt>"));
-					}
+			if ( N_Name == -1 ) 
+				zeile_sort.append(tr("<unbekannt>"));
 			else zeile_sort.append(zeile[N_Name-1]);
 			
 			zeile_sort.append(zeile[N_Number-1]);
 			
 			if ( N_Short == -1 ) { 
 					zeile_sort.append(GenerateFreeShortDial());
-					}
+				}
 			else zeile_sort.append(zeile[N_Short-1]);
 				
 			if (N_Vanity == -1){
-						zeile_sort.append(GenerateFreeVanity());
-					}
+					zeile_sort.append(GenerateFreeVanity());
+				}
 			else zeile_sort.append(zeile[N_Vanity-1]);
 			
 			phonebook.push_back(zeile_sort); //an das Telefonbuch anfügen
