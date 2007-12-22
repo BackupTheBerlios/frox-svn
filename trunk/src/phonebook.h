@@ -2,6 +2,7 @@
 #define PHONEBOOKWINDOW_H
 
 #include <QtGui>
+#include <QtCore>
 #include <iostream>
 
 #include "fritzbox.h"

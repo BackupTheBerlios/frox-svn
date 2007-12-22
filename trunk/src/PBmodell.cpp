@@ -23,32 +23,61 @@ void PBModell::neue_liste(QString daten){
 // Debug end
     //Einlesen der Daten und Schreiben der Liste
 	QTextStream temp(&daten);
+	QString name = "";
+	QStringList empty;
+	empty.append("");	empty.append("");	empty.append("");	empty.append("");	empty.append("");	empty.append("");
+	QStringList pb = empty;
+	bool important = FALSE;
 	do{
+		QStringList tmp;
 		QString zeile = temp.readLine();
 		
+		//Neuer Name gefunden 
 		if (!zeile.isEmpty() && zeile.contains("<script type=\"text/javascript\">TrFonName(", Qt::CaseSensitive)){
-			output << zeile << "\n";
+			
+			if ((pb.at(1) != "") || (pb.at(2) != "") || (pb.at(3) != ""))
+				phonebook.push_back(Person(pb)); //push_back() ist gleich append() 
+			pb = empty;
+			//output << zeile << "\n"; //gesamte Zeile ausgeben
 			zeile.replace(0,41,"");
-			zeile.chop(11);
-			output << zeile << "\n";
-// 			phonebook.push_back(Person(zeile.split("\", "))); //push_back() ist gleich append() 
+			zeile.chop(11);				//geparste Zeile ausgeben
+			//output << zeile << "\n";
+			
+			tmp = zeile.split("\", \"");
+			
+			important = (tmp.at(2) == "1\"");
+			if (important == TRUE)
+				pb.replace(0, "!"+tmp.at(1));
+			else
+				pb.replace(0, tmp.at(1));
 		}
-		else
+		else 
+		//neue nummer zu obigem Namen gefunden
 		if (!zeile.isEmpty() && zeile.contains("<script type=\"text/javascript\">TrFonNr(", Qt::CaseSensitive)){
-			output << zeile << "\n";
+			QStringList t;	
+			//output << zeile << "\n"; 	//gesamte Zeile ausgeben
 			zeile.replace(0,39,"");
 			zeile.chop(11);
-			output << zeile << "\n";
-// 			phonebook.push_back(Person(zeile.split("\", "))); //push_back() ist gleich append() 
-		}
-		else
-		if (!zeile.isEmpty() && zeile.contains("document.write(TrFon(", Qt::CaseSensitive)){
-			output << zeile << "\n";
-			zeile.replace(1,55,"");
-			zeile.chop(12);
- 			phonebook.push_back(Person(zeile.split("\", "))); //push_back() ist gleich append() 
+			//output << zeile << "\n";	//geparste Zeile ausgeben
+			t = zeile.split("\", \"");
+			
+			if (t.at(0) == "\"home")
+				pb.replace(1,t.at(1));
+			else
+			if (t.at(0) == "\"mobile")
+				pb.replace(2,t.at(1));
+			else
+			if (t.at(0) == "\"work")
+				pb.replace(3,t.at(1));
+			
+			if (t.at(2) != "") pb.replace(4,t.at(2));
+			if (t.at(3) != "\"") pb.replace(5,t.at(3));
+
 		}
 	}while(!temp.atEnd());
+
+	if ((pb.at(1) != "")||(pb.at(2) != "")||(pb.at(3) != "")) //den letzten Datensatz anhaengen
+				phonebook.push_back(Person(pb)); //push_back() ist gleich append() 
 	phonebook.push_back(Person());
 	
 // file.close();		
@@ -129,22 +158,75 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 	QByteArray Data="";
 	int i;
 	
-	for (i = 99;i>0;i--) 
-		Data.append("telcfg:command/HotDialEntry"+QByteArray::number(i)+"=delete&");
+	
+	//for (i = 99;i>0;i--) 
+	for (i = 0;i<100;i++) 
+		Data.append("telcfg:command/Phonebook/Entry"+QByteArray::number(i)+"=delete"+"&");
+	
+	Data.append("Submit=Submit");
+	std::cout << "Data" << std::endl;
+	return Data;
+	
 	
 	int count=0;
 	for( i=0; i<phonebook.count(); i++){
-// 		Einträge die Auslassen mit de Merkmalen:
+// 		Einträge die ausgelassen mit den Merkmalen:
 // 		- Name ist '<Neuer Eintrag>'
 // 		- Nummer ist leer
 // 		- Kurzwahl ist leer
-		if ((phonebook[i][0] != tr("<Neuer Eintrag>"))&&(phonebook[i][0] != "")&& (phonebook[i][2]!=""))
+		if ((phonebook[i][0] != tr("<Neuer Eintrag>"))&&(phonebook[i][0] != "")&& (phonebook[i][4]!=""))
 		{
+		QString no = QString::number(count);	
+//POST Example		
+//getpage = ../html/de/menus/menu2.html
+//errorpage = ../html/de/menus/menu2.html
+//var:lang = devar:pagename = fonbuch
+//var:errorpagename = fonbuch2
+//var:menu = home
+//var:pagemaster = fonbuch
+//time:settings/time = 1198187178,-60
+//var:showall =
+//var:showStartIndex =
+//var:PhonebookEntryNew = Entry0
+//var:PhonebookEntryXCount = 0
+//var:PhonebookEntryNewCode = 01
+//var:PhonebookEntryNumber =
+//telcfg:settings/Phonebook/Entry0/Name = TESTERT TESTEREI
+//telcfg:settings/Phonebook/Entry0/Category = 1
+//telcfg:settings/Phonebook/Entry0/Number0/Type = home
+//telcfg:settings/Phonebook/Entry0/Number0/Number = 12345678
+//telcfg:settings/Phonebook/Entry0/Number0/Code = 01
+//telcfg:settings/Phonebook/Entry0/Number0/Vanity =
+//telcfg:settings/Phonebook/Entry0/Number1/Type = mobile
+//telcfg:settings/Phonebook/Entry0/Number1/Number = 87654321
+//telcfg:settings/Phonebook/Entry0/Number1/Code =
+//telcfg:settings/Phonebook/Entry0/Number1/Vanity =
+//telcfg:settings/Phonebook/Entry0/Number2/Type = work
+//telcfg:settings/Phonebook/Entry0/Number2/Number =
+//telcfg:settings/Phonebook/Entry0/Number2/Code =
+//telcfg:settings/Phonebook/Entry0/Number2/Vanity =
+//telcfg:settings/Phonebook/Entry0/DefaultNumber = 0 
 			
-			Data.append("telcfg:settings/HotDialEntry"+QString::number(count) +"/Code="  + phonebook[i][2]  + "&" +
-				"telcfg:settings/HotDialEntry"+QString::number(count)+"/Vanity=" + phonebook[i][3] + "&" +
-				"telcfg:settings/HotDialEntry"+QString::number(count)+"/Number=" + phonebook[i][1] + "&" +
-				"telcfg:settings/HotDialEntry"+QString::number(count)+"/Name="   + phonebook[i][0] + "&");
+			Data.append("telcfg:settings/Phonebook/Entry"+no +"/Name="  + phonebook[i][0]  + "&" +
+			 	"telcfg:settings/Phonebook/Entry"+no+"/Category=1&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number0/Type=home&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number0/Number=" + phonebook[i][1] + "&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number0/Code="   + phonebook[i][4] + "&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number0/Vanity=" + phonebook[i][5] + "&"+
+				"telcfg:settings/Phonebook/Entry"+no+"/Number1/Type=mobile&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number1/Number=" + phonebook[i][2] + "&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number1/Code="  + "&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number1/Vanity="  + "&"+
+				"telcfg:settings/Phonebook/Entry"+no+"/Number2/Type=work&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number2/Number=" + phonebook[i][3] + "&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number2/Code="  + "&" +
+				"telcfg:settings/Phonebook/Entry"+no+"/Number2/Vanity="  + "&"+
+				"telcfg:settings/Phonebook/Entry"+no+"/DefaultNumber=0" + "&");
+			
+			//Data.append("telcfg:settings/HotDialEntry"+QString::number(count) +"/Code="  + phonebook[i][2]  + "&" +
+				//"telcfg:settings/HotDialEntry"+QString::number(count)+"/Vanity=" + phonebook[i][3] + "&" +
+				//"telcfg:settings/HotDialEntry"+QString::number(count)+"/Number=" + phonebook[i][1] + "&" +
+				//"telcfg:settings/HotDialEntry"+QString::number(count)+"/Name="   + phonebook[i][0] + "&");
 			count++;
  		}
 	}
@@ -220,10 +302,12 @@ void PBModell::SaveToFile(QString FileName){
 	int i=0;
 	for (i=0;i< phonebook.count(); i++){
 		if ((phonebook[i][0] != "") && (phonebook[i][0]!= tr("<Neuer Eintrag>")))
-			out 	<< phonebook[i][0] << "\t" 
+			out << phonebook[i][0] << "\t" 
 			 	<< phonebook[i][1] << "\t" 
 			 	<< phonebook[i][2] << "\t" 
-			 	<< phonebook[i][3] << "\n";
+			 	<< phonebook[i][3] << "\t" 
+			 	<< phonebook[i][4] << "\t" 
+			 	<< phonebook[i][5] << "\n";
 	}
 	file.close();
 }
@@ -237,7 +321,8 @@ void PBModell::LoadFromFile(QString FileName){
     //Einlesen der Daten und Schreiben der Liste
 	
 	do{
-		QString zeile = QString::fromLocal8Bit(file.readLine());
+		//QString zeile = QString::fromLocal8Bit(file.readLine());
+		QString zeile = file.readLine();
 		if (!zeile.isEmpty())
 			phonebook.push_back(Person(zeile.split("\t"))); //push_back() ist gleich append() 
 		

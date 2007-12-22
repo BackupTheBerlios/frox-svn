@@ -13,6 +13,7 @@
 #define PBMODELL_H
 
 #include <QtCore>
+#include <QStringList>
 #include <QModelIndex>
 #include <iostream>
 #include "types.h"

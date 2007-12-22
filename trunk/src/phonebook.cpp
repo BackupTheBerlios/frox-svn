@@ -41,6 +41,7 @@ PhonebookWindow::PhonebookWindow( QSettings& _settings, QWidget *parent, PBModel
 }
 
 void PhonebookWindow::CloseWindow(){
+	PhoneBookModell.SaveToFile("phonebook.csv");
 	close();	
 	emit OnCloseWindow();
 }
@@ -57,6 +58,7 @@ void PhonebookWindow::Phonebook_loaded(){
 
 void PhonebookWindow::upload(){	
 	QByteArray data="";
+	PhoneBookModell.SaveToFile("phonebook.csv");
 	data = PhoneBookModell.upload_phonebook();
 	fritzbox->holeSeite(data);
 }

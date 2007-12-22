@@ -102,15 +102,17 @@ Qt::SortOrder Person::order = Qt::AscendingOrder;
 int Person::sort_column =0;
 
 Person::Person()
-:name("<Neuer Eintrag>"),rufnr(""),kurzwahl(""),vanity("")
+:name("<Neuer Eintrag>"),home(""), mobile(""),work(""),kurzwahl(""),vanity("")
 {}
 
 Person::Person(QStringList zeile)
-:name("name"),rufnr("unbekannt"),kurzwahl(-1),vanity("")
+:name("name"),home('unbekannt'),mobile("unbekannt"),work("unbekannt"),kurzwahl(-1),vanity("")
 {
  	if (spaltenAnzahl() == zeile.count()){
 		name		= zeile.takeFirst().trimmed();
-		rufnr		= zeile.takeFirst().trimmed();
+		home 		= zeile.takeFirst().trimmed();
+		mobile		= zeile.takeFirst().trimmed();
+		work		= zeile.takeFirst().trimmed();
 		kurzwahl	= zeile.takeFirst().trimmed();
 		vanity		= zeile.takeFirst().trimmed();	
 
@@ -125,8 +127,9 @@ Person::Person(QStringList zeile)
 		name.replace("&Uuml;",QString::fromLocal8Bit( "Ü"));
 		name.replace("&szlig;",QString::fromLocal8Bit( "ß"));
 		
-		
-		rufnr.remove("\"");
+		home.remove("\"");
+		mobile.remove("\"");
+		work.remove("\"");
 		kurzwahl.remove("\"");
 		vanity.remove("\"");
  	}
@@ -153,10 +156,14 @@ QString &  Person::operator[](int index){
 		case 0:
 			return name;
 		case 1:
-			return rufnr;
+			return home;
 		case 2:
-			return kurzwahl;
+			return mobile;
 		case 3:
+			return work;
+		case 4:
+			return kurzwahl;
+		case 5:
 			return vanity;
 	/*	default: 
 			return QString("unbekannt");*/
@@ -168,10 +175,14 @@ const QString &  Person::operator[](int index)const {
 		case 0:
 			return name;
 		case 1:
-			return rufnr;
+			return home;
 		case 2:
-			return kurzwahl;
+			return mobile;
 		case 3:
+			return work;
+		case 4:
+			return kurzwahl;
+		case 5:
 			return vanity;
 	/*	default: 
 			return QString("unbekannt");*/
@@ -184,10 +195,14 @@ QString Person::ueberschrift(int spalte)
 		case 0:
 			return QString("Name");
 		case 1:
-			return QString("Nummer");
+			return QString("home");
 		case 2:
-			return QString("Kurzwahl");
+			return QString("mobile");
 		case 3:
+			return QString("work");
+		case 4:
+			return QString("Kurzwahl");
+		case 5:
 			return QString("Vanity");
 		default:
 			return QString("unbekannt");

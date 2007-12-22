@@ -73,7 +73,6 @@ HauptFenster::HauptFenster(PBModell& PM, QSettings& cfg)
 	connect(fritzbox,SIGNAL(neue_anrufliste(QString ,QChar )),modell,SLOT(neue_liste(QString , QChar )));	
 	
 	if (StartHidden==false) {
-		
 		show();
 	}
 }

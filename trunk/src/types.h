@@ -34,7 +34,9 @@ public:
 
 class Person{
 	QString name;
-	QString rufnr;
+	QString home;
+	QString mobile;
+	QString work;
 	QString kurzwahl;
 	QString vanity;
 public:
@@ -46,7 +48,7 @@ public:
 	QString & operator[](int index);
 	const QString & operator[](int index)const;
 	static QString ueberschrift(int spalte);
-	static int spaltenAnzahl(){return 4;}
+	static int spaltenAnzahl(){return 6;}
 	
 	friend bool operator<(const Person & lvalue,const Person & rvalue);
 };
