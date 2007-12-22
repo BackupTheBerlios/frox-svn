@@ -25,7 +25,7 @@ void AnrufModell::neue_liste(QString daten, QChar seperator ){
 	QTextStream temp(&daten);
 	do{
 		QString zeile = temp.readLine();
-		if (!zeile.isEmpty())
+		if ((!zeile.isEmpty()) && ( !zeile.startsWith("#") ))
 			liste.push_back(Anruf(zeile.split(seperator)));
 	}while(!temp.atEnd());
 	

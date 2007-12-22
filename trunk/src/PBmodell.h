@@ -37,6 +37,7 @@ public:
 	
 	//zum Editieren
 	Qt::ItemFlags flags( const QModelIndex& index ) const;
+	bool DataValid(int col, QVariant value);
 	bool setData(const QModelIndex &index,const QVariant &value, int role);
 	
 	void sort ( int column, Qt::SortOrder order = Qt::AscendingOrder );

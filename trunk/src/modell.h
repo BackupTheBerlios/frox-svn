@@ -20,6 +20,7 @@ class AnrufModell:public QAbstractTableModel{
 	Q_OBJECT
 private:
 	QList<Anruf> liste;
+// 	QStringList liste;
 	QString header;
 	
 public	slots:

@@ -3,6 +3,7 @@
 const QByteArray FritzBox::POSTDATA_CSV = "getpage=..%2Fhtml%2Fde%2FFRITZ%21Box_Anrufliste.csv";
 const QByteArray FritzBox::POSTDATA_LOGIN = "&login%3Acommand%2Fpassword=";
 const QByteArray FritzBox::POSTDATA_PHONE_BOOK = "getpage=..%2Fhtml%2Fde%2Ffon%2FppFonbuch.html&var%3Alang=de";
+const QByteArray FritzBox::POSTDATA_PHONE_BOOK1 = "getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&errorpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Alang=de&var%3Apagename=fonbuch&var%3Aerrorpagename=fonbuch&var%3Amenu=home&var%3Apagemaster=&time%3Asettings%2Ftime=1196667654%2C-60&var%3Aactivtype=pppoe&var%3AtabInetstat=1";
 const QByteArray FritzBox::POSTDATA_CALL_LIST = "getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Alang=de&var%3Amenu=fon&var%3Apagename=foncalls";
 const QByteArray FritzBox::POSTDATA_CALL_LIST_ALL = "getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Alang=de&var%3Amenu=fon&var%3Apagename=foncalls&var%3Ashowall";
 const QByteArray FritzBox::POSTDATA_CALL = "";
@@ -53,12 +54,13 @@ void FritzBox::Seite_geladen(bool error){
 		QHttpResponseHeader antwort = http->lastResponse();
 // Debug Code
 // 		std::cout <<"geladen "<< antwort.toString().toStdString()<<std::endl;
-/*
-		{ int i;
- 		for (i=0; i< antwort.values().count(); i++)
-		std::cout << antwort.values().takeAt(i).first.toStdString() << " : " << antwort.values().takeAt(i).second.toStdString() << std::endl;
-		}*/
 // 
+// 		{ int i;
+//  		for (i=0; i< antwort.values().count(); i++)
+// 		std::cout << antwort.values().takeAt(i).first.toStdString() << " : " << antwort.values().takeAt(i).second.toStdString() << std::endl;
+// 		}
+// Debug Code end
+
 		QByteArray daten(http->readAll());
 
 // Debug Code
@@ -68,7 +70,8 @@ void FritzBox::Seite_geladen(bool error){
 		if (antwort.value("content-disposition").contains("FRITZ!Box_Anrufliste.csv"))
 			verarbeite_csv(daten);
 		else
-		if (daten.contains("<title>Telefonbuch - Druckansicht</title>")){
+// 		if (daten.contains("<title>Telefonbuch - Druckansicht</title>")){
+		if (daten.contains("Telefonbuch")){
 // 		if (RequestStr == POSTDATA_PHONE_BOOK){
 	 		QTextStream input(daten);
 			emit neues_telefonbuch(input.readAll());
@@ -110,5 +113,6 @@ void FritzBox::hole_anrufliste(){
 void FritzBox::hole_telefonbuch(){
 	http->clearPendingRequests();
 	http->setHost(host, httpPort);
-	holeSeite(POSTDATA_PHONE_BOOK);
+// 	holeSeite(POSTDATA_PHONE_BOOK);
+	holeSeite(POSTDATA_PHONE_BOOK1);
 }

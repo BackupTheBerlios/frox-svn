@@ -19,10 +19,11 @@ class Anruf{
 	//TrCall(type, datum, name, rufnummer, port, route, routetype, dauer)
 	//TrCall("1", "11.02.07 13:52", "", "03305680127", "4", "0", "1", "0:15"));
 	int richtung;
-	QDateTime datum;
-	QString name;
-	QString rufnr, nebenstelle,anschluss,intern;
-	QTime dauer;
+	QStringList text;
+// 	QDateTime datum;
+// 	QString name;
+// 	QString rufnr, nebenstelle,anschluss,intern;
+// 	QTime dauer;
 public:
 	Anruf();
 	Anruf(QStringList zeile);

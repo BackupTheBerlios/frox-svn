@@ -11,26 +11,36 @@
 //
 #include "types.h"
 #include <iostream>
+// Anruf::Anruf()
+// :richtung(-1),datum(),name("name"),rufnr("unbekannt"),
+// nebenstelle(""),anschluss(""),intern(""),dauer()
+// {}
+
 Anruf::Anruf()
-:richtung(-1),datum(),name("name"),rufnr("unbekannt"),
-nebenstelle(""),anschluss(""),intern(""),dauer()
+:richtung(-1),text()
 {}
 
-Anruf::Anruf(QStringList zeile)
+/*Anruf::Anruf(QStringList zeile)
 :richtung(-1),datum(),name("name"),rufnr("unbekannt"),
-nebenstelle(""),anschluss(""),intern(""),dauer()
+nebenstelle(""),anschluss(""),intern(""),dauer()*/
+Anruf::Anruf(QStringList zeile)
+:richtung(-1),text()
 {
-	if (spaltenAnzahl()-1==zeile.count()){
-		richtung = zeile.takeFirst().toInt();
-		datum = QDateTime::fromString(zeile.takeFirst(),"dd.MM.yy hh:mm").addYears(100);
-		name = zeile.takeFirst();
-		rufnr = zeile.takeFirst();
-		nebenstelle= zeile.takeFirst();
-		QStringList anschluss_intern = zeile.takeFirst().split(':');
-		anschluss = anschluss_intern.takeFirst();
-		intern = anschluss_intern.takeFirst();
-		dauer = QTime::fromString(zeile.takeFirst(),"m:ss");
-	}
+// 	richtung = zeile.takeFirst().toInt();
+	richtung = zeile.at(0).toInt();
+	text = zeile;
+
+// 	if (spaltenAnzahl()-1==zeile.count()){
+// 		richtung = zeile.takeFirst().toInt();
+// 		datum = QDateTime::fromString(zeile.takeFirst(),"dd.MM.yy hh:mm").addYears(100);
+// 		name = zeile.takeFirst();
+// 		rufnr = zeile.takeFirst();
+// 		nebenstelle= zeile.takeFirst();
+// 		QStringList anschluss_intern = zeile.takeFirst().split(':');
+// 		anschluss = anschluss_intern.takeFirst();
+// 		intern = anschluss_intern.takeFirst();
+// 		dauer = QTime::fromString(zeile.takeFirst(),"m:ss");
+// 	}
 }
 
 QVariant Anruf::operator[](int index) const
@@ -38,7 +48,7 @@ QVariant Anruf::operator[](int index) const
 	switch (index){
 		case 0:
 			return richtung;
-		case 1:
+/*		case 1:
 			return datum;
 		case 2:
 			return name;
@@ -53,7 +63,12 @@ QVariant Anruf::operator[](int index) const
 		case 7:
 			return dauer;
 		default: 
-			return QString("unbekannt");
+			return QString("unbekannt");*/
+		default: 
+			if (index < text.count())
+				return text.at(index);
+			else 
+				return QString("unbekannt");
 	}
 }
 
