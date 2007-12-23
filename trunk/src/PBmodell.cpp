@@ -158,15 +158,9 @@ bool PBModell::setData(const QModelIndex &index,const QVariant &value, int role)
 	QByteArray Data="";
 	int i;
 	
-	
+	//funktioniert gar nicht, wenn das einkommentiert wird
 	//for (i = 99;i>0;i--) 
-	for (i = 0;i<100;i++) 
-		Data.append("telcfg:command/Phonebook/Entry"+QByteArray::number(i)+"=delete"+"&");
-	
-	Data.append("Submit=Submit");
-	std::cout << "Data" << std::endl;
-	return Data;
-	
+		//Data.append("telcfg:command/Phonebook/Entry"+QByteArray::number(i)+"=delete"+"&");
 	
 	int count=0;
 	for( i=0; i<phonebook.count(); i++){

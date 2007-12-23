@@ -58,6 +58,7 @@ void PhonebookWindow::Phonebook_loaded(){
 
 void PhonebookWindow::upload(){	
 	QByteArray data="";
+	int i;
 	PhoneBookModell.SaveToFile("phonebook.csv");
 	data = PhoneBookModell.upload_phonebook();
 	fritzbox->holeSeite(data);
