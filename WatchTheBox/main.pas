@@ -373,7 +373,7 @@ begin
   vgl:= Phonebook[i].number;
   vgl:= CompleteNumber(vgl);
   t  := CompleteNumber(t);
-//  showmessage(t + ' ' + vgl);
+//  if return = 1 then showmessage(t + ' ' + vgl);
   if t = vgl then
   begin                      // enthalten ist
     Result:= Phonebook[i].name;

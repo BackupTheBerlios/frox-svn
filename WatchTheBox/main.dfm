@@ -1847,8 +1847,8 @@ object Form1: TForm1
       000000000000}
   end
   object OneInstance: TBomeOneInstance
-    Left = 248
-    Top = 320
+    Left = 416
+    Top = 232
   end
   object SocketConnect: TTimer
     Enabled = False
