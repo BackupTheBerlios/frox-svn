@@ -66,7 +66,7 @@ object CallIn: TCallIn
     Left = 263
     Top = 64
     Width = 72
-    Height = 44
+    Height = 19
     Alignment = taRightJustify
     Anchors = [akTop, akRight, akBottom]
     Caption = '00:00:00'
@@ -86,6 +86,19 @@ object CallIn: TCallIn
     Center = True
     Proportional = True
     Visible = False
+  end
+  object number: TLabel
+    Left = 120
+    Top = 52
+    Width = 37
+    Height = 13
+    Caption = 'Number'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
   end
   object BitBtn1: TBitBtn
     Left = 279
@@ -127,7 +140,7 @@ object CallIn: TCallIn
       Caption = 'Incoming Call: '
     end
     object info4: TLabel
-      Left = 159
+      Left = 155
       Top = 2
       Width = 24
       Height = 13
@@ -136,7 +149,7 @@ object CallIn: TCallIn
       Caption = 'info4'
     end
     object Bright: TButton
-      Left = 217
+      Left = 213
       Top = 0
       Width = 18
       Height = 17
@@ -146,7 +159,7 @@ object CallIn: TCallIn
       OnClick = BrightClick
     end
     object Bleft: TButton
-      Left = 194
+      Left = 190
       Top = 0
       Width = 18
       Height = 17

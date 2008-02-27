@@ -24,6 +24,7 @@ type
     durationTimer: TTimer;
     Image1: TImage;
     reject: TBitBtn;
+    number: TLabel;
     procedure rejectClick(Sender: TObject);
     procedure durationTimerTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -115,8 +116,10 @@ end;
 procedure TCallIn.showCall(p: integer; setpos: integer);
 var image: string;
     top, right, left: integer;
+    result: boolean;
+    e: extended;
 begin
-      right:= 0;  
+      right:= 0;
       if setpos = 0 then right := callin.left + callin.width;
       if p >= length(ActiveCalls) then p:=0;
       if length(ActiveCalls)=0 then exit;
@@ -126,6 +129,14 @@ begin
       info3.caption   := ActiveCalls[p].MSN;
       info4.caption   := ActiveCalls[p].ConnID;
       date.caption    := ActiveCalls[p].date;
+
+      number.Caption := '';
+      result := TextToFloat(PChar(ActiveCalls[p].name), e, fvExtended);
+      if not result then
+        if ActiveCalls[p].Cbc = '' then
+          number.Caption := 'Number: '+ ActiveCalls[p].Rufnummer
+        else
+          number.Caption := 'Number: '+ ActiveCalls[p].Klarnummer+' / Cbc: '+ActiveCalls[p].Cbc;
 
       if (info2.caption = '') then info2.caption:= 'unknown';
 
@@ -149,6 +160,7 @@ begin
        panel.left := 104;
        info2.Left := 120;
        info3.left := 120;
+       number.left := 120;
        topbox.left:= 120;
       end
       else
@@ -159,6 +171,7 @@ begin
        panel.left := 2;
        info2.Left := 18;
        info3.left := 18;
+       number.left := 18;
        topbox.left:= 18;
       end;
 

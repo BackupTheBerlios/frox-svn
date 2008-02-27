@@ -27,8 +27,8 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 27
-    Width = 456
-    Height = 324
+    Width = 448
+    Height = 322
     ActivePage = Tab1
     Align = alClient
     TabOrder = 0
@@ -36,8 +36,8 @@ object Form1: TForm1
     object Tab1: TTabSheet
       Caption = 'Traffic'
       DesignSize = (
-        448
-        296)
+        440
+        294)
       object Label8: TLabel
         Left = 96
         Top = 8
@@ -500,7 +500,7 @@ object Form1: TForm1
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 6
         end
@@ -558,10 +558,10 @@ object Form1: TForm1
         Caption = 'Telnet  '
       end
       object Label6: TLabel
-        Left = 312
+        Left = 304
         Top = 0
         Width = 136
-        Height = 112
+        Height = 110
         Align = alRight
         AutoSize = False
         Caption = 
@@ -607,8 +607,8 @@ object Form1: TForm1
       end
       object TelnetLog: TMemo
         Left = 0
-        Top = 112
-        Width = 448
+        Top = 110
+        Width = 440
         Height = 184
         Align = alBottom
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -623,7 +623,7 @@ object Form1: TForm1
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 456
+    Width = 448
     Height = 27
     ButtonHeight = 25
     ButtonWidth = 34
@@ -765,8 +765,8 @@ object Form1: TForm1
   end
   object Status: TStatusBar
     Left = 0
-    Top = 351
-    Width = 456
+    Top = 349
+    Width = 448
     Height = 19
     Panels = <>
     ParentShowHint = False

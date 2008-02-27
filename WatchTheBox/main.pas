@@ -35,6 +35,8 @@ type
       typ             : string;
       ConnID          : string;
       Rufnummer       : string;
+      Cbc             : string;
+      Klarnummer      : string;
       Nebenstelle     : string;
       MSN             : string;
       Dauer           : string;
@@ -308,7 +310,7 @@ begin
  end;
 end;
 
-procedure filterCbc(var number: string);
+function filterCbc(number: string):string;
 var t: string;
     cnt,i: integer;
 begin
@@ -320,8 +322,73 @@ begin
        cnt:= length(t);
        while AnsiEndsStr('*',t) do delete(t,length(t),1);
 
-       if AnsiStartsStr(t, number) then delete(number,1,cnt) //CallByCallNummer löschen
+       if AnsiStartsStr(t, number) then
+       begin
+         delete(number,1,cnt); //CallByCallNummer löschen
+         break;
+       end;
       end;
+  result := number;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Funktion ermittelt die Versionsnummer einer Exe-Datei
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetFileVersion(const FileName: String): String;
+var
+  VersionInfoSize, VersionInfoValueSize, Zero: DWord;
+  VersionInfo, VersionInfoValue: Pointer;
+begin
+      { Ist Datei nicht vorhanden, dann Hinweis und raus aus Funktion ...}
+  if not FileExists(FileName) then
+  begin
+    Result := '-1';  { alternativ auch 'File not found' oder sonstwas }
+    Exit;
+  end;
+
+      { sonst weiter. }
+  Result := '';
+  VersionInfoSize := GetFileVersionInfoSize(PChar(FileName), Zero);
+  if VersionInfoSize = 0 then Exit;
+      { Bei nicht genug Speicher wird EOutOfMemory-Exception ausgelöst }
+  GetMem(VersionInfo, VersionInfoSize);
+  try
+    if GetFileVersionInfo(PChar(FileName), 0, VersionInfoSize, VersionInfo) and
+      VerQueryValue(VersionInfo, '\' { root block }, VersionInfoValue,
+      VersionInfoValueSize) and (0 <> LongInt(VersionInfoValueSize)) then
+    begin
+      with TVSFixedFileInfo(VersionInfoValue^) do
+      begin
+        Result := IntToStr(HiWord(dwFileVersionMS));
+        Result := Result + '.' + IntToStr(LoWord(dwFileVersionMS));
+        Result := Result + '.' + IntToStr(HiWord(dwFileVersionLS));
+        Result := Result + '.' + IntToStr(LoWord(dwFileVersionLS));
+      end; { with }
+    end; { then }
+  finally
+    FreeMem(VersionInfo);
+  end; { try }
+end; { GetFileVersion }
+
+function readCbc(number: string):string;
+var t: string;
+    cnt,i: integer;
+begin
+ if (CallByCall.count >0) then
+      for i:= 0 to CallByCall.count-1 do
+      begin
+       t:= CallByCall.Strings[i];
+       if (t[1] = '#') or (length(t) = 0) then continue; //ignore comments
+       cnt:= length(t);
+       while AnsiEndsStr('*',t) do delete(t,length(t),1);
+
+       if AnsiStartsStr(t, number) then
+       begin
+         SetLength(number,cnt); //CallByCallNummer auslesen
+         break;
+       end;
+      end;
+  result := number;
 end;
 
 function CompleteNumber(number:string): string;
@@ -364,8 +431,7 @@ begin
    Result:= number
    else Result:= '';
 
- t:= number;
- filterCbc(t);
+ t:= filterCbc(number);
 
  if length(PhoneBook) > 0 then
  for i:= 0 to length(PhoneBook)-1 do
@@ -457,9 +523,9 @@ begin
   AssignFile(f, ExtractFilepath(paramstr(0))+'monitor_messages.txt');
    append(f);
    Write(f, m);
-  CloseFile(f);
+   CloseFile(f);
  end;
-  
+
 if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiContainsStr(m,';CALL;')or AnsiContainsStr(m,';CONNECT;')then
  begin
   s:= TStringlist.Create;
@@ -483,7 +549,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       then
       begin
         count:= AddACall(Call);
-        if count = 1 then ShowNotification(False, 'incomming');
+        if count = 1 then ShowNotification(False, 'incoming');
         if assigned(CallIn) then
           Callin.ShowCall(count - 1,0);
         ReverseLookUp(Call);
@@ -498,6 +564,8 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
       Call.Rufnummer  := s.strings[5];
+      Call.Cbc        := readCbc (s.strings[5]);
+      Call.Klarnummer := filterCbc (s.strings[5]);
       Call.Name       := FindNames(s.strings[5],1);
       Call.Nebenstelle:= s.strings[3];
       Call.MSN        := s.strings[4];
@@ -708,6 +776,8 @@ var f: TFileStream;
     c: integer;
 begin
 
+  Caption := Caption+' '+GetFileVersion(ParamStr(0));
+
   unsaved_phonebook := false;
 
   PBSelected        := -1;
@@ -828,7 +898,7 @@ begin
   startuptimer.Enabled:= true;
  except
   status.SimpleText:= 'Connection Error';
- end;  
+ end;
 
 end;
 
@@ -1483,7 +1553,7 @@ begin
     number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
     name  :=Callerlist.Items[Callerlist.itemindex].SubItems.strings[1];
 
-    filterCbc(number);
+    number:=filterCbc(number);
 
     //Vorwahlstring hinzufügen
     if (length(number) > 0) and (number[1] <> '0') and (number[1] <> '+') then
@@ -2042,7 +2112,8 @@ end;
 
 procedure TForm1.ToolButton9Click(Sender: TObject);
 begin
-showmessage('WatchTheBox'
+showmessage('WatchTheBox '+
+             GetFileVersion(ParamStr(0))
              + #13#10 +
              'This is an early version, so it may be buggy. If your find bug or wish to have some new features, feel free to contact me at www.LeastCosterXP.de > Forum.'
              + #13#10#13#10 +
@@ -2052,7 +2123,7 @@ showmessage('WatchTheBox'
              +#13#10 +
              #9 +'Stefan Grandner '+#9+' : icon art (arrows)'
              +#13#10 +
-             #9 +'Stefan Fruhner  '+#9#9+' : programming');
+             #9 +'Stefan Fruhner  '+#9+' : programming');
 end;
 
 procedure TForm1.searchNumberClick(Sender: TObject);
