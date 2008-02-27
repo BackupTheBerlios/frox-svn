@@ -261,6 +261,45 @@ uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
 
 {$R arrows.res}
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Funktion ermittelt die Versionsnummer einer Exe-Datei
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetFileVersion(const FileName: String): String;
+var
+  VersionInfoSize, VersionInfoValueSize, Zero: DWord;
+  VersionInfo, VersionInfoValue: Pointer;
+begin
+      { Ist Datei nicht vorhanden, dann Hinweis und raus aus Funktion ...}
+  if not FileExists(FileName) then
+  begin
+    Result := '-1';  { alternativ auch 'File not found' oder sonstwas }
+    Exit;
+  end;
+
+      { sonst weiter. }
+  Result := '';
+  VersionInfoSize := GetFileVersionInfoSize(PChar(FileName), Zero);
+  if VersionInfoSize = 0 then Exit;
+      { Bei nicht genug Speicher wird EOutOfMemory-Exception ausgelöst }
+  GetMem(VersionInfo, VersionInfoSize);
+  try
+    if GetFileVersionInfo(PChar(FileName), 0, VersionInfoSize, VersionInfo) and
+      VerQueryValue(VersionInfo, '\' { root block }, VersionInfoValue,
+      VersionInfoValueSize) and (0 <> LongInt(VersionInfoValueSize)) then
+    begin
+      with TVSFixedFileInfo(VersionInfoValue^) do
+      begin
+        Result := IntToStr(HiWord(dwFileVersionMS));
+        Result := Result + '.' + IntToStr(LoWord(dwFileVersionMS));
+        Result := Result + '.' + IntToStr(HiWord(dwFileVersionLS));
+        Result := Result + '.' + IntToStr(LoWord(dwFileVersionLS));
+      end; { with }
+    end; { then }
+  finally
+    FreeMem(VersionInfo);
+  end; { try }
+end; { GetFileVersion }
+
 Procedure TForm1.WMPowerBroadcast(var Msg: TMessage);
 begin
 wakeup.Enabled:= true;
@@ -331,49 +370,12 @@ begin
   result := number;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Funktion ermittelt die Versionsnummer einer Exe-Datei
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetFileVersion(const FileName: String): String;
-var
-  VersionInfoSize, VersionInfoValueSize, Zero: DWord;
-  VersionInfo, VersionInfoValue: Pointer;
-begin
-      { Ist Datei nicht vorhanden, dann Hinweis und raus aus Funktion ...}
-  if not FileExists(FileName) then
-  begin
-    Result := '-1';  { alternativ auch 'File not found' oder sonstwas }
-    Exit;
-  end;
-
-      { sonst weiter. }
-  Result := '';
-  VersionInfoSize := GetFileVersionInfoSize(PChar(FileName), Zero);
-  if VersionInfoSize = 0 then Exit;
-      { Bei nicht genug Speicher wird EOutOfMemory-Exception ausgelöst }
-  GetMem(VersionInfo, VersionInfoSize);
-  try
-    if GetFileVersionInfo(PChar(FileName), 0, VersionInfoSize, VersionInfo) and
-      VerQueryValue(VersionInfo, '\' { root block }, VersionInfoValue,
-      VersionInfoValueSize) and (0 <> LongInt(VersionInfoValueSize)) then
-    begin
-      with TVSFixedFileInfo(VersionInfoValue^) do
-      begin
-        Result := IntToStr(HiWord(dwFileVersionMS));
-        Result := Result + '.' + IntToStr(LoWord(dwFileVersionMS));
-        Result := Result + '.' + IntToStr(HiWord(dwFileVersionLS));
-        Result := Result + '.' + IntToStr(LoWord(dwFileVersionLS));
-      end; { with }
-    end; { then }
-  finally
-    FreeMem(VersionInfo);
-  end; { try }
-end; { GetFileVersion }
-
 function readCbc(number: string):string;
 var t: string;
+    found: boolean;
     cnt,i: integer;
 begin
+ found := false;
  if (CallByCall.count >0) then
       for i:= 0 to CallByCall.count-1 do
       begin
@@ -385,10 +387,11 @@ begin
        if AnsiStartsStr(t, number) then
        begin
          SetLength(number,cnt); //CallByCallNummer auslesen
+         found := true;
          break;
        end;
       end;
-  result := number;
+  if found then result := number else result := '';
 end;
 
 function CompleteNumber(number:string): string;
@@ -2123,7 +2126,9 @@ showmessage('WatchTheBox '+
              +#13#10 +
              #9 +'Stefan Grandner '+#9+' : icon art (arrows)'
              +#13#10 +
-             #9 +'Stefan Fruhner  '+#9+' : programming');
+             #9 +'Stefan Fruhner  '+#9+' : programming'
+             +#13#10 +
+             #9 +'Michael Wehr    '+#9+' : programming');
 end;
 
 procedure TForm1.searchNumberClick(Sender: TObject);

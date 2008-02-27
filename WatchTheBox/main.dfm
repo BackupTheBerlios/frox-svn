@@ -29,7 +29,7 @@ object Form1: TForm1
     Top = 27
     Width = 448
     Height = 322
-    ActivePage = Tab1
+    ActivePage = Tab2
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
@@ -316,8 +316,8 @@ object Form1: TForm1
       object CallerList: TListView
         Left = 0
         Top = 0
-        Width = 448
-        Height = 296
+        Width = 440
+        Height = 294
         Align = alClient
         Anchors = [akLeft, akTop, akRight]
         Columns = <
@@ -776,7 +776,7 @@ object Form1: TForm1
   object Timer: TTimer
     OnTimer = TimerTimer
     Left = 80
-    Top = 312
+    Top = 272
   end
   object Tray: TCoolTrayIcon
     DesignPreview = True
@@ -798,12 +798,12 @@ object Form1: TForm1
     MinimizeToTray = True
     OnMouseDown = TrayMouseDown
     Left = 416
-    Top = 320
+    Top = 280
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
     Left = 120
-    Top = 312
+    Top = 272
     object reloadCallerList: TMenuItem
       Caption = 'retrieve list of calls'
       OnClick = reloadCallerListClick
@@ -853,7 +853,7 @@ object Form1: TForm1
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
     Left = 160
-    Top = 312
+    Top = 272
     object ReloadPhonebook: TMenuItem
       Caption = 'retrieve phonebook'
       OnClick = ReloadPhonebookClick
@@ -902,7 +902,7 @@ object Form1: TForm1
   end
   object ImageList1: TImageList
     Left = 352
-    Top = 320
+    Top = 280
     Bitmap = {
       494C010107000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
@@ -1309,7 +1309,7 @@ object Form1: TForm1
   end
   object ImageList2: TImageList
     Left = 384
-    Top = 320
+    Top = 280
     Bitmap = {
       494C01010C000E00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
@@ -1848,26 +1848,26 @@ object Form1: TForm1
   end
   object OneInstance: TBomeOneInstance
     Left = 416
-    Top = 232
+    Top = 192
   end
   object SocketConnect: TTimer
     Enabled = False
     Interval = 5000
     OnTimer = SocketConnectTimer
     Left = 48
-    Top = 312
+    Top = 272
   end
   object ImgDlg: TOpenDialog
     Filter = 'jpg|*.jpg; *.JPG'
     Left = 312
-    Top = 320
+    Top = 280
   end
   object wakeup: TTimer
     Enabled = False
     Interval = 60000
     OnTimer = wakeupTimer
     Left = 8
-    Top = 312
+    Top = 272
   end
   object telnet: TTnCnx
     Port = '23'
@@ -1881,19 +1881,19 @@ object Form1: TForm1
     OnDisplay = telnetDisplay
     OnSendLoc = telnetSendLoc
     Left = 416
-    Top = 272
+    Top = 232
   end
   object StartupTimer: TTimer
     Enabled = False
     OnTimer = StartupTimerTimer
     Left = 8
-    Top = 280
+    Top = 240
   end
   object WaitForReconnect: TTimer
     Enabled = False
     Interval = 10000
     OnTimer = WaitForReconnectTimer
     Left = 48
-    Top = 280
+    Top = 240
   end
 end
