@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,
+  Dialogs, StdCtrls, Commctrl,
   IpHlpApi,IpIfConst,IpRtrMib,ipFunctions,iptypes, ExtCtrls, StrUtils,
   scktcomp, CoolTrayIcon, ComCtrls, Buttons, inifiles, HttpProt, Menus, ImgList,
-  Gauges, BomeOneInstance, ToolWin, winsock, TnCnx;
+  Gauges, BomeOneInstance, ToolWin, winsock, TnCnx, AppEvnts;
 
 type
 
@@ -142,6 +142,8 @@ type
     PBNumber: TLabeledEdit;
     PBVanity: TLabeledEdit;
     Label7: TLabel;
+    procedure MessageEventHandler(var Msg: TMsg; var Handled: Boolean);
+    procedure SetColumnImage(List: TListView; Column, Image: Integer; ShowImage: Boolean);
     procedure PBNumberKeyPress(Sender: TObject; var Key: Char);
     procedure pbdelpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
@@ -238,7 +240,7 @@ const mykey = 'Ein sehr langer KEY, den jeder beim Zählen von 12345 versteht';
 var
   Form1              : TForm1;
   sett               : TMemInifile;
-  MySocket             : TClientSocket;
+  MySocket           : TClientSocket;
   PhoneBook          : array of TPerson;
   PhoneBook_new      : array of TPerson;
   ActiveCalls        : array of TCaller;
@@ -253,6 +255,8 @@ var
   ColumnToSort       : Integer;
   LastSorted         : Integer;
   SortDir            : Integer;
+  CLSort             : array [0..1] of integer;
+  PBSort             : array [0..1] of integer;
   OldName, OldNumber : string; //for changes of the actual selected name
   CallByCall         : TStringList;
 implementation
@@ -300,6 +304,60 @@ begin
   end; { try }
 end; { GetFileVersion }
 
+procedure TForm1.MessageEventHandler(var Msg: TMsg; var Handled: Boolean);
+var i : integer;
+begin
+  case Msg.message of
+    // repaint erases column image, so it needs to be redrawn
+    WM_PAINT:
+      begin
+        if PageControl1.ActivePageIndex = 1 then
+          for i := 0 to Callerlist.Columns.Count-1 do
+            if CLSort[1] = 0 then
+              SetColumnImage(CallerList, i, 12, i = CLSort[0])
+            else
+              SetColumnImage(CallerList, i, 13, i = CLSort[0]);
+        if PageControl1.ActivePageIndex = 2 then
+          for i := 0 to PhonebookList.Columns.Count-1 do
+            if PBSort[1] = 0 then
+              SetColumnImage(PhonebookList, i, 12, i = PBSort[0])
+            else
+              SetColumnImage(PhonebookList, i, 13, i = PBSort[0]);
+      end;
+  end;
+end;
+
+procedure TForm1.SetColumnImage(List: TListView; Column, Image: Integer; ShowImage: Boolean);
+var
+  Align,hHeader: integer;
+  HD: HD_ITEM;
+
+begin
+  hHeader := SendMessage(List.Handle, LVM_GETHEADER, 0, 0);
+  with HD do
+  begin
+    case List.Columns[Column].Alignment of
+      taLeftJustify:  Align := HDF_LEFT;
+      taCenter:       Align := HDF_CENTER;
+      taRightJustify: Align := HDF_RIGHT;
+    else
+      Align := HDF_LEFT;
+    end;
+
+    mask := HDI_IMAGE or HDI_FORMAT;
+
+    pszText := PChar(List.Columns[Column].Caption);
+
+    if ShowImage then
+      fmt := HDF_STRING or HDF_IMAGE or HDF_BITMAP_ON_RIGHT
+    else
+      fmt := HDF_STRING or Align;
+
+    iImage := Image;
+  end;
+  SendMessage(hHeader, HDM_SETITEM, Column, Integer(@HD));
+end;
+
 Procedure TForm1.WMPowerBroadcast(var Msg: TMessage);
 begin
 wakeup.Enabled:= true;
@@ -321,7 +379,7 @@ begin
    MySocket.Open;
  except
   status.SimpleText:= 'Connection refused. Check your firewall.';
- end; 
+ end;
 end;
 
 procedure tForm1.SocketConn(Sender: TObject; Socket: TCustomWinSocket);
@@ -392,6 +450,18 @@ begin
        end;
       end;
   if found then result := number else result := '';
+end;
+
+// Spaltenverschiebungen durchführen
+function movecolumns (cl : TStringList): TStringList;
+begin
+  cl.Append(cl.Strings[2]);
+  cl.Strings[6] := cl.Strings[5];
+  cl.Strings[5] := cl.Strings[4];
+  cl.Strings[4] := cl.Strings[3];
+  cl.Strings[2] := readcbc (cl.Strings[7]);
+  cl.Strings[3] := filtercbc (cl.Strings[7]);
+  result := cl;
 end;
 
 function CompleteNumber(number:string): string;
@@ -595,7 +665,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
       Call.ConnID     := s.strings[2];
       Call.Dauer      := s.strings[3];;
       count:=  RemoveACall(Call);
-      if assigned(CallIn) then 
+      if assigned(CallIn) then
         if Count > 0 then Callin.ShowCall(0,0);  //den ersten Anruf zeigen, wenn der letzte wegfällt
 
       if sett.ReadBool('FritzBox','AutoClose',true) and (count = 0)
@@ -784,16 +854,20 @@ begin
   unsaved_phonebook := false;
 
   PBSelected        := -1;
+  PBSort[0]         := 0;
+  PBSort[1]         := 0;
   PhonebookListe    := Tlistitems.Create(PhonebookList);
+  CLSort[0]         := 1;
+  CLSort[1]         := 1;
   CallerListe       := Tlistitems.Create(CallerList);
   CallbyCall        := TStringList.Create;
   if fileexists(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt') then
       CallByCall.LoadFromFile(ExtractFilePath(Paramstr(0))+ 'CallbyCall.txt');
-      
+
  if Paramcount > 0 then
   for c:= 0 to Paramcount do
     if ParamStr(c)='-OnlyIncoming' then //zeige in der Anrufliste nur eingehende Gespräche an
-    begin
+    begin    
      Toolbutton5.Down         := false;
      Toolbutton5.Enabled      := false;
      Toolbutton5.Indeterminate:= true;
@@ -839,6 +913,7 @@ begin
 
   Callerlist.Columns[1].Tag := 3; //Date/time
   phonebooklist.Columns[4].Width:= 0;   //Spalte ausblenden
+  Callerlist.Columns[8].Width:=0;  //Spalte ausblenden
 
  if fileexists(ExtractFilePath(ParamStr(0)) + 'traffic.dat') then
     begin
@@ -902,6 +977,9 @@ begin
  except
   status.SimpleText:= 'Connection Error';
  end;
+
+ // Routine zum Abfangen von Events aktivieren
+ Application.OnMessage := MessageEventHandler;
 
 end;
 
@@ -1170,9 +1248,11 @@ s:= TStringlist.Create;
   r.Split(sl.strings[i],s);
   //Format: Typ;Datum;Name;Rufnummer;Nebenstelle;Eigene Rufnummer;Dauer
   if s.count = 7 then
-   if not Ansicontainsstr(s.strings[5],msn) then Sl.Delete(i);
-
- end;
+  begin
+   s := movecolumns (s);
+   if not Ansicontainsstr(s.strings[6],msn) then Sl.Delete(i);
+  end;
+end;
 s.free;
 r.Free;
 end;
@@ -1282,8 +1362,11 @@ begin
       liitem.ImageIndex:= strtoint(cl.strings[0])+1;
       cl.Delete(0);
       cl.Append(inttostr(liitem.ImageIndex));
+
+      cl := movecolumns (cl);
+
 //      Namen suchen
-      if ((cl.strings[1]='') and (cl.strings[2]<>'')) then cl.strings[1]:= findnames(cl.strings[2],0);
+      if ((cl.strings[1]='') and (cl.strings[7]<>'')) then cl.strings[1]:= findnames(cl.strings[7],0);
 
       if (length(cl.strings[1]) > 0) then
         if cl.strings[1][1] ='!' then
@@ -1501,6 +1584,7 @@ begin
       cl.Add(inttostr(Phonebook[i].no));
 
       liItem := Phonebookliste.Add;
+      liItem.ImageIndex:=-1;
       liItem.SubItems:=cl;
       liItem.Caption := Phonebook[i].Name;
    end;
@@ -1553,7 +1637,7 @@ begin
     addtoPhonebook.Visible:= true;
     deleteitem.Visible:= true;
 
-    number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[2];
+    number:=Callerlist.Items[Callerlist.itemindex].SubItems.strings[7];
     name  :=Callerlist.Items[Callerlist.itemindex].SubItems.strings[1];
 
     number:=filterCbc(number);
@@ -1565,8 +1649,8 @@ begin
        number   := CityCode + number;
     end;
 
-    searchnumber.Tag:=Integer(NewStr(number));
-    dial1.Tag       :=Integer(NewStr(number));
+    searchnumber.Tag:=Integer(newstr(number));
+    dial1.Tag       :=Integer(newstr(number));
 
     searchnumber.caption:= 'reverse lookup: ' + number;
     dial1.caption         := 'dial: ' + number;
@@ -1614,7 +1698,7 @@ begin
 
 
     l.Free;
-    
+
  end
  else
  begin
@@ -1890,14 +1974,18 @@ end;
 
 procedure TForm1.PhonebookListColumnClick(Sender: TObject; Column: TListColumn);
 begin
+  if (Tab2.Visible) and (Column.Index = 0) then exit;
   ColumnToSort := Column.Index;
   if ColumnToSort = LastSorted then
     SortDir := 1 - SortDir
   else
-    SortDir := 0;
+    if (Tab2.Visible) and (Column.Index = 1) then SortDir := 1 else SortDir := 0;
   LastSorted := ColumnToSort;
   (Sender as TCustomListView).AlphaSort;
+  if Tab2.Visible then begin CLSort[0] := Column.Index; CLSort[1] := SortDir; end;
+  if Tab3.Visible then begin PBSort[0] := Column.Index; PBSort[1] := SortDir; end;
 end;
+{to modify}
 
 procedure TForm1.PhonebookListCompare(Sender: TObject; Item1,
   Item2: TListItem; Data: Integer; var Compare: Integer);
@@ -1954,7 +2042,7 @@ begin
     end; // 4
 //Alles andere sind Strings
     else
-      Compare := CompareText(TextToSort1,TextToSort2);
+      Compare := AnsiCompareStr(TextToSort1,TextToSort2);
   end; //case (Sender as TListView).Columns[ColumnToSort].Tag of
 end; //procedure TForm1.ListView1Compare
 
@@ -2158,7 +2246,7 @@ begin
   begin
    index        := CallerList.ItemIndex;
 
-   NumberString := Callerlist.items[index].SubItems.Strings[2];
+   NumberString := Callerlist.items[index].SubItems.Strings[7];
 
    if ((NumberString[1] <> '0') and (NumberString <> '+')) then NumberString:= Citycode+NumberString;
 
@@ -2186,7 +2274,7 @@ begin
 
    NumberString := PhoneBooklist.items[index].Caption;
    if numberstring[1] = '!' then delete(numberstring,1,1);
-   
+
    if ImgDlg.Execute then
    begin
      sett.WriteString('Images', NumberString, ImgDlg.FileName);
@@ -2216,7 +2304,7 @@ procedure TForm1.deleteitemClick(Sender: TObject);
 var index          : integer;
     DelString      : string;
     DelString1     : string;
-    i, j           : integer;
+    i, j, s        : integer;
     SL             : TStringlist;
     dellist        : TSTringlist;
 begin
@@ -2229,18 +2317,24 @@ begin
 
     DelString:= inttostr(CallerList.items[index].ImageIndex-1);
     DelString1:= inttostr(CallerList.items[index].ImageIndex-1);
-    for i:= 0 to Callerlist.items[index].SubItems.count-2 do
+    for i:= 0 to Callerlist.items[index].SubItems.count-3 do
     begin
-      Delstring := DelString + ';'+Callerlist.items[index].SubItems.Strings[i];
-      if i = 1 then
-        Delstring1 := DelString1 + ';!'+Callerlist.items[index].SubItems.Strings[i]
+      s := i;
+      // Rücktausch der Spalten durchführen
+      if (s > 2) then s := s + 1;
+      if s = 2 then s := 7;
+      // dann weiter
+      Delstring := DelString + ';'+Callerlist.items[index].SubItems.Strings[s];
+      if s = 1 then
+        Delstring1 := DelString1 + ';!'+Callerlist.items[index].SubItems.Strings[s]
       else
-        Delstring1 := DelString1 + ';'+Callerlist.items[index].SubItems.Strings[i]
+        Delstring1 := DelString1 + ';'+Callerlist.items[index].SubItems.Strings[s];
     end;
+    Application.Messagebox (pchar(delstring),'Information',mb_ok); 
 
     dellist.Append(Delstring);
     dellist.Append(Delstring1);
- end;
+  end;
 
  sl:= TStringlist.Create;
  sl.loadfromfile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
@@ -2556,7 +2650,7 @@ begin
 
  hangupbutton.Visible:= true;
  index               := CallerList.ItemIndex;
- Number              := Callerlist.items[index].SubItems.Strings[2];
+ Number              := Callerlist.items[index].SubItems.Strings[7];
  DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag));
  status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
 end;
@@ -2741,8 +2835,6 @@ sendtoBoxClick(nil);
 
 if not (Key in ['0'..'9','-', Char(VK_BACK)]) then
   Key := #0;
-
-
 end;
 
 end.
