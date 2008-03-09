@@ -35,9 +35,9 @@ type
     procedure topboxClick(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
     procedure showCall(p: integer; setpos: integer);
+    procedure CreateParams(var Params : TCreateParams); override;
   private
     { Private-Deklarationen }
-     procedure CreateParams(var Params : TCreateParams); override;
      procedure WMNCHitTest(var M: TWMNCHitTest);
       message wm_NCHitTest;
    var CallID : integer;
@@ -54,6 +54,42 @@ implementation
 uses tools, main, Strutils, shellapi;
 {$R *.dfm}
 
+function EnumProcess(hHwnd: HWND): string; stdcall;
+var
+  pPid : DWORD;
+  title, ClassName : string;
+begin
+  //if the returned value in null the
+  //callback has failed, so set to false and exit.
+  if (hHwnd=NULL) then
+  begin
+    result := '';
+  end
+  else
+  begin
+    //additional functions to get more
+    //information about a process.
+    //get the Process Identification number.
+    GetWindowThreadProcessId(hHwnd,pPid);
+    //set a memory area to receive
+    //the process class name
+    SetLength(ClassName, 255);
+    //get the class name and reset the
+    //memory area to the size of the name
+    SetLength(ClassName,
+              GetClassName(hHwnd,
+                           PChar(className),
+                           Length(className)));
+    SetLength(title, 255);
+    //get the process title; usually displayed
+    //on the top bar in visible process
+    SetLength(title, GetWindowText(hHwnd, PChar(title), Length(title)));
+    //Display the process information
+    //by adding it to a list box
+    Result := title;
+  end;
+end;
+
 //den Desktop zum Mainform machen, damt das Fenster nicht mit LCXP weggeblendet wird
 procedure TCallIn.CreateParams(var Params : TCreateParams);
 begin
@@ -65,7 +101,7 @@ end;
 procedure TCallIn.WMNCHitTest (var M: TWMNCHitTest);
 begin
   inherited;
-  if M.Result = htClient then 
+  if M.Result = htClient then
     M.Result := htCaption;
 end;
 
@@ -111,7 +147,6 @@ begin
       end;
 end;
 end;
-
 
 procedure TCallIn.showCall(p: integer; setpos: integer);
 var image: string;
@@ -194,7 +229,15 @@ begin
          CallIn.Left    := left;
          CallIn.top     := top;
        end;
-       AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
+       If EnumProcess (GetForegroundWindow) <> 'Windows Media Center' then
+         AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true)
+       else begin
+         // Media Center needs it the hard way. ;)
+         ShowWindow(GetForegroundWindow,SW_HIDE);
+         SetForegroundWindow(Callin.Handle);
+         AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
+       end;
+
       end
       else
       begin
@@ -208,7 +251,8 @@ end;
 
 procedure TCallIn.BitBtn1Click(Sender: TObject);
 begin
-CallIn.close;
+  CallIn.close;
+  Form1.ToolButton6.Enabled := true;
 end;
 
 procedure TCallIn.topboxClick(Sender: TObject);
@@ -232,7 +276,8 @@ end;
 
 procedure TCallIn.TimerTimer(Sender: TObject);
 begin
-CallIn.close;
+  CallIn.close;
+  Form1.ToolButton6.Enabled := true;
 end;
 
 procedure TCallIn.FormClose(Sender: TObject; var Action: TCloseAction);

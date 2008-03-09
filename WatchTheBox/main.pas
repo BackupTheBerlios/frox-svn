@@ -142,6 +142,8 @@ type
     PBNumber: TLabeledEdit;
     PBVanity: TLabeledEdit;
     Label7: TLabel;
+    ToolButton6: TToolButton;
+    procedure ToolButton6Click(Sender: TObject);
     procedure MessageEventHandler(var Msg: TMsg; var Handled: Boolean);
     procedure SetColumnImage(List: TListView; Column, Image: Integer; ShowImage: Boolean);
     procedure PBNumberKeyPress(Sender: TObject; var Key: Char);
@@ -259,6 +261,7 @@ var
   PBSort             : array [0..1] of integer;
   OldName, OldNumber : string; //for changes of the actual selected name
   CallByCall         : TStringList;
+  IncomingCall       : boolean;
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
      CallManagement, PBMess;
@@ -537,27 +540,35 @@ end;
 
 procedure ShowNotification(reallyShow: boolean; CallType: string);
 begin
+  Form1.ToolButton6.Enabled := false;
+  if (CallType = 'incoming') then
+  begin
+    Form1.Tray.IconIndex:= 4;
+    form1.tray.Tag:= 1;
+  end;
 
-if (CallType = 'incoming') then
-begin
- Form1.Tray.IconIndex:= 4;
- form1.tray.Tag:= 1;
-end;
+  if (CallType = 'outgoing') then
+  begin
+    Form1.Tray.IconIndex:= 6;
+    form1.tray.Tag:= 1;
+  end;
 
- if (not sett.ReadBool('FritzBox','NotifyOnlyInTray',false) or ReallyShow)
- and not assigned(CallIN) then
- begin
-   Application.CreateForm(TCallIn, CallIn);
-   Callin.ShowCall(0,1);
-   CallIn.Show;
- end;
+  if (not sett.ReadBool('FritzBox','NotifyOnlyInTray',false) or ReallyShow)
+  and not assigned(CallIN) then
+  begin
+    Application.CreateForm(TCallIn, CallIn);
+    Callin.ShowCall(0,1);
+    // Show last call
+    Callin.Bleft.Click;
+    CallIn.Show;
+  end;
 end;
 
 procedure TForm1.ReverseLookUp(Call: TCaller);
 var reverseAdress  : string;
     CityCode       : string;
     searchstring   : string;
-    enabled        : boolean; 
+    enabled        : boolean;
 begin
    CityCode      := sett.ReadString('FritzBox','CityCode', '');
    reverseAdress := sett.ReadString('FritzBox','reverse', '');
@@ -599,8 +610,9 @@ begin
    CloseFile(f);
  end;
 
-if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiContainsStr(m,';CALL;')or AnsiContainsStr(m,';CONNECT;')then
+ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiContainsStr(m,';CALL;')or AnsiContainsStr(m,';CONNECT;')then
  begin
+  IncomingCall := true;
   s:= TStringlist.Create;
   r.Split(m,s);
   //CallIn.Date.Caption:=  s.Strings[0];
@@ -632,7 +644,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
 //Ausgehende Anrufe: datum;CALL;ConnectionID;Nebenstelle;GenutzteNummer;AngerufeneNummer;
   if (sett.ReadBool('FritzBox','monout',true) and (s.strings[1] = 'CALL')) then
     begin
-
+      //Application.MessageBox (PChar(EnumProcess(GetForegroundWindow)),'Information',mb_ok);
       Call.typ        := 'Outgoing Call';
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
@@ -653,7 +665,7 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
         count := AddACall(Call);
         if Count = 1 then ShowNotification(false, 'outgoing');
         if assigned(CallIn) then
-          Callin.ShowCall(count -1,0);
+          Callin.ShowCall(count - 1,0);
         ReverseLookUp(Call);
       end;
     end
@@ -673,15 +685,24 @@ if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiCont
           begin
             tray.IconIndex:=0;
             tray.Tag:=0;
+            ToolButton6.Enabled := false;
             if assigned(callIn) then CallIn.close;         //Fenster schließen, wenn alle Anrufe beendet sind
             if sett.ReadBool('FritzBox','LoadListAutomatically',false)
               then ReloadCallerlistClick(ToolButton1); //Liste neuladen
           end;
+
+      // Anruf verpasst
+      if IncomingCall then
+      begin
+        Tray.IconIndex := 5;
+        Tray.Tag := 2;
+      end;
     end
   else
  //Zustandegekommene Verbindung: datum;CONNECT;ConnectionID;Nebenstelle;Nummer;
   if (s.strings[1] = 'CONNECT') then
    begin
+      IncomingCall := false;
       Hangupbutton.Visible:= false;
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
@@ -708,7 +729,7 @@ procedure TForm1.httpget(URL: string; var str: TStringStream);
 var Http: THttpCli;
 begin
   if BoxAdress = '' then exit;
-  tray.IconIndex:= 6;
+  tray.IconIndex:= 7;
   tray.tag:= 99;
   Http := THttpCli.Create(nil);
   http.OnDocData := Form1.DocData;
@@ -755,7 +776,7 @@ var Http: THttpCli;
 begin
   Http := THttpCli.Create(nil);
   http.OnDocData := Form1.DocData;
-  tray.IconIndex:= 6;
+  tray.IconIndex:= 7;
   tray.tag:= 99;
   with Http do
   begin
@@ -851,6 +872,7 @@ begin
 
   Caption := Caption+' '+GetFileVersion(ParamStr(0));
 
+  IncomingCall := false;
   unsaved_phonebook := false;
 
   PBSelected        := -1;
@@ -1206,29 +1228,26 @@ begin
    end;
 
    ResetData;
-
-   Case tray.IconIndex of
-     4: tray.IconIndex:= 5;
-     5: tray.IconIndex:= 4;
-   end;
 end;
 
 procedure TForm1.TrayMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
- if Tray.Iconindex>3 then
- begin
-  case (tray.Tag) of
-   1: ShowNotification(true,'none'); //Anruf
-   2: begin                   //verpasster Anruf in der Vergangenheit
-       Tray.ShowMainForm;
-       PageControl1.ActivePageIndex:= 1;
-      end;
-  end;
-  tray.Tag:= 0;
- end
+ if assigned(callin) then
+   Tray.ShowMainForm
  else
- Tray.ShowMainForm;
+   if Tray.Tag = 1 then
+     ShowNotification(false, 'last')
+   else
+     Tray.ShowMainForm;
+
+  // Verpasster Anruf in der Vergangenheit
+  if Tray.Tag = 2 then
+  begin
+    PageControl1.ActivePageIndex:= 1;
+    Tray.Tag := 0;
+    Tray.IconIndex := 0;
+  end;
 end;
 
 procedure DeleteOtherMSN(SL: TStringlist);
@@ -1320,10 +1339,6 @@ begin
   //Alles Löschen, was kein einkommender Anruf war -> neue Liste
    for j:= slb.count-1 downto 0 do
     if (StartsStr('2;', slb.strings[j])=false) then SLb.Delete(j);
-
-   if (sender = nil) then
-     if (slb.count > sla.count) then
-      begin tray.tag:= 2; tray.iconindex:= 4; end;
 
  end;
  sla.free;
@@ -1601,7 +1616,11 @@ case PageControl1.ActivePageIndex of
      PhoneBookList.PopupMenu:= nil;
     end;
 1:  begin
-     if tray.tag=2 then tray.tag:=0;
+     if tray.tag=2 then
+     begin
+       tray.tag:=0;
+       tray.IconIndex := 0;
+     end;
      Callerlist.PopupMenu:= PopupMenu1;
      PhoneBookList.PopupMenu:= nil;
     end;
@@ -1619,6 +1638,7 @@ ToolButton1.Visible :=  (PageControl1.ActivePageIndex = 1);
 ToolButton3.Visible :=  (PageControl1.ActivePageIndex = 1);
 ToolButton4.Visible :=  (PageControl1.ActivePageIndex = 1);
 ToolButton5.Visible :=  (PageControl1.ActivePageIndex = 1);
+ToolButton6.Visible :=  (PageControl1.ActivePageIndex = 1);
 ToolButton10.Visible:=  (PageControl1.ActivePageIndex = 1);
 
 ToolButton7.Visible :=  (PageControl1.ActivePageIndex = 2);
@@ -1694,7 +1714,7 @@ begin
     b:= (l.IndexOf(name) <> -1); //checks if name is in picture list
 
     pbdelpicture.Visible := b;
-    pbaddpicture.Visible := not b; 
+    pbaddpicture.Visible := not b;
 
 
     l.Free;
@@ -1706,7 +1726,7 @@ begin
    pbaddpicture.Visible:= false;
    pbdelpicture.Visible:= false;
    dial2.Visible:= false;
- end;  
+ end;
 
 end;
 
@@ -2835,6 +2855,11 @@ sendtoBoxClick(nil);
 
 if not (Key in ['0'..'9','-', Char(VK_BACK)]) then
   Key := #0;
+end;
+
+procedure TForm1.ToolButton6Click(Sender: TObject);
+begin
+   ShowNotification (true, 'last');
 end;
 
 end.
