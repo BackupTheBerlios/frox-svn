@@ -221,6 +221,7 @@ type
     Procedure StartMySocket;
     Procedure StopMySocket;
     function  AskForUpdate: boolean;
+    function  CheckForPassword: boolean;
     Procedure UpdatePhonebook;
     procedure httpget(URL: string; var str: TStringStream);
     procedure httppost(URL,Data: string);
@@ -262,6 +263,7 @@ var
   OldName, OldNumber : string; //for changes of the actual selected name
   CallByCall         : TStringList;
   IncomingCall       : boolean;
+  fbpassword         : string;
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
      CallManagement, PBMess;
@@ -612,13 +614,13 @@ begin
 
  if AnsiContainsStr(m,';RING;')  or AnsiContainsStr(m,';DISCONNECT;') or AnsiContainsStr(m,';CALL;')or AnsiContainsStr(m,';CONNECT;')then
  begin
-  IncomingCall := true;
   s:= TStringlist.Create;
   r.Split(m,s);
   //CallIn.Date.Caption:=  s.Strings[0];
  //Eingehende Anrufe: datum;RING;ConnectionID;Anrufer-Nr;Angerufene-Nummer;
   if s.strings[1] = 'RING' then
     begin
+      IncomingCall    := true;
       Call.typ        := 'Incoming Call';
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
@@ -816,19 +818,19 @@ begin
   tray.tag:= 0;
 end;
 
-function CheckForPassword: boolean;
+function TForm1.CheckForPassword: boolean;
 var str: TStringStream;
 begin
-str:= TStringStream.Create('');
-form1.httpget('http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/index.html', str);
-str.Position:=0;
-if ansicontainstext(str.DataString,'login:command/password')
-then
-  Result:= true
-else
-  Result:= false;
+  str:= TStringStream.Create('');
+  form1.httpget('http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/index.html', str);
+  str.Position:=0;
+  if ansicontainstext(str.DataString,'login:command/password')
+  then
+    Result:= true
+  else
+    Result:= false;
 
-str.Free;
+  str.Free;
 end;
 
 procedure GetSessionTraffic(var Tin, Tout:Cardinal);
@@ -978,6 +980,8 @@ begin
 
  LoadPhonebookFromFile;
  LoadCallersFromFile();
+
+ fbpassword := decode(sett.ReadString('FritzBox', 'binaries', ''), mykey);
 
  if tab1.Visible then
    PageControl1.ActivePageIndex:= 0
@@ -1884,32 +1888,32 @@ var url : string;
     str : TStringStream;
     filter: TFilterArray;
 begin
- Callerlist.Cursor:= crHourGlass;
- Callerlist.Enabled:= false;
-     str:= TStringStream.Create('');
+  Callerlist.Cursor:= crHourGlass;
+  Callerlist.Enabled:= false;
+  str:= TStringStream.Create('');
 
-      if CheckForPassword then PWForm.showmodal;
+  if CheckForPassword then PWForm.showmodal;
 
-      URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/menus/menu2.html&var:lang=de&var:menu=fon&var:pagename=foncalls';
-      httpget(URL,str);
-     str.free;
+  URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/menus/menu2.html&var:lang=de&var:menu=fon&var:pagename=foncalls';
+  httpget(URL, str);
+  str.free;
 
-     str:= TStringStream.Create('');
-      URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/FRITZ!Box_Anrufliste.csv';
-      httpget(URL,str);
-      filter[1]:= ToolButton3.down;
-      filter[2]:= ToolButton4.down;
-      filter[3]:= ToolButton5.down;
-      ParseCallList(str,filter, true, sender);
-      callerlist.Tag:= 1;
-    str.free;
+  str:= TStringStream.Create('');
+  URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/FRITZ!Box_Anrufliste.csv';
+  httpget(URL, str);
+  filter[1]:= ToolButton3.down;
+  filter[2]:= ToolButton4.down;
+  filter[3]:= ToolButton5.down;
+  ParseCallList(str, filter, true, sender);
+  callerlist.Tag:= 1;
+  str.free;
 
-      //Anrufliste komplett löschen
-      if sett.ReadBool('FritzBox','DeleteListAutomatically',false) then
-        DeleteListFritzBox;
+  //Anrufliste komplett löschen
+  if sett.ReadBool('FritzBox','DeleteListAutomatically',false) then
+  DeleteListFritzBox;
 
- Callerlist.Enabled:= true;
- Callerlist.Cursor:= crDefault;
+  Callerlist.Enabled:= true;
+  Callerlist.Cursor:= crDefault;
 end;
 
 procedure TForm1.PBShortFill;
