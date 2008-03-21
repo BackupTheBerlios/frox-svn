@@ -27,17 +27,17 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 27
-    Width = 448
-    Height = 322
-    ActivePage = Tab2
+    Width = 456
+    Height = 324
+    ActivePage = Tab3
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
     object Tab1: TTabSheet
       Caption = 'Traffic'
       DesignSize = (
-        440
-        294)
+        448
+        296)
       object Label8: TLabel
         Left = 96
         Top = 8
@@ -316,8 +316,8 @@ object Form1: TForm1
       object CallerList: TListView
         Left = 0
         Top = 0
-        Width = 440
-        Height = 294
+        Width = 448
+        Height = 296
         Align = alClient
         Anchors = [akLeft, akTop, akRight]
         Columns = <
@@ -383,8 +383,8 @@ object Form1: TForm1
       end
       object searchpanel: TGroupBox
         Left = 0
-        Top = 254
-        Width = 440
+        Top = 256
+        Width = 448
         Height = 40
         Align = alBottom
         TabOrder = 0
@@ -422,9 +422,9 @@ object Form1: TForm1
       end
       object PhoneBookList: TListView
         Left = 0
-        Top = 73
-        Width = 440
-        Height = 181
+        Top = 97
+        Width = 448
+        Height = 159
         Align = alClient
         Columns = <
           item
@@ -433,7 +433,13 @@ object Form1: TForm1
           end
           item
             AutoSize = True
-            Caption = 'number'
+            Caption = 'home'
+          end
+          item
+            Caption = 'mobile'
+          end
+          item
+            Caption = 'work'
           end
           item
             Caption = 'quick dial'
@@ -452,7 +458,6 @@ object Form1: TForm1
         ReadOnly = True
         RowSelect = True
         PopupMenu = PopupMenu2
-        ShowWorkAreas = True
         SmallImages = ImageList2
         SortType = stBoth
         TabOrder = 2
@@ -464,12 +469,12 @@ object Form1: TForm1
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
-        Width = 440
-        Height = 73
+        Width = 448
+        Height = 97
         Align = alTop
         TabOrder = 1
         object Label7: TLabel
-          Left = 250
+          Left = 130
           Top = 10
           Width = 43
           Height = 13
@@ -481,16 +486,16 @@ object Form1: TForm1
           Width = 75
           Height = 17
           Caption = 'add'
-          TabOrder = 2
+          TabOrder = 8
           OnClick = PBaddClick
         end
         object PBimportant: TCheckBox
-          Left = 8
-          Top = 49
+          Left = 368
+          Top = 66
           Width = 73
           Height = 17
           Caption = 'important'
-          TabOrder = 3
+          TabOrder = 7
         end
         object PBClear: TButton
           Left = 366
@@ -498,27 +503,27 @@ object Form1: TForm1
           Width = 75
           Height = 17
           Caption = 'clear'
-          TabOrder = 5
+          TabOrder = 9
           OnClick = PBClearClick
         end
         object PBShort: TComboBox
-          Left = 248
+          Left = 128
           Top = 25
           Width = 57
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
-          TabOrder = 6
+          TabOrder = 1
         end
         object sendtoBox: TCheckBox
-          Left = 128
-          Top = 49
-          Width = 217
+          Left = 240
+          Top = 26
+          Width = 105
           Height = 17
           Caption = 'send to Fritz!Box'
-          TabOrder = 7
+          TabOrder = 3
           OnClick = sendtoBoxClick
         end
         object PBName: TLabeledEdit
@@ -532,18 +537,18 @@ object Form1: TForm1
           TabOrder = 0
         end
         object PBNumber: TLabeledEdit
-          Left = 128
-          Top = 25
+          Left = 8
+          Top = 65
           Width = 113
           Height = 21
-          EditLabel.Width = 36
+          EditLabel.Width = 26
           EditLabel.Height = 13
-          EditLabel.Caption = 'number'
-          TabOrder = 1
+          EditLabel.Caption = 'home'
+          TabOrder = 4
           OnKeyPress = PBNumberKeyPress
         end
         object PBVanity: TLabeledEdit
-          Left = 312
+          Left = 192
           Top = 25
           Width = 41
           Height = 21
@@ -551,7 +556,29 @@ object Form1: TForm1
           EditLabel.Height = 13
           EditLabel.Caption = 'vanity'
           Enabled = False
-          TabOrder = 4
+          TabOrder = 2
+        end
+        object PBmobile: TLabeledEdit
+          Left = 128
+          Top = 65
+          Width = 113
+          Height = 21
+          EditLabel.Width = 30
+          EditLabel.Height = 13
+          EditLabel.Caption = 'mobile'
+          TabOrder = 5
+          OnKeyPress = PBNumberKeyPress
+        end
+        object PBwork: TLabeledEdit
+          Left = 248
+          Top = 65
+          Width = 113
+          Height = 21
+          EditLabel.Width = 23
+          EditLabel.Height = 13
+          EditLabel.Caption = 'work'
+          TabOrder = 6
+          OnKeyPress = PBNumberKeyPress
         end
       end
     end
@@ -566,10 +593,10 @@ object Form1: TForm1
         Caption = 'Telnet  '
       end
       object Label6: TLabel
-        Left = 304
+        Left = 312
         Top = 0
         Width = 136
-        Height = 110
+        Height = 112
         Align = alRight
         AutoSize = False
         Caption = 
@@ -615,8 +642,8 @@ object Form1: TForm1
       end
       object TelnetLog: TMemo
         Left = 0
-        Top = 110
-        Width = 440
+        Top = 112
+        Width = 448
         Height = 184
         Align = alBottom
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -631,7 +658,7 @@ object Form1: TForm1
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 448
+    Width = 456
     Height = 27
     ButtonHeight = 25
     ButtonWidth = 34
@@ -789,8 +816,8 @@ object Form1: TForm1
   end
   object Status: TStatusBar
     Left = 0
-    Top = 349
-    Width = 448
+    Top = 351
+    Width = 456
     Height = 19
     Panels = <>
     ParentShowHint = False

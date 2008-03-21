@@ -23,7 +23,7 @@ type
 
   TPerson = Record
       Name     : string;
-      Number   : string;
+      home, mobile, work: string;
       short    : string;
       vanity   : string;
       No       : integer;
@@ -143,6 +143,8 @@ type
     PBVanity: TLabeledEdit;
     Label7: TLabel;
     ToolButton6: TToolButton;
+    PBmobile: TLabeledEdit;
+    PBwork: TLabeledEdit;
     procedure ToolButton6Click(Sender: TObject);
     procedure MessageEventHandler(var Msg: TMsg; var Handled: Boolean);
     procedure SetColumnImage(List: TListView; Column, Image: Integer; ShowImage: Boolean);
@@ -514,7 +516,7 @@ begin
  if length(PhoneBook) > 0 then
  for i:= 0 to length(PhoneBook)-1 do
  begin
-  vgl:= Phonebook[i].number;
+  vgl:= Phonebook[i].home;
   vgl:= CompleteNumber(vgl);
   t  := CompleteNumber(t);
 //  if return = 1 then showmessage(t + ' ' + vgl);
@@ -936,7 +938,7 @@ begin
   end;
 
   Callerlist.Columns[1].Tag := 3; //Date/time
-  phonebooklist.Columns[4].Width:= 0;   //Spalte ausblenden
+  phonebooklist.Columns[6].Width:= 0;   //Spalte ausblenden
   Callerlist.Columns[8].Width:=0;  //Spalte ausblenden
 
  if fileexists(ExtractFilePath(ParamStr(0)) + 'traffic.dat') then
@@ -1409,7 +1411,7 @@ var i: integer;
 begin
  Result:= -1;
  for i:= 0 to length(phonebook)-1 do
-  if (number = phonebook[i].number) then
+  if (number = phonebook[i].home) then
   begin
     Result:= i;
     break;
@@ -1421,7 +1423,7 @@ begin
  Result:= false;
  if (l > -1) then
  if ((phonebook[l].Name = nam)
-    and (phonebook[l].number  = num)
+    and (phonebook[l].home  = num)
     and (phonebook[l].short   = sho)
     and (phonebook[l].vanity =  van))
     then Result:= True else Result:= false;
@@ -1432,41 +1434,13 @@ begin
  Result:= false;
  if (l > -1) then
  if ((phonebook[l].Name = nam)
-    and (phonebook[l].number  = num)
+    and (phonebook[l].home  = num)
     and (phonebook[l].vanity =  van))
     then Result:= True else Result:= false;
 end;
 
-function ParsePhoneBook(s:TStream): boolean;
-var data: string;
-    r: TRegExpr;
-    SL: TStringList;
-    i: integer;
-    len, res: integer;
-    nnam, nnum, nvan, nshort: string;
+function replace_umlauts(nnam:string):string;
 begin
- Result:=false;
- s.Position:= 0;
-
- SL:= TSTringlist.Create;
-
- Data:= (s as TstringStream).ReadString(s.size);
- r:= TRegExpr.Create;
- r.Expression:= #10;
- r.Split(Data,SL);
-
- r.Expression:= '.*TrFon\(\"(.*)\", \"(.*)\", \"(.*)\", \"(.*)\"\).*';
- for i:=0 to SL.Count-1 do
-  if r.Exec(SL.strings[i]) then
-  begin
-    Result:= true;
-
-    res   := 0;
-    nnam  := r.Replace(SL.strings[i],'$1',true);
-    nnum  := r.Replace(SL.strings[i],'$2',true);
-    nvan  := r.Replace(SL.strings[i],'$4',true);
-    nshort:= r.Replace(SL.strings[i],'$3',true);
-
     nnam   := AnsireplaceStr(nnam, '&auml;','ä');
     nnam   := AnsireplaceStr(nnam, '&ouml;','ö');
     nnam   := AnsireplaceStr(nnam, '&uuml;','ü');
@@ -1475,32 +1449,38 @@ begin
     nnam   := AnsireplaceStr(nnam, '&Uuml;','Ü');
     nnam   := AnsireplaceStr(nnam, '&szlig;','ß');
     nnam   := AnsireplaceStr(nnam, '&eacute;','é');
+    Result := nnam;
+end;
 
-    //Prüfen ob die Nummer schon existiert
-    len:= isinPhoneBook(r.Replace(SL.strings[i],'$2',true));
+function AddNewEntryToPhonebook(entry: TPerson):boolean;
+var len: integer;
+    res: short;
+begin
+     //Prüfen ob die Nummer schon existiert
+    len:= isinPhoneBook(entry.home);
 
-    if equal(len, nnam, nnum, nshort, nvan) then continue;
+    if equal(len, entry.name, entry.home, entry.short, entry.vanity) then exit;
 
     //wenn im Telefonbuch
      if (len > -1) then
         if not PBMessage.CheckBox1.Checked then //wenn letzte Entscheidung
         begin
           PBMessage.FillEntry(len);
-          PBMessage.n1.text:= nnam;
-          PBMessage.n2.text:= nnum;
+          PBMessage.n1.text:= entry.name;
+          PBMessage.n2.text:= entry.home;
           PBMessage.n3.text:= PBMessage.o3.text;
           PBMessage.n4.text:= PBMessage.o4.text;
           res:= PBMessage.ShowModal; //1 alten behalten, 2 Neueintrag an der Stelle
           if res = 2 then
           begin
-           nnam:= PBMessage.n1.text;
-           nnum:= PBMessage.n2.text;
-           nvan:= PBMessage.n4.text;
+           entry.name := PBMessage.n1.text;
+           entry.home := PBMessage.n2.text;
+          entry.vanity:= PBMessage.n4.text;
           end;
         end
         else res:= PBMessage.lastResult;
 
-      // wenn noch nicht im Phonebook, dann eintragen
+    // wenn noch nicht im Phonebook, dann eintragen
    if (res <> 1) then
    begin
     //Array um einen Platz verlängern
@@ -1510,16 +1490,69 @@ begin
      len:= Length(phonebook) -1;
     end;
 
-    Phonebook[len].Name   := nnam;
-    Phonebook[len].Number := nnum;
-    Phonebook[len].short  := nshort;
-    Phonebook[len].vanity := nvan;
+    Phonebook[len].Name   := entry.name;
+    Phonebook[len].home   := entry.home;
+    Phonebook[len].mobile := entry.mobile;
+    Phonebook[len].work   := entry.work;
+    Phonebook[len].short  := entry.short;
+    Phonebook[len].vanity := entry.vanity;
     Phonebook[len].No     := len;
    end;
+end;
+
+function ParsePhoneBook(s:TStream): boolean;
+var data: string;
+    r, rnr: TRegExpr;
+    SL: TStringList;
+    i: integer;
+    len, res: integer;
+    nnam, nnum, nvan, nshort: string;
+    new: TPerson;
+    typ, van, sho: string;
+begin
+ Result:=false;
+ s.Position:= 0;
+
+ SL:= TSTringlist.Create;
+
+ Data:= (s as TstringStream).ReadString(s.size);
+ r  := TRegExpr.Create;
+ rnr:= TRegExpr.Create;
+ r.Expression:= #10;
+ r.Split(Data,SL);
+
+ r.Expression  := '.*TrFonName\(\"(.*)\", \"(.*)\", \"(.*)\"\).*';
+ rnr.expression:= '.*TrFonNr\(\"(.*)\", \"(.*)\", \"(.*)\", \"(.*)\"\).*';
+ for i:=0 to SL.Count-1 do
+ begin
+  if r.Exec(SL.strings[i]) then // wenn neuer Datensatz gefunden
+  begin
+    if (new.name <> '') then
+     AddNewEntryToPhoneBook(new);
+
+    new.Name := replace_umlauts(r.Replace(SL.strings[i],'$2',true));
+    new.home := '';  new.mobile := '';  new.work:= ''; new.short:= ''; new.vanity:= ''; new.short:= '';
   end;
-  PBMessage.CheckBox1.Checked:= false;
+
+  if rnr.Exec(SL.strings[i]) then // wenn neue Nummer gefunden
+  begin
+    typ := rnr.Replace(SL.strings[i],'$1',true);
+    van := rnr.Replace(SL.strings[i],'$4',true);
+    sho := rnr.Replace(SL.strings[i],'$3',true);
+    if (typ = 'home' )  then new.home   := rnr.Replace(SL.strings[i],'$2',true)
+    else
+    if (typ = 'mobile') then new.mobile := rnr.Replace(SL.strings[i],'$2',true)
+    else
+    if (typ = 'work')   then new.work   := rnr.Replace(SL.strings[i],'$2',true);
+
+    if (van <> '') then new.vanity:= van;
+    if (sho <> '') then new.short := sho;
+  end;
+ end;
+ PBMessage.CheckBox1.Checked:= false;
 
  r.Free;
+ rnr.free;
  SL.Free;
 end;
 
@@ -1532,8 +1565,9 @@ begin
  Result:=false;
  for i:=0 to (Length(phonebook) -1) do
   begin
-    b:= Phonebook[i].Name  +';'+ Phonebook[i].Number + ';'
-      + Phonebook[i].short +';'+ Phonebook[i].vanity +#13#10;
+    b:= Phonebook[i].Name   + ';'+ Phonebook[i].home + ';'
+      + Phonebook[i].mobile + ';'+ Phonebook[i].work + ';'
+      + Phonebook[i].short  + ';'+ Phonebook[i].vanity +#13#10;
     f.Write(b[1],length(b));
   end;
  f.free;
@@ -1597,7 +1631,9 @@ begin
    begin
       cl.Clear;
 
-      cl.Add(Phonebook[i].Number);
+      cl.Add(Phonebook[i].home);
+      cl.Add(Phonebook[i].mobile);
+      cl.Add(Phonebook[i].work);
       cl.Add(Phonebook[i].Short);
       cl.Add(Phonebook[i].vanity);
       cl.Add(inttostr(Phonebook[i].no));
@@ -1747,7 +1783,7 @@ begin
   begin
 //   index:= PhoneBookList.ItemIndex;
    index:= j;
-   ident:= strtoint(PhoneBooklist.items[index].SubItems.Strings[3]);
+   ident:= strtoint(PhoneBooklist.items[index].SubItems.Strings[5]);
    for i:= length(Phonebook)-1 downto 0 do
     if PhoneBook[i].No = ident then
       begin
@@ -1793,9 +1829,11 @@ begin
         setlength(phonebook, l+1);
 
         Phonebook[l].Name   := sl.strings[0];
-        Phonebook[l].Number := sl.strings[1];
-        Phonebook[l].short  := sl.strings[2];
-        Phonebook[l].vanity := sl.strings[3];
+        Phonebook[l].home   := sl.strings[1];
+        Phonebook[l].mobile := sl.strings[2];
+        Phonebook[l].work   := sl.strings[3];
+        Phonebook[l].short  := sl.strings[4];
+        Phonebook[l].vanity := sl.strings[5];
         phonebook[l].important := (sl.strings[0][1]='!');
         Phonebook[l].no := l;
       end;
@@ -1853,7 +1891,8 @@ begin
 
  if CheckForPassword then PWForm.showmodal;
 
- URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/fon/ppFonbuch.html&var:lang=de';
+// URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/fon/ppFonbuch.html&var:lang=de';
+ URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/home/ppFonbuch.html';
  httpget(URL,str);
 
  ParsePhonebook(str);
@@ -1956,7 +1995,7 @@ begin
 
   for i:= 0 to length(phonebook)-1 do
   begin
-    found := (Oldnumber =  Phonebook[i].number);
+    found := (Oldnumber =  Phonebook[i].home);
     if found then break;
   end;
 
@@ -1966,8 +2005,10 @@ begin
       setlength(PhoneBook, i+1);
     end;
 
-    PhoneBook[i].Name   := NameStr;
-    PhoneBook[i].Number := PBNumber.Text;
+    PhoneBook[i].Name := NameStr;
+    PhoneBook[i].home := PBNumber.Text;
+    PhoneBook[i].mobile := PBmobile.Text;
+    PhoneBook[i].work := PBwork.Text;
     OldNumber:= '';
     if sendtoBox.Checked then
     begin
@@ -2075,20 +2116,22 @@ procedure TForm1.PhoneBookListSelectItem(Sender: TObject; Item: TListItem;
 var i: integer;
     t: string;
 begin
-PBselected:= strtoint(Item.SubItems[3]);
+PBselected:= strtoint(Item.SubItems[5]);
 T:= item.Caption;
 if T[1]='!' then Delete(T,1,1);
 PBName.Text:= T;
 PBNumber.Text:= item.SubItems[0];
+PBMobile.Text:= item.SubItems[1];
+PBWork.Text:= item.SubItems[2];
 sendtoBox.Checked:= not AnsicontainsStr(pbnumber.text, '-');
 sendtobox.Enabled:= not AnsicontainsStr(pbnumber.text, '-');
 sendtoBoxClick(nil);
-PBVanity.Text:= item.SubItems[2];
+PBVanity.Text:= item.SubItems[4];
 PBimportant.checked:= (item.Caption[1] = '!');
-sendToBox.checked:= (item.SubItems[1] <> '') ;
+sendToBox.checked:= (item.SubItems[3] <> '') ;
 
 PBShortFill;
-i:= PBShort.items.Add(item.SubItems[1]);
+i:= PBShort.items.Add(item.SubItems[3]);
 PBshort.ItemIndex:= i;
 
 PBadd.Caption:= 'change';
@@ -2101,6 +2144,8 @@ begin
 PBSelected:= -1;
 PBName.Text:= '';
 PBNumber.Text:= '';
+PBMobile.Text:= '';
+PBWork.Text:= '';
 PBVanity.Text:= '';
 OldName:= '';
 OldNumber:= '';
@@ -2152,7 +2197,7 @@ begin
         Data := Data +
                'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Code=0'  + Phonebook[i].short  + '&' +
                'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Vanity=' + Phonebook[i].vanity + '&' +
-               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Number=' + Phonebook[i].Number + '&' +
+               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Number=' + Phonebook[i].home + '&' +
                'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Name='   + Phonebook[i].Name   + '&';
        inc(cnt);
     end;
@@ -2208,7 +2253,7 @@ begin
  if entry.important then EName:= '!'+Entry.Name else EName:= Entry.Name;
  Data := 'telcfg:settings/HotDialEntry'+inttostr(Entry.No)+'/Code=0'+ inttostr(Entry.No) + '&' +
          'telcfg:settings/HotDialEntry'+inttostr(Entry.No)+'/Vanity=' + '&' +
-         'telcfg:settings/HotDialEntry'+inttostr(Entry.No)+'/Number='+Entry.Number + '&' +
+         'telcfg:settings/HotDialEntry'+inttostr(Entry.No)+'/Number='+Entry.home + '&' +
          'telcfg:settings/HotDialEntry'+inttostr(Entry.No)+'/Name='+ EName + '&' +
          'Submit=Submit';
 
@@ -2484,7 +2529,7 @@ begin
         end;
        ansireplacestr(number,'+','00');
        Phonebook[len].Name   := tname;
-       Phonebook[len].Number := number;
+       Phonebook[len].home   := number;
        Phonebook[len].short  := short;
        Phonebook[len].vanity := van;
        Phonebook[len].No     := len;

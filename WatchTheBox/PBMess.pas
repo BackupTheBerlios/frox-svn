@@ -45,7 +45,7 @@ uses main;
 procedure TPBMessage.FillEntry(id :integer);
 begin
    o1.text:= phonebook[id].name;
-   o2.text:= phonebook[id].number;
+   o2.text:= phonebook[id].home;
    o3.text:= phonebook[id].short;
    o4.text:= phonebook[id].vanity;
    exit;
