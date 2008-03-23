@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, Commctrl,
   IpHlpApi,IpIfConst,IpRtrMib,ipFunctions,iptypes, ExtCtrls, StrUtils,
   scktcomp, CoolTrayIcon, ComCtrls, Buttons, inifiles, HttpProt, Menus, ImgList,
-  Gauges, BomeOneInstance, ToolWin, winsock, TnCnx, AppEvnts;
+  Gauges, BomeOneInstance, ToolWin, winsock, TnCnx, AppEvnts, Ping;
 
 type
 
@@ -28,21 +28,21 @@ type
       vanity   : string;
       No       : integer;
       important: boolean;
-   end;
+  end;
 
-   TCaller = Record
-      Date            : string;
-      typ             : string;
-      ConnID          : string;
-      Rufnummer       : string;
-      Cbc             : string;
-      Klarnummer      : string;
-      Nebenstelle     : string;
-      MSN             : string;
-      Dauer           : string;
-      Name            : string;
-      Start           : cardinal;
-    end;
+  TCaller = Record
+     Date            : string;
+     typ             : string;
+     ConnID          : string;
+     Rufnummer       : string;
+     Cbc             : string;
+     Klarnummer      : string;
+     Nebenstelle     : string;
+     MSN             : string;
+     Dauer           : string;
+     Name            : string;
+     Start           : cardinal;
+  end;
 
   type TFilterArray = array[1..3] of boolean;
 
@@ -143,8 +143,11 @@ type
     PBVanity: TLabeledEdit;
     Label7: TLabel;
     ToolButton6: TToolButton;
+    ConnectCheck : TTimer;
+    Ping1: TPing;
     PBmobile: TLabeledEdit;
     PBwork: TLabeledEdit;
+    procedure ConnectCheckTimer(Sender: TObject);
     procedure ToolButton6Click(Sender: TObject);
     procedure MessageEventHandler(var Msg: TMsg; var Handled: Boolean);
     procedure SetColumnImage(List: TListView; Column, Image: Integer; ShowImage: Boolean);
@@ -213,7 +216,7 @@ type
     procedure FormCreate(Sender: TObject);
 
     procedure TimerTimer(Sender: TObject);
-    procedure Socketconn(Sender: TObject; Socket: TCustomWinSocket);
+    procedure SocketConn(Sender: TObject; Socket: TCustomWinSocket);
     procedure SocketErr(Sender:TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
     Procedure SocketMessage(Sender: TObject; Socket: TCustomWinSocket);
     Procedure DocData(sender: TObject; Buffer: Pointer; len: integer);
@@ -266,9 +269,10 @@ var
   CallByCall         : TStringList;
   IncomingCall       : boolean;
   fbpassword         : string;
+
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
-     CallManagement, PBMess;
+     CallManagement, PBMess, MMSystem;
 
 {$R arrows.res}
 
@@ -310,6 +314,66 @@ begin
     FreeMem(VersionInfo);
   end; { try }
 end; { GetFileVersion }
+
+procedure SetVolumeMute(Enabled: Boolean);
+var
+  hMix : HMIXER;
+  mxlc : MIXERLINECONTROLS;
+  mxcd : TMIXERCONTROLDETAILS;
+  mcdb : MIXERCONTROLDETAILS_BOOLEAN;
+  mxc  : MIXERCONTROL;
+  mxl  : TMIXERLINE;
+  intRet, nMixerDevs : Integer;
+begin
+  nMixerDevs := mixerGetNumDevs();
+  if (nMixerDevs < 1) then Exit;
+  intRet := mixerOpen(@hMix,0,0,0,0);
+  if (intRet = MMSYSERR_NOERROR) then
+  begin
+    mxl.dwComponentType := MIXERLINE_COMPONENTTYPE_DST_SPEAKERS;
+    mxl.cbStruct        := SizeOf(mxl);
+    intRet := mixerGetLineInfo(hMix, @mxl, MIXER_GETLINEINFOF_COMPONENTTYPE);
+    if (intRet = MMSYSERR_NOERROR) then
+    begin
+      FillChar(mxlc, SizeOf(mxlc),0);
+      mxlc.cbStruct      := SizeOf(mxlc);
+      mxlc.dwLineID      := mxl.dwLineID;
+      mxlc.dwControlType := MIXERCONTROL_CONTROLTYPE_MUTE;
+      mxlc.cControls     := 1;
+      mxlc.cbmxctrl      := SizeOf(mxc);
+      mxlc.pamxctrl      := @mxc;
+      intRet := mixerGetLineControls(hMix, @mxlc, MIXER_GETLINECONTROLSF_ONEBYTYPE);
+      if (intRet = MMSYSERR_NOERROR) then
+      begin
+        FillChar(mxcd, SizeOf(mxcd),0);
+        mxcd.cbStruct    := SizeOf(TMIXERCONTROLDETAILS);
+        mxcd.dwControlID := mxc.dwControlID;
+        mxcd.cChannels   := 1;
+        mxcd.cbDetails   := SizeOf(MIXERCONTROLDETAILS_BOOLEAN);
+        mxcd.paDetails   := @mcdb;
+        mcdb.fValue      := Ord(Enabled);
+        intRet := mixerSetControlDetails(hMix, @mxcd, MIXER_SETCONTROLDETAILSF_VALUE);
+        if (intRet <> MMSYSERR_NOERROR) then ShowMessage('SetControlDetails Error');
+      end else ShowMessage('GetLineInfo Error');
+    end;
+    mixerClose(hMix);
+  end;
+end;
+
+procedure runscripts (path: string);
+var sr: TSearchRec;
+begin
+  path := IncludeTrailingPathDelimiter(path);
+  if FindFirst(path + '*.*', faAnyFile, SR) = 0 then
+    try
+      repeat
+        if SR.Attr and faDirectory <> faDirectory then
+          ShellExecute(Application.Handle, 'open', PChar(path+sr.Name), nil, nil, SW_SHOWNORMAL);
+      until FindNext(SR) <> 0;
+    finally
+      FindClose(SR);
+  end;
+end;
 
 procedure TForm1.MessageEventHandler(var Msg: TMsg; var Handled: Boolean);
 var i : integer;
@@ -367,51 +431,78 @@ end;
 
 Procedure TForm1.WMPowerBroadcast(var Msg: TMessage);
 begin
-wakeup.Enabled:= true;
+  wakeup.Enabled:= true;
 end;
 
 procedure TForm1.SocketConnectTimer(Sender: TObject);
 begin //versuche alle 5 s mit der FritzBox zu Verbinden
- SocketConnect.enabled:= false;
- if sett.ReadBool('FritzBox','useMonitor',false) then
-     StartMySocket; //Fritz!Box Listener started
+  if sett.ReadBool('FritzBox','useMonitor',false) and (not SocketConnected) then
+  begin
+    SocketConnect.enabled:= false;
+    StartMySocket; //Fritz!Box Listener started
+  end;
 end;
 
 procedure TForm1.StartMySocket;
 begin
- SocketConnected  := false;
- MySocket.Host    := sett.readstring('Fritzbox','IP','192.168.178.1');
- MySocket.Port    := sett.ReadInteger('FritzBox','Port',1012);
- try
-   MySocket.Open;
- except
-  status.SimpleText:= 'Connection refused. Check your firewall.';
- end;
+  SocketConnected  := false;
+  if Tray.IconIndex <> 8 then Tray.IconIndex := 7;
+  Tray.Tag := 99;
+  MySocket.Host    := sett.readstring('Fritzbox','IP','192.168.178.1');
+  MySocket.Port    := sett.ReadInteger('FritzBox','Port',1012);
+  try
+    MySocket.Open;
+  except
+    status.SimpleText:= 'Connection refused. Check your firewall.';
+  end;
 end;
 
-procedure tForm1.SocketConn(Sender: TObject; Socket: TCustomWinSocket);
+procedure TForm1.SocketConn(Sender: TObject; Socket: TCustomWinSocket);
 begin
- Status.Simpletext:= 'Fritz!Box connected';
- SocketConnected  := true;
+  Status.Simpletext := 'Fritz!Box connected';
+  SocketConnected  := true;
+  Tray.IconIndex := 0;
+  Tray.Tag := 0;
+  // box is available, enable buttons
+  ToolButton1.Enabled := true;
+  ToolButton8.Enabled := true;
+  ToolButton7.Enabled := true;
+  ToolButton10.Enabled := true;
+  HangupButton.Enabled := true;
+  // password an Box senden
+  if PWForm = nil then Application.CreateForm(TPWForm, PWForm);
+  // start telnet and load callerlist
+  StartupTimer.Enabled:= true;
+  // start connection checker
+  ConnectCheck.Enabled := true;
 end;
 
 procedure TForm1.SocketErr(Sender:TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
 begin
- If ErrorCode <> 0 then
- begin
-    Status.Simpletext:= 'Could not connect to your Fritz!Box';
-    SocketConnected  := false;
+  If ErrorCode <> 0 then
+  begin
+    Status.Simpletext := 'Could not connect to your Fritz!Box';
+    SocketConnected := false;
+    // start retry timer
     SocketConnect.enabled:= true;
+    // box not available, disable buttons
+    ToolButton1.Enabled := false;
+    ToolButton8.Enabled := false;
+    ToolButton7.Enabled := false;
+    ToolButton10.Enabled := false;
+    HangupButton.Enabled := false;
+    Tray.IconIndex := 8;
     ErrorCode:= 0;
- end;
+  end;
 end;
 
 procedure TForm1.StopMySocket;
 begin
- try
-  if SocketConnected then MySocket.Close;
- except
- end;
+  try
+    if SocketConnected then MySocket.Close;
+  except
+  end;
+  SocketConnected := false;
 end;
 
 function filterCbc(number: string):string;
@@ -622,6 +713,8 @@ begin
  //Eingehende Anrufe: datum;RING;ConnectionID;Anrufer-Nr;Angerufene-Nummer;
   if s.strings[1] = 'RING' then
     begin
+      if sett.ReadBool('FritzBox','mute', false) then
+        SetVolumeMute (true);
       IncomingCall    := true;
       Call.typ        := 'Incoming Call';
       Call.Date       := s.Strings[0];
@@ -643,12 +736,15 @@ begin
           Callin.ShowCall(count - 1,0);
         ReverseLookUp(Call);
       end;
+      if sett.ReadBool('FritzBox','scriptsin', false) then
+        runscripts (ExtractFilepath(paramstr(0))+'incomingscripts'); // Skripte ausführen
     end
    else
 //Ausgehende Anrufe: datum;CALL;ConnectionID;Nebenstelle;GenutzteNummer;AngerufeneNummer;
   if (sett.ReadBool('FritzBox','monout',true) and (s.strings[1] = 'CALL')) then
     begin
-      //Application.MessageBox (PChar(EnumProcess(GetForegroundWindow)),'Information',mb_ok);
+      if sett.ReadBool('FritzBox','mute', false) then
+        SetVolumeMute (true);
       Call.typ        := 'Outgoing Call';
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
@@ -672,6 +768,8 @@ begin
           Callin.ShowCall(count - 1,0);
         ReverseLookUp(Call);
       end;
+      if sett.ReadBool('FritzBox','outgoingscripts', false) then
+        runscripts (ExtractFilepath(paramstr(0))+'scriptsout'); // Skripte ausführen
     end
    else
 //Ende der Verbindung: datum;DISCONNECT;ConnectionID;dauerInSekunden;
@@ -684,22 +782,29 @@ begin
       if assigned(CallIn) then
         if Count > 0 then Callin.ShowCall(0,0);  //den ersten Anruf zeigen, wenn der letzte wegfällt
 
-      if sett.ReadBool('FritzBox','AutoClose',true) and (count = 0)
-          then
-          begin
-            tray.IconIndex:=0;
-            tray.Tag:=0;
-            ToolButton6.Enabled := false;
-            if assigned(callIn) then CallIn.close;         //Fenster schließen, wenn alle Anrufe beendet sind
-            if sett.ReadBool('FritzBox','LoadListAutomatically',false)
-              then ReloadCallerlistClick(ToolButton1); //Liste neuladen
-          end;
+      if sett.ReadBool('FritzBox','AutoClose',true) and (count = 0) then
+      begin
+        tray.IconIndex:=0;
+        tray.Tag:=0;
+        ToolButton6.Enabled := false;
+        if assigned(callIn) then CallIn.close;     //Fenster schließen, wenn alle Anrufe beendet sind
+        if sett.ReadBool('FritzBox','mute', false) then
+          SetVolumeMute (false);
+        if sett.ReadBool('FritzBox','endoflastscripts', false) then
+          runscripts (ExtractFilepath(paramstr(0))+'scriptsendlast'); // Skripte ausführen
+        if sett.ReadBool('FritzBox','LoadListAutomatically',false)
+          then ReloadCallerlistClick(ToolButton1); //Liste neuladen
+      end else
+        if sett.ReadBool('FritzBox','endofscripts', false) then
+          runscripts (ExtractFilepath(paramstr(0))+'scriptsend'); // Skripte ausführen
 
       // Anruf verpasst
       if IncomingCall then
       begin
         Tray.IconIndex := 5;
         Tray.Tag := 2;
+        if sett.ReadBool('FritzBox','missedcripts', false) then
+          runscripts (ExtractFilepath(paramstr(0))+'scriptsmissed'); // Skripte ausführen
       end;
     end
   else
@@ -761,11 +866,9 @@ begin
     http.RcvdStream.Position:= 0;
     str.CopyFrom(http.RcvdStream,http.RcvdStream.size);
   except
-   on ESocketError do
-     status.SimpleText:= 'Http error. Check your firewall.';
+    on ESocketError do
+      status.SimpleText:= 'Http error. Check your firewall.';
   end;
-
-
 
   http.RcvdStream.free;
   http.RcvdStream:= nil;
@@ -775,13 +878,16 @@ begin
   tray.tag:= 0;
 end;
 
-procedure TForm1.httppost(URL,Data: string);
+procedure TForm1.httppost(URL, Data: string);
 var Http: THttpCli;
 begin
   Http := THttpCli.Create(nil);
   http.OnDocData := Form1.DocData;
-  tray.IconIndex:= 7;
   tray.tag:= 99;
+  if ContainsStr(Data, 'login:command/password') then
+    tray.IconIndex := 9
+  else
+    tray.IconIndex := 7;
   with Http do
   begin
     Name := 'Http';
@@ -893,7 +999,7 @@ begin
  if Paramcount > 0 then
   for c:= 0 to Paramcount do
     if ParamStr(c)='-OnlyIncoming' then //zeige in der Anrufliste nur eingehende Gespräche an
-    begin    
+    begin
      Toolbutton5.Down         := false;
      Toolbutton5.Enabled      := false;
      Toolbutton5.Indeterminate:= true;
@@ -983,8 +1089,6 @@ begin
  LoadPhonebookFromFile;
  LoadCallersFromFile();
 
- fbpassword := decode(sett.ReadString('FritzBox', 'binaries', ''), mykey);
-
  if tab1.Visible then
    PageControl1.ActivePageIndex:= 0
  else
@@ -993,22 +1097,16 @@ begin
 
  PageControl1Change(self);
 
- MySocket          := TClientSocket.Create(self);
- MySocket.OnError  := SocketErr;
- MySocket.OnConnect:= SocketConn;
- MySocket.OnRead   := SocketMessage;
+ MySocket              := TClientSocket.Create(self);
+ MySocket.OnError      := SocketErr;
+ MySocket.OnConnect    := SocketConn;
+ MySocket.OnRead       := SocketMessage;
 
- try
-  if sett.ReadBool('FritzBox','useMonitor',false) then
-      StartMySocket; //Fritz!Box Listener started
-  startuptimer.Enabled:= true;
- except
-  status.SimpleText:= 'Connection Error';
- end;
+ // wait some time, then try to connect to Fritz!Box
+ SocketConnect.Enabled := true;
 
  // Routine zum Abfangen von Events aktivieren
  Application.OnMessage := MessageEventHandler;
-
 end;
 
 procedure TForm1.SaveTrafficData;
@@ -1027,8 +1125,11 @@ procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var i: integer;
 begin
   canclose:= false;
+  //HTTP Request in progress? Then don't close!
+  if (Tray.IconIndex = 7) and SocketConnected then exit;
+
   //mit der neuen lokalen Telefonnummerverwaltung eigentlich unnötig
-//  if unsaved_phonebook then AskforUpdate;
+  //if unsaved_phonebook then AskforUpdate;
 
   SaveTrafficData;
 
@@ -1452,11 +1553,12 @@ begin
     Result := nnam;
 end;
 
-function AddNewEntryToPhonebook(entry: TPerson):boolean;
+procedure AddNewEntryToPhonebook(entry: TPerson);
 var len: integer;
     res: short;
 begin
-     //Prüfen ob die Nummer schon existiert
+    res := 1;
+    //Prüfen ob die Nummer schon existiert
     len:= isinPhoneBook(entry.home);
 
     if equal(len, entry.name, entry.home, entry.short, entry.vanity) then exit;
@@ -1470,7 +1572,7 @@ begin
           PBMessage.n2.text:= entry.home;
           PBMessage.n3.text:= PBMessage.o3.text;
           PBMessage.n4.text:= PBMessage.o4.text;
-          res:= PBMessage.ShowModal; //1 alten behalten, 2 Neueintrag an der Stelle
+          res := PBMessage.ShowModal; //1 alten behalten, 2 Neueintrag an der Stelle
           if res = 2 then
           begin
            entry.name := PBMessage.n1.text;
@@ -1505,8 +1607,6 @@ var data: string;
     r, rnr: TRegExpr;
     SL: TStringList;
     i: integer;
-    len, res: integer;
-    nnam, nnum, nvan, nshort: string;
     new: TPerson;
     typ, van, sho: string;
 begin
@@ -1889,7 +1989,11 @@ begin
 
  str:= TStringStream.Create('');
 
- if CheckForPassword then PWForm.showmodal;
+ if CheckForPassword then
+   if sett.ReadString('FritzBox', 'binaries', '') = '' then
+     PWForm.showmodal
+   else
+     PWForm.BitBtn1Click(nil);
 
 // URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/fon/ppFonbuch.html&var:lang=de';
  URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/home/ppFonbuch.html';
@@ -1931,7 +2035,11 @@ begin
   Callerlist.Enabled:= false;
   str:= TStringStream.Create('');
 
-  if CheckForPassword then PWForm.showmodal;
+  if CheckForPassword then
+    if sett.ReadString('FritzBox', 'binaries', '') = '' then
+      PWForm.showmodal
+    else
+      PWForm.BitBtn1Click(nil);
 
   URL:= 'http://'+BoxAdress+'/cgi-bin/webcm?getpage=../html/de/menus/menu2.html&var:lang=de&var:menu=fon&var:pagename=foncalls';
   httpget(URL, str);
@@ -2159,17 +2267,17 @@ end;
 
 procedure TForm1.ToolButton2Click(Sender: TObject);
 begin
- form3.show;
+  form3.show;
 end;
 
 procedure TForm1.ToolButton1Click(Sender: TObject);
 begin
-ReloadCallerlistClick(self);    
+  ReloadCallerlistClick(self);
 end;
 
 procedure TForm1.ToolButton3Click(Sender: TObject);
 begin
- LoadCallersFromFile();
+  LoadCallersFromFile();
 end;
 
 Procedure TForm1.UpdatePhonebook;
@@ -2179,7 +2287,11 @@ begin
    Form1.Phonebooklist.Cursor:= crHourGlass;
    Form1.Phonebooklist.Enabled:= false;
 
-   if CheckForPassword then PWForm.showmodal;
+   if CheckForPassword then
+     if sett.ReadString('FritzBox', 'binaries', '') = '' then
+       PWForm.showmodal
+     else
+       PWForm.BitBtn1Click(nil);
 
     //Alles löschen
     Data:= '';
@@ -2366,59 +2478,37 @@ if PhoneBookList.ItemIndex > -1 then
 
    sett.DeleteKey('Images',name);
   end;
-
 end;
 
 procedure TForm1.deleteitemClick(Sender: TObject);
-var index          : integer;
-    DelString      : string;
-    DelString1     : string;
-    i, j, s        : integer;
-    SL             : TStringlist;
-    dellist        : TSTringlist;
+var i        : integer;
+    sla, slb : TStringlist;
+    entry    : string;
 begin
- dellist:= TStringList.Create;
- if Callerlist.SelCount > 0 then
-  for j := callerlist.Items.count-1 downto 0 do
-   if Callerlist.Items.Item[j].Selected then
-   begin
-    index:= j;
-
-    DelString:= inttostr(CallerList.items[index].ImageIndex-1);
-    DelString1:= inttostr(CallerList.items[index].ImageIndex-1);
-    for i:= 0 to Callerlist.items[index].SubItems.count-3 do
-    begin
-      s := i;
-      // Rücktausch der Spalten durchführen
-      if (s > 2) then s := s + 1;
-      if s = 2 then s := 7;
-      // dann weiter
-      Delstring := DelString + ';'+Callerlist.items[index].SubItems.Strings[s];
-      if s = 1 then
-        Delstring1 := DelString1 + ';!'+Callerlist.items[index].SubItems.Strings[s]
-      else
-        Delstring1 := DelString1 + ';'+Callerlist.items[index].SubItems.Strings[s];
-    end;
-    Application.Messagebox (pchar(delstring),'Information',mb_ok); 
-
-    dellist.Append(Delstring);
-    dellist.Append(Delstring1);
+  if Callerlist.SelCount > 0 then
+    for i := callerlist.Items.count-1 downto 0 do
+      if Callerlist.Items.Item[i].Selected then
+        Callerlist.Items.Item[i].Delete;
+  sla:= TStringlist.Create;
+  sla.LoadFromFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
+  slb:= TStringlist.Create;
+  slb.Insert(0, sla.Strings[1]);
+  slb.Insert(0, sla.Strings[0]);
+  sla.free;
+  for i := 0 to callerlist.Items.count-1 do
+  begin
+    entry := IntToStr (Callerlist.Items.Item[i].ImageIndex-1)+';';
+    entry := entry + Callerlist.Items.Item[i].SubItems.Strings[0]+';';
+    entry := entry + Callerlist.Items.Item[i].SubItems.Strings[1]+';';
+    entry := entry + Callerlist.Items.Item[i].SubItems.Strings[7]+';';
+    entry := entry + Callerlist.Items.Item[i].SubItems.Strings[4]+';';
+    entry := entry + Callerlist.Items.Item[i].SubItems.Strings[5]+';';
+    entry := entry + Callerlist.Items.Item[i].SubItems.Strings[6];
+    slb.Append(entry);
+    //to modify
   end;
-
- sl:= TStringlist.Create;
- sl.loadfromfile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
- for i:= 0 to dellist.Count -1 do
- begin
-  if sl.indexof(Dellist.Strings[i]) >-1 then
-     sl.Delete(sl.indexof(Dellist.Strings[i]));
- end;
-
- sl.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
-
- LoadCallersFromFile(); //neuladen mit eingestelltem Filter
-
- sl.free;
- dellist.Free;
+  slb.SaveToFile(ExtractFilePath(ParamStr(0))+'anrufliste.csv');
+  slb.Free;
 end;
 
 procedure TForm1.ToolButton10Click(Sender: TObject);
@@ -2546,37 +2636,36 @@ begin
   end; //if vcf.execute
 
   vcf.Free;
-
 end;
 
 procedure TForm1.sendtoBoxClick(Sender: TObject);
 begin
-PBShort.enabled := sendtobox.checked;
-PBVanity.enabled:= sendtobox.checked;
-label7.enabled  := sendtobox.checked;
+  PBShort.enabled := sendtobox.checked;
+  PBVanity.enabled:= sendtobox.checked;
+  label7.enabled  := sendtobox.checked;
 end;
 
 procedure TForm1.wakeupTimer(Sender: TObject);
 begin
- wakeup.enabled:= false;
- if sett.ReadBool('FritzBox','useMonitor',false) then
- begin
-     StartMySocket; //Fritz!Box Listener started
-     telnet.Connect;
- end;
+  wakeup.enabled:= false;
+  if sett.ReadBool('FritzBox','useMonitor',false) then
+  begin
+    StartMySocket; //Fritz!Box Listener started
+    telnet.Connect;
+  end;
 end;
 
 procedure TForm1.ToolButton11Click(Sender: TObject);
 begin
-searchpanel.Visible:= not searchpanel.Visible;
-PhoneBookList.Tag:= 0;
-if (searchpanel.Visible) then
-begin
- Phonebooklist.Height:= Phonebooklist.height - searchpanel.height;
- PBsearch.SetFocus;
-end
-else
- Phonebooklist.Height:= tab3.height - groupbox1.height;
+  searchpanel.Visible:= not searchpanel.Visible;
+  PhoneBookList.Tag:= 0;
+  if (searchpanel.Visible) then
+  begin
+    Phonebooklist.Height:= Phonebooklist.height - searchpanel.height;
+    PBsearch.SetFocus;
+  end
+  else
+    Phonebooklist.Height:= tab3.height - groupbox1.height;
 end;
 
 procedure TForm1.PBsearchChange(Sender: TObject);
@@ -2606,7 +2695,7 @@ begin
      exit;
     end;
   end;
-PhoneBookList.Tag:= -1;
+  PhoneBookList.Tag:= -1;
 end;
 
 procedure TForm1.PBsearchChangeBackwards;
@@ -2636,28 +2725,26 @@ begin
      exit;
     end;
   end;
-PhoneBookList.Tag:= PhoneBookList.Items.Count-1;
+  PhoneBookList.Tag:= PhoneBookList.Items.Count-1;
 end;
 
 
 procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-
-//STRG-F
-if (not ToolButton11.Down) and (ssCTRL in Shift) and (Key=70) then
-begin
-  ToolButton11.Click;
-  ToolButton11.Down:= true;
-end
-else
-//UMSCHALT-F3
-if searchpanel.visible and (key = 114)and (ssSHIFT in Shift) {F3} then
-  PBsearchChangeBackWards
-else
-//F3
-if searchpanel.visible and (key = 114) {F3} then
-  PBsearchChange(sender);
-
+  //STRG-F
+  if (not ToolButton11.Down) and (ssCTRL in Shift) and (Key=70) then
+  begin
+    ToolButton11.Click;
+    ToolButton11.Down:= true;
+  end
+  else
+  //UMSCHALT-F3
+  if searchpanel.visible and (key = 114)and (ssSHIFT in Shift) {F3} then
+    PBsearchChangeBackWards
+  else
+  //F3
+  if searchpanel.visible and (key = 114) {F3} then
+    PBsearchChange(sender);
 end;
 
 //wählt eine Nummer auf der Fritz Box
@@ -2676,12 +2763,12 @@ begin
 //<input type="hidden" name="telcfg:command/Dial" value="" id="uiPostDial" disabled>
 //<input type="hidden" name="telcfg:command/Hangup" value="" id="uiPostHangup" disabled>
 
- Data:= 'telcfg:settings/UseClickToDial=1&';
- Data:= Data + 'telcfg:settings/DialPort='+Port+'&';
- Data:= Data + 'telcfg:command/Dial='+Number+'&';
- Data:= Data + 'Submit=Submit';
+  Data:= 'telcfg:settings/UseClickToDial=1&';
+  Data:= Data + 'telcfg:settings/DialPort='+Port+'&';
+  Data:= Data + 'telcfg:command/Dial='+Number+'&';
+  Data:= Data + 'Submit=Submit';
 
-Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+  Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
 
 //if (MessageDlg('Dialing in progress ... Click the button to hang up ?', mtInformation, [mbAbort], 0) in [mrAbort, mrNone]) then
 //begin
@@ -2693,14 +2780,14 @@ end;
 procedure TForm1.HangUpFritzBox();
 var Data: String;
 begin
- Data:= 'telcfg:settings/UseClickToDial=1&';
- Data:= Data + 'telcfg:settings/DialPort=1&';
- Data:= Data + 'telcfg:command/Hangup=2&';
- Data:= Data + 'Submit=Submit';
+  Data:= 'telcfg:settings/UseClickToDial=1&';
+  Data:= Data + 'telcfg:settings/DialPort=1&';
+  Data:= Data + 'telcfg:command/Hangup=2&';
+  Data:= Data + 'Submit=Submit';
 
- Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
- status.SimpleText   := 'Dialing cancelled.';
- hangupbutton.Visible:= false;
+  Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+  status.SimpleText   := 'Dialing cancelled.';
+  hangupbutton.Visible:= false;
 end;
 
 
@@ -2709,24 +2796,23 @@ var number: string;
     index : integer;
     Port  : string;
 begin
+  case ((sender as TMenuItem).tag) of
+   1: Port := 'Fon 1';
+   2: Port := 'Fon 2';
+   3: Port := 'Fon 3';
+   50:Port := 'S0';
+  end;
 
- case ((sender as TMenuItem).tag) of
-  1: Port := 'Fon 1';
-  2: Port := 'Fon 2';
-  3: Port := 'Fon 3';
-  50:Port := 'S0';
- end;
-
- hangupbutton.Visible:= true;
- index               := CallerList.ItemIndex;
- Number              := Callerlist.items[index].SubItems.Strings[7];
- DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag));
- status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
+  hangupbutton.Visible:= true;
+  index               := CallerList.ItemIndex;
+  Number              := Callerlist.items[index].SubItems.Strings[3];
+  DialNumberFritzBox (number, inttostr((sender as TMenuItem).tag));
+  status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
 end;
 
 procedure TForm1.HangupbuttonClick(Sender: TObject);
 begin
- HangUpFritzBox;
+  HangUpFritzBox;
 end;
 
 procedure TForm1.Fon12Click(Sender: TObject);
@@ -2734,111 +2820,108 @@ var number: string;
     index : integer;
     Port  : string;
 begin
+  case ((sender as TMenuItem).tag) of
+    1: Port := 'Fon 1';
+    2: Port := 'Fon 2';
+    3: Port := 'Fon 3';
+    50:Port := 'S0';
+  end;
 
- case ((sender as TMenuItem).tag) of
-  1: Port := 'Fon 1';
-  2: Port := 'Fon 2';
-  3: Port := 'Fon 3';
-  50:Port := 'S0';
- end;
-
- hangupbutton.Visible:= true;
- index               := PhonebookList.ItemIndex;
- Number              := Phonebooklist.items[index].SubItems.Strings[0];
- DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag));
- status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
+  hangupbutton.Visible:= true;
+  index               := PhonebookList.ItemIndex;
+  Number              := Phonebooklist.items[index].SubItems.Strings[0];
+  DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag));
+  status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 var c: string;
 begin
-try
- c:= 'echo 7,2 >/var/led';
- telnet.SendStr(c+#10);
- telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
-except
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-end;
+  try
+    c:= 'echo 7,2 >/var/led';
+    telnet.SendStr(c+#10);
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+  except
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+  end;
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 var c: string;
 begin
-try
- c:= 'echo 7,1 >/var/led';
- telnet.SendStr(c+#10);
- telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
-except
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-end;
+  try
+    c:= 'echo 7,1 >/var/led';
+    telnet.SendStr(c+#10);
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+  except
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+  end;
 end;
 
 procedure TForm1.telnetSessionConnected(Sender: TTnCnx; Error: Word);
 begin
-if error = 0 then
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session connected')
-else
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session could not connect ('+inttostr(error)+')');
+  if error = 0 then
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session connected')
+  else
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session could not connect ('+inttostr(error)+')');
 
-if error = 10061 then //telnet not active 
- begin
-  label5.caption:='Telnet: inactive';
- end
+if error = 10061 then //telnet not active
+  begin
+    label5.caption:='Telnet: inactive';
+  end
 else
- begin
-  label5.caption:='Telnet: active';
- end
+  begin
+    label5.caption:='Telnet: active';
+  end
 end;
 
 procedure TForm1.telnetDisplay(Sender: TTnCnx; Str: string);
 begin
-telnetlog.Lines.Add(DateTimetoStr(now) + #9 + str);
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + str);
 end;
 
 procedure TForm1.restarttelefonClick(Sender: TObject);
 var c: string;
 begin
-StopMySocket;
-setlength(ActiveCalls, 0); //alle aktiven Gesrpäche werden jetzt beendet
-try //Fehler fangen
-  c:= 'killall telefon';
-  telnet.SendStr(c+#10);  //Telefondienst killen (beendet ALLE laufenden Gespraeche)
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
-  c:= 'telefon a127.0.0.1';
-  telnet.SendStr(c+#10);          //Telefondienst neu starten
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
-  c:= 'echo 14,1 >/var/led'+#10+'echo 13,1 >/var/led';
-  telnet.SendStr(c+#10);          //TelefonLEDs ausschalten
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
-
-
-except
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-end;
-if assigned(CallIn) then CallIn.Close;  //Benachrichtigungsfenster schließen
-WaitForReconnect.Enabled:= true;
+  StopMySocket;
+  setlength(ActiveCalls, 0); //alle aktiven Gesrpäche werden jetzt beendet
+  try //Fehler fangen
+    c:= 'killall telefon';
+    telnet.SendStr(c+#10);  //Telefondienst killen (beendet ALLE laufenden Gespraeche)
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+    c:= 'telefon a127.0.0.1';
+    telnet.SendStr(c+#10);          //Telefondienst neu starten
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+    c:= 'echo 14,1 >/var/led'+#10+'echo 13,1 >/var/led';
+    telnet.SendStr(c+#10);          //TelefonLEDs ausschalten
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+  except
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+  end;
+  if assigned(CallIn) then CallIn.Close;  //Benachrichtigungsfenster schließen
+    WaitForReconnect.Enabled:= true;
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
 begin
-//Dsl-Daemon stoppen (alle Internet-Verbindungen werden getrennt
-//2s warten
-//dsld neu starten > Reconnect
-try
-  telnet.sendstr('dsld -s' +#10+'sleep 2'+#10+'dsld'+#10);
-except
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-end;
+  //Dsl-Daemon stoppen (alle Internet-Verbindungen werden getrennt
+  //2s warten
+  //dsld neu starten > Reconnect
+  try
+    telnet.sendstr('dsld -s' +#10+'sleep 2'+#10+'dsld'+#10);
+  except
+    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+  end;
 end;
 
 procedure TForm1.telnetSendLoc(Sender: TObject);
 begin
-telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'send');
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'send');
 end;
 
 procedure TForm1.telnetSessionClosed(Sender: TTnCnx; Error: Word);
 begin
-telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session closed ('+inttostr(error)+')');
+  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session closed ('+inttostr(error)+')');
 end;
 
 procedure TForm1.telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
@@ -2861,54 +2944,61 @@ begin
       telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
     end;
    end;
-
-
 end;
 
 procedure TForm1.StartupTimerTimer(Sender: TObject);
 begin
- StartupTimer.Enabled:= false;
+  StartupTimer.Enabled:= false;
 
- //Telnet verbinden
- telnet.Host:= 'fritz.box';
- telnet.Port:= '23';
- try
-  if sett.ReadBool('FritzBox','useMonitor',false) then
-   telnet.Connect;
- except
-  status.SimpleText:= 'Connection refused. Check your firewall.';
- end;
+  //Telnet verbinden
+  telnet.Host:= 'fritz.box';
+  telnet.Port:= '23';
+  try
+    if sett.ReadBool('FritzBox','useMonitor',false) then telnet.Connect;
+  except
+    status.SimpleText:= 'Telnet connection refused. Check your firewall.';
+  end;
 
- //Anrufliste laden
- if sett.ReadBool('FritzBox','LoadListAutomatically',false)
-  then
+  //Anrufliste laden
+  if sett.ReadBool('FritzBox','LoadListAutomatically',false) then
   try
     ReloadCallerlistClick(nil);
-  except LoadCallersFromFile(); end;
-
+  except
+    LoadCallersFromFile();
+  end;
 end;
 
 procedure TForm1.WaitForReconnectTimer(Sender: TObject);
 begin
-WaitForReconnect.Enabled:= false;
-StartMySocket;
+  WaitForReconnect.Enabled:= false;
+  StartMySocket;
 end;
-
-
 
 procedure TForm1.PBNumberKeyPress(Sender: TObject; var Key: Char);
 begin
-sendtoBox.Checked:= not AnsicontainsStr(pbnumber.text, '-');
-sendtobox.Enabled:= not AnsicontainsStr(pbnumber.text, '-');
-sendtoBoxClick(nil);
+  sendtoBox.Checked:= not AnsicontainsStr(pbnumber.text, '-');
+  sendtobox.Enabled:= not AnsicontainsStr(pbnumber.text, '-');
+  sendtoBoxClick(nil);
 
-if not (Key in ['0'..'9','-', Char(VK_BACK)]) then
-  Key := #0;
+  if not (Key in ['0'..'9','-', Char(VK_BACK)]) then
+    Key := #0;
 end;
 
 procedure TForm1.ToolButton6Click(Sender: TObject);
 begin
-   ShowNotification (true, 'last');
+  ShowNotification (true, 'last');
+end;
+
+procedure TForm1.ConnectCheckTimer(Sender: TObject);
+begin
+  if Tray.IconIndex > 6 then exit;
+  Ping1.Address := sett.ReadString('FritzBox','IP','192.168.178.1');
+  if Ping1.Ping = 0 then
+  begin
+    ConnectCheck.Enabled := false;
+    StopMySocket;
+    SocketConnect.Enabled := true;
+  end;
 end;
 
 end.

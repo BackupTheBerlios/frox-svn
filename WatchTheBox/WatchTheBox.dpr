@@ -19,7 +19,6 @@ begin
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(Tstats, stats);
   Application.CreateForm(TForm3, Form3);
-  Application.CreateForm(TPWForm, PWForm);
   Application.CreateForm(TPBMessage, PBMessage);
   Application.Run;
 end.

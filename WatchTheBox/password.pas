@@ -14,6 +14,7 @@ type
     Bevel1: TBevel;
     passlabel: TLabel;
     BitBtn2: TBitBtn;
+    procedure FormCreate(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
@@ -74,13 +75,6 @@ procedure TPWForm.FormShow(Sender: TObject);
 begin
   BitBtn2.Visible:= (pwform.Tag = 1);     //telnet
   BitBtn1.Visible:= not (pwform.Tag = 1); //http
-
-  savePWD.Checked := sett.readBool('FritzBox', 'useBin', false);
-  if savePWD.checked then
-  begin
-    PWEdit.Text:= decode(sett.ReadString('FritzBox','binaries',''), mykey);
-    if BitBtn1.Visible then BitBtn1.Click else BitBtn2.Click;
-  end;
 end;
 
 procedure TPWForm.BitBtn2Click(Sender: TObject);
@@ -99,6 +93,16 @@ begin
   form1.telnet.SendStr(pw+#10);
   PWForm.Tag:= 0;
   PWForm.close;
+end;
+
+procedure TPWForm.FormCreate(Sender: TObject);
+begin
+  savePWD.Checked := sett.readBool('FritzBox', 'useBin', false);
+  if savePWD.checked then
+  begin
+    PWEdit.Text:= decode(sett.ReadString('FritzBox','binaries',''), mykey);
+    if BitBtn1.Visible then BitBtn1.Click else BitBtn2.Click;
+  end;
 end;
 
 end.

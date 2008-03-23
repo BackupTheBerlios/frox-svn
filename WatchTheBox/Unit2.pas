@@ -149,7 +149,7 @@ end;
 end;
 
 procedure TCallIn.showCall(p: integer; setpos: integer);
-var image: string;
+var image, MCEMessageParams, MCEMessagePath : string;
     top, right, left: integer;
     result: boolean;
     e: extended;
@@ -232,10 +232,39 @@ begin
        If EnumProcess (GetForegroundWindow) <> 'Windows Media Center' then
          AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true)
        else begin
-         // Media Center needs it the hard way. ;)
-         ShowWindow(GetForegroundWindow,SW_HIDE);
-         SetForegroundWindow(Callin.Handle);
-         AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
+         if sett.ReadBool('FritzBox','MCEMessageUse',false) then
+         begin
+           // Use Spyn Doctors MCEMessage to notify call.
+           // While it is not as versatile as original notifier, it looks a lot more
+           // slick, than forcing Media Center to the background.
+           MCEMessageParams :=
+           // TITLE
+           '"'+ActiveCalls[p].typ+'(#'+ActiveCalls[p].ConnID+')'+'"'+
+           ' '+
+           // TEXT
+           '"'+info2.caption+'                 '+date.caption+'\r\n'+
+           number.caption+'\r\n'+
+           info3.Caption+'"'+
+           ' '+
+           // TIMEOUT
+           sett.ReadString ('FritzBox','CloseTime','15')+
+           ' '+
+           // MODAL
+           '0';
+           // IMAGEPATH
+           if image <> '' then MCEMessageParams := MCEMessageParams +' '+ image;
+           MCEMessagePath := sett.ReadString('FritzBox','MCEMessagePath','mcemessage.exe');
+           ShellExecute(Application.Handle, 'open', PChar(MCEMessagePath), PChar(MCEMessageParams), nil, SW_HIDE);
+
+           // display normal notifier anyway
+           AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
+         end else
+         begin
+           // As Spyn Doctors MCEMessage is not to be used, force Media Center to background.
+           ShowWindow(GetForegroundWindow,SW_HIDE);
+           SetForegroundWindow(Callin.Handle);
+           AlwaysOnTop(Callin.Handle,callin.Left,callin.top, callin.width, callin.height, true);
+         end;
        end;
 
       end

@@ -45,7 +45,6 @@ type
     closefinished: TCheckBox;
     closetimer: TCheckBox;
     closeafter: TSpinEdit;
-    Label8: TLabel;
     tmenabled: TCheckBox;
     OneMSN: TCheckBox;
     MSN: TEdit;
@@ -57,6 +56,19 @@ type
     revenabled: TCheckBox;
     CityCode: TLabeledEdit;
     CountryCode: TLabeledEdit;
+    TabSheet4: TTabSheet;
+    mcemuse: TCheckBox;
+    mcempathedit: TEdit;
+    mcempathbutton: TButton;
+    Label8: TLabel;
+    GroupBox5: TGroupBox;
+    incomingscripts: TCheckBox;
+    outgoingscripts: TCheckBox;
+    missedscripts: TCheckBox;
+    endofscripts: TCheckBox;
+    endoflastscripts: TCheckBox;
+    muteoncall: TCheckBox;
+    procedure mcempathbuttonClick(Sender: TObject);
     procedure revenabledClick(Sender: TObject);
     procedure FBPortKeyPress(Sender: TObject; var Key: Char);
     procedure PriceKeyPress(Sender: TObject; var Key: Char);
@@ -80,17 +92,68 @@ var
   Form3: TForm3;
 
 implementation
-uses main,StrUtils, tools, 
+uses main, StrUtils, tools, ShellApi, ShlObj,
      IpHlpApi,IpIfConst,IpRtrMib,ipFunctions,iptypes;
 {$R *.dfm}
 
+function BrowseDialogCallBack
+  (Wnd: HWND; uMsg: UINT; lParam, lpData: LPARAM):
+  integer stdcall;
+var
+  wa, rect : TRect;
+  dialogPT : TPoint;
+begin
+  //center in work area
+  if uMsg = BFFM_INITIALIZED then
+  begin
+    wa := Screen.WorkAreaRect;
+    GetWindowRect(Wnd, Rect);
+    dialogPT.X := ((wa.Right-wa.Left) div 2) - 
+                  ((rect.Right-rect.Left) div 2);
+    dialogPT.Y := ((wa.Bottom-wa.Top) div 2) - 
+                  ((rect.Bottom-rect.Top) div 2);
+    MoveWindow(Wnd,
+               dialogPT.X,
+               dialogPT.Y,
+               Rect.Right - Rect.Left,
+               Rect.Bottom - Rect.Top,
+               True);
+  end;
+
+  Result := 0;
+end; (*BrowseDialogCallBack*)
+
+function BrowseDialog
+ (const Title: string; const Flag: integer): string;
+var
+  lpItemID : PItemIDList;
+  BrowseInfo : TBrowseInfo;
+  DisplayName : array[0..MAX_PATH] of char;
+  TempPath : array[0..MAX_PATH] of char;
+begin
+  Result:='';
+  FillChar(BrowseInfo, sizeof(TBrowseInfo), #0);
+  with BrowseInfo do begin
+    hwndOwner := Application.Handle;
+    pszDisplayName := @DisplayName;
+    lpszTitle := PChar(Title);
+    ulFlags := Flag;
+    lpfn := BrowseDialogCallBack;
+  end;
+  lpItemID := SHBrowseForFolder(BrowseInfo);
+  if lpItemId <> nil then begin
+    SHGetPathFromIDList(lpItemID, TempPath);
+    Result := TempPath;
+    GlobalFreePtr(lpItemID);
+  end;
+end;
+
 procedure TForm3.GetDeviceList;
-var PAdapter, PMem: PipAdapterInfo;
+var PAdapter: PipAdapterInfo;
     OutBufLen: ULONG;
 begin
 NDev.clear;
   VVGetAdaptersInfo(PAdapter, OutBufLen);
-  PMem := PAdapter;
   try
     while PAdapter <> nil do
       with NDev do
@@ -156,6 +219,17 @@ begin
  sett.writeString('FritzBox','reverse', revpath.Text);
  sett.WriteBool('FritzBox','DeleteListAutomatically',DeleteListAutomatically.checked);
  sett.WriteBool('FritzBox','LoadListAutomatically', LoadListAutomatically.checked);
+ if mcempathedit.text <> '' then
+ begin
+   sett.WriteBool('FritzBox','MCEMessageUse',mcemuse.checked);
+   sett.WriteString('FritzBox','MCEMessagePath',mcempathedit.text);
+ end else sett.WriteBool('FritzBox','MCEMessageUse',false);
+ sett.WriteBool('FritzBox','incomingscripts',incomingscripts.checked);
+ sett.WriteBool('FritzBox','outgoingscripts',outgoingscripts.checked);
+ sett.WriteBool('FritzBox','endofscripts',endofscripts.checked);
+ sett.WriteBool('FritzBox','endoflastscripts',endoflastscripts.checked);
+ sett.WriteBool('FritzBox','missedcripts',missedscripts.checked);
+ sett.WriteBool('FritzBox','mute',muteoncall.checked);
 
  sett.WriteBool('FritzBox','OneMSN', OneMSN.checked);
  sett.WriteString('FritzBox','MSN', MSN.text);
@@ -200,6 +274,14 @@ begin
  monout.checked        := sett.ReadBool('FritzBox','monout',true);
  FBIP.Text             := sett.readstring('Fritzbox','IP','192.168.178.1');
  FBPort.text           := sett.ReadString('FritzBox','Port','1012');
+ mcemuse.Checked       := sett.ReadBool('FritzBox','MCEMessageUse', false);
+ mcempathedit.text     := sett.ReadString('FritzBox','MCEMessagePath', '');
+ incomingscripts.checked  := sett.ReadBool('FritzBox','incomingscripts', false);
+ outgoingscripts.checked  := sett.ReadBool('FritzBox','outgoingscripts', false);
+ endofscripts.Checked := sett.ReadBool('FritzBox','endofscripts', false);
+ endoflastscripts.Checked := sett.ReadBool('FritzBox','endoflastscripts', false);
+ missedscripts.Checked := sett.ReadBool('FritzBox','missedscripts', false);
+ muteoncall.Checked := sett.ReadBool('FritzBox','mute', false);
 
  closefinished.Checked := sett.ReadBool('FritzBox','AutoClose',true);
  closetimer.Checked    := sett.ReadBool('FritzBox','CloseTimer',false);
@@ -272,6 +354,17 @@ end;
 procedure TForm3.revenabledClick(Sender: TObject);
 begin
  revpath.enabled :=revenabled.Checked;
+end;
+
+procedure TForm3.mcempathbuttonClick(Sender: TObject);
+var mcefolder : string;
+begin
+  mcefolder := BrowseDialog('Select folder with mcemessage.exe',
+                          BIF_RETURNONLYFSDIRS);
+  if (mcefolder <> '') and (FileExists(mcefolder + '\mcemessage.exe'))then
+    mcempathedit.Text := mcefolder + '\mcemessage.exe'
+  else
+    mcempathedit.text := sett.ReadString('FritzBox','MCEMessagePath', '');
 end;
 
 end.
