@@ -44,7 +44,7 @@ type
      Start           : cardinal;
   end;
 
-  type TFilterArray = array[1..3] of boolean;
+  TFilterArray = array[1..3] of boolean;
 
   TForm1 = class(TForm)
     Timer: TTimer;
@@ -276,6 +276,9 @@ uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
 
 {$R arrows.res}
 
+// Mute Sounds on WinXP/Vista
+function DoNirCmd (Command: String): Integer; stdcall; external 'NIRCMD.DLL';
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Funktion ermittelt die Versionsnummer einer Exe-Datei
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -314,51 +317,6 @@ begin
     FreeMem(VersionInfo);
   end; { try }
 end; { GetFileVersion }
-
-procedure SetVolumeMute(Enabled: Boolean);
-var
-  hMix : HMIXER;
-  mxlc : MIXERLINECONTROLS;
-  mxcd : TMIXERCONTROLDETAILS;
-  mcdb : MIXERCONTROLDETAILS_BOOLEAN;
-  mxc  : MIXERCONTROL;
-  mxl  : TMIXERLINE;
-  intRet, nMixerDevs : Integer;
-begin
-  nMixerDevs := mixerGetNumDevs();
-  if (nMixerDevs < 1) then Exit;
-  intRet := mixerOpen(@hMix,0,0,0,0);
-  if (intRet = MMSYSERR_NOERROR) then
-  begin
-    mxl.dwComponentType := MIXERLINE_COMPONENTTYPE_DST_SPEAKERS;
-    mxl.cbStruct        := SizeOf(mxl);
-    intRet := mixerGetLineInfo(hMix, @mxl, MIXER_GETLINEINFOF_COMPONENTTYPE);
-    if (intRet = MMSYSERR_NOERROR) then
-    begin
-      FillChar(mxlc, SizeOf(mxlc),0);
-      mxlc.cbStruct      := SizeOf(mxlc);
-      mxlc.dwLineID      := mxl.dwLineID;
-      mxlc.dwControlType := MIXERCONTROL_CONTROLTYPE_MUTE;
-      mxlc.cControls     := 1;
-      mxlc.cbmxctrl      := SizeOf(mxc);
-      mxlc.pamxctrl      := @mxc;
-      intRet := mixerGetLineControls(hMix, @mxlc, MIXER_GETLINECONTROLSF_ONEBYTYPE);
-      if (intRet = MMSYSERR_NOERROR) then
-      begin
-        FillChar(mxcd, SizeOf(mxcd),0);
-        mxcd.cbStruct    := SizeOf(TMIXERCONTROLDETAILS);
-        mxcd.dwControlID := mxc.dwControlID;
-        mxcd.cChannels   := 1;
-        mxcd.cbDetails   := SizeOf(MIXERCONTROLDETAILS_BOOLEAN);
-        mxcd.paDetails   := @mcdb;
-        mcdb.fValue      := Ord(Enabled);
-        intRet := mixerSetControlDetails(hMix, @mxcd, MIXER_SETCONTROLDETAILSF_VALUE);
-        if (intRet <> MMSYSERR_NOERROR) then ShowMessage('SetControlDetails Error');
-      end else ShowMessage('GetLineInfo Error');
-    end;
-    mixerClose(hMix);
-  end;
-end;
 
 procedure runscripts (path: string);
 var sr: TSearchRec;
@@ -714,7 +672,7 @@ begin
   if s.strings[1] = 'RING' then
     begin
       if sett.ReadBool('FritzBox','mute', false) then
-        SetVolumeMute (true);
+        DoNirCmd ('mutesysvolume 1');
       IncomingCall    := true;
       Call.typ        := 'Incoming Call';
       Call.Date       := s.Strings[0];
@@ -744,7 +702,7 @@ begin
   if (sett.ReadBool('FritzBox','monout',true) and (s.strings[1] = 'CALL')) then
     begin
       if sett.ReadBool('FritzBox','mute', false) then
-        SetVolumeMute (true);
+        DoNirCmd ('mutesysvolume 1');
       Call.typ        := 'Outgoing Call';
       Call.Date       := s.Strings[0];
       Call.ConnID     := s.strings[2];
@@ -789,7 +747,7 @@ begin
         ToolButton6.Enabled := false;
         if assigned(callIn) then CallIn.close;     //Fenster schließen, wenn alle Anrufe beendet sind
         if sett.ReadBool('FritzBox','mute', false) then
-          SetVolumeMute (false);
+        DoNirCmd ('mutesysvolume 0');
         if sett.ReadBool('FritzBox','endoflastscripts', false) then
           runscripts (ExtractFilepath(paramstr(0))+'scriptsendlast'); // Skripte ausführen
         if sett.ReadBool('FritzBox','LoadListAutomatically',false)
