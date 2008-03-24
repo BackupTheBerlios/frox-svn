@@ -2254,26 +2254,32 @@ begin
     //Alles löschen
     Data:= '';
     for i:= 99 downto 0 do
-    Data:= Data + 'telcfg:command/HotDialEntry'+inttostr(i)+'=delete'+'&';
+     Data:= Data + 'telcfg:command/Phonebook/Entry'+inttostr(i)+'=delete'+'&';
     Data:= Data + 'Submit=Submit';
     httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
 
     Data:= '';
     cnt:= 0;
-
+    i:= 0;
     For i:= 0 to length(Phonebook)-1 do
     if (phonebook[i].short <> '') then
     begin
-        Data := Data +
-               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Code=0'  + Phonebook[i].short  + '&' +
-               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Vanity=' + Phonebook[i].vanity + '&' +
-               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Number=' + Phonebook[i].home + '&' +
-               'telcfg:settings/HotDialEntry'+inttostr(cnt)+'/Name='   + Phonebook[i].Name   + '&';
+        if (strtoint(phonebook[i].short) < 10) and (Length(phonebook[i].short)<2) then // falls kurzwahl einstellig ist, ergänzen
+           phonebook[i].short:= '0'+phonebook[i].short;
+        Data := //Data +
+       //working
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Name='   + Phonebook[i].Name   + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Type=home&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Number=' + Phonebook[i].home + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Code='   + Phonebook[i].short  + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Vanity=' + Phonebook[i].vanity + '&';
+        Data:= Data + 'Submit=Submit';
+        httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
        inc(cnt);
     end;
 
-   Data:= Data + 'Submit=Submit';
-   httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+//   Data:= Data + 'Submit=Submit';
+//   httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
    unsaved_phonebook:= false;
    status.SimpleText:= 'Phonebook update ... ready';
 
