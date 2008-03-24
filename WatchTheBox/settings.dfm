@@ -512,7 +512,7 @@ object Form3: TForm3
         Top = 136
         Width = 289
         Height = 17
-        Caption = 'mute system sound when active calls (WinXP)'
+        Caption = 'mute system sound if calls are active'
         TabOrder = 4
       end
     end
