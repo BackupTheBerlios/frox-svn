@@ -340,7 +340,7 @@ end;
 
 procedure TCallIn.rejectClick(Sender: TObject);
 begin
- Form1.restarttelefon.Click;
+  // Form1.restarttelefon.Click;
 end;
 
 end.

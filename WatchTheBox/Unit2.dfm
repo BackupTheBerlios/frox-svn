@@ -140,7 +140,7 @@ object CallIn: TCallIn
       Caption = 'Incoming Call: '
     end
     object info4: TLabel
-      Left = 139
+      Left = 131
       Top = 2
       Width = 24
       Height = 13
@@ -149,7 +149,7 @@ object CallIn: TCallIn
       Caption = 'info4'
     end
     object Bright: TButton
-      Left = 197
+      Left = 189
       Top = 0
       Width = 18
       Height = 17
@@ -159,7 +159,7 @@ object CallIn: TCallIn
       OnClick = BrightClick
     end
     object Bleft: TButton
-      Left = 174
+      Left = 166
       Top = 0
       Width = 18
       Height = 17

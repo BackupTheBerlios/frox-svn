@@ -27,8 +27,8 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 27
-    Width = 456
-    Height = 324
+    Width = 448
+    Height = 322
     ActivePage = Tab2
     Align = alClient
     TabOrder = 0
@@ -36,8 +36,8 @@ object Form1: TForm1
     object Tab1: TTabSheet
       Caption = 'Traffic'
       DesignSize = (
-        448
-        296)
+        440
+        294)
       object Label8: TLabel
         Left = 96
         Top = 8
@@ -190,7 +190,7 @@ object Form1: TForm1
       end
       object Gauge1: TGauge
         Left = 97
-        Top = 152
+        Top = 128
         Width = 121
         Height = 44
         BackColor = clBlack
@@ -202,9 +202,10 @@ object Form1: TForm1
       end
       object Label1: TLabel
         Left = 98
-        Top = 200
-        Width = 3
+        Top = 180
+        Width = 42
         Height = 13
+        Caption = 'days left'
       end
       object Website: TLabel
         Left = 160
@@ -249,6 +250,13 @@ object Form1: TForm1
         Caption = 'costs this month'
         WordWrap = True
       end
+      object currentipLabel: TLabel
+        Left = 16
+        Top = 206
+        Width = 46
+        Height = 13
+        Caption = 'current ip'
+      end
       object Edit1: TEdit
         Left = 96
         Top = 24
@@ -282,7 +290,7 @@ object Form1: TForm1
         TabOrder = 3
       end
       object viewstats: TBitBtn
-        Left = 229
+        Left = 245
         Top = 88
         Width = 78
         Height = 25
@@ -301,13 +309,41 @@ object Form1: TForm1
         TabOrder = 4
       end
       object reset: TButton
-        Left = 226
-        Top = 171
-        Width = 75
+        Left = 242
+        Top = 139
+        Width = 79
         Height = 25
         Caption = 'reset'
         TabOrder = 6
         OnClick = resetClick
+      end
+      object renewip: TButton
+        Left = 242
+        Top = 200
+        Width = 79
+        Height = 25
+        Hint = 
+          'UPNP needs to be enabled on your Fritz!Box (it should be by defa' +
+          'ult)'
+        Caption = 'renew IP'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 7
+        OnClick = renewipClick
+      end
+      object currentip: TEdit
+        Left = 96
+        Top = 202
+        Width = 121
+        Height = 21
+        Hint = 
+          'UPNP needs to be enabled on your Fritz!Box (it should be by defa' +
+          'ult)'
+        ParentShowHint = False
+        ReadOnly = True
+        ShowHint = True
+        TabOrder = 8
+        Text = 'detecting...'
       end
     end
     object Tab2: TTabSheet
@@ -316,8 +352,8 @@ object Form1: TForm1
       object CallerList: TListView
         Left = 0
         Top = 0
-        Width = 448
-        Height = 296
+        Width = 440
+        Height = 294
         Align = alClient
         Anchors = [akLeft, akTop, akRight]
         Columns = <
@@ -583,82 +619,28 @@ object Form1: TForm1
       end
     end
     object Tab4: TTabSheet
-      Caption = 'Telnet'
+      Caption = 'UPNP'
       ImageIndex = 3
-      object Label5: TLabel
-        Left = 16
-        Top = 8
-        Width = 36
-        Height = 13
-        Caption = 'Telnet  '
-      end
-      object Label6: TLabel
-        Left = 312
-        Top = 0
-        Width = 136
-        Height = 112
-        Align = alRight
-        AutoSize = False
-        Caption = 
-          'To enable telnet on your Fritz!Box dial #96*7*. To disable telne' +
-          't dial #96*8* on a telephone connected to the Fritz!Box.'
-        WordWrap = True
-      end
-      object Button2: TButton
-        Left = 80
-        Top = 32
-        Width = 105
-        Height = 25
-        Caption = 'Info LED on'
-        TabOrder = 0
-        OnClick = Button2Click
-      end
-      object Button3: TButton
-        Left = 200
-        Top = 32
-        Width = 105
-        Height = 25
-        Caption = 'Info LED off'
-        TabOrder = 1
-        OnClick = Button3Click
-      end
-      object restarttelefon: TButton
-        Left = 80
-        Top = 64
-        Width = 105
-        Height = 25
-        Caption = 'restart '#39'telefon'#39
-        TabOrder = 2
-        OnClick = restarttelefonClick
-      end
-      object Button5: TButton
-        Left = 200
-        Top = 64
-        Width = 105
-        Height = 25
-        Caption = 'renew IP'
-        TabOrder = 3
-        OnClick = Button5Click
-      end
-      object TelnetLog: TMemo
+      TabVisible = False
+      object UPNPLog: TMemo
         Left = 0
-        Top = 112
-        Width = 448
-        Height = 184
+        Top = 0
+        Width = 440
+        Height = 294
         Align = alBottom
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
-          'TelnetLog')
+          'UPNPLog')
         ReadOnly = True
         ScrollBars = ssVertical
-        TabOrder = 4
+        TabOrder = 0
       end
     end
   end
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 456
+    Width = 448
     Height = 27
     ButtonHeight = 25
     ButtonWidth = 34
@@ -821,8 +803,8 @@ object Form1: TForm1
   end
   object Status: TStatusBar
     Left = 0
-    Top = 351
-    Width = 456
+    Top = 349
+    Width = 448
     Height = 19
     Panels = <>
     ParentShowHint = False
@@ -831,8 +813,8 @@ object Form1: TForm1
   end
   object Timer: TTimer
     OnTimer = TimerTimer
-    Left = 80
-    Top = 272
+    Left = 288
+    Top = 280
   end
   object Tray: TCoolTrayIcon
     DesignPreview = True
@@ -858,8 +840,8 @@ object Form1: TForm1
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
-    Left = 120
-    Top = 272
+    Left = 320
+    Top = 248
     object reloadCallerList: TMenuItem
       Caption = 'retrieve list of calls'
       OnClick = reloadCallerListClick
@@ -908,8 +890,8 @@ object Form1: TForm1
   end
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
-    Left = 160
-    Top = 272
+    Left = 352
+    Top = 248
     object ReloadPhonebook: TMenuItem
       Caption = 'retrieve phonebook'
       OnClick = ReloadPhonebookClick
@@ -2168,60 +2150,60 @@ object Form1: TForm1
   end
   object OneInstance: TBomeOneInstance
     Left = 416
-    Top = 192
+    Top = 216
   end
   object SocketConnect: TTimer
     Enabled = False
     Interval = 5000
     OnTimer = SocketConnectTimer
-    Left = 48
-    Top = 272
+    Left = 256
+    Top = 280
   end
   object ImgDlg: TOpenDialog
     Filter = 'jpg|*.jpg; *.JPG'
-    Left = 312
+    Left = 320
     Top = 280
   end
   object wakeup: TTimer
     Enabled = False
     Interval = 60000
     OnTimer = wakeupTimer
-    Left = 8
-    Top = 272
+    Left = 224
+    Top = 280
   end
   object telnet: TTnCnx
-    Port = '23'
+    Port = '49000'
     Host = 'fritz.box'
     Location = 'TNCNX'
     TermType = 'VT100'
     LocalEcho = True
-    OnSessionConnected = telnetSessionConnected
-    OnSessionClosed = telnetSessionClosed
-    OnDataAvailable = telnetDataAvailable
-    OnDisplay = telnetDisplay
-    OnSendLoc = telnetSendLoc
+    OnSessionConnected = UPNPSessionConnected
+    OnSessionClosed = UPNPSessionClosed
+    OnDataAvailable = UPNPDataAvailable
+    OnDisplay = UPNPDisplay
+    OnSendLoc = UPNPSendLoc
     Left = 416
-    Top = 232
+    Top = 248
   end
   object StartupTimer: TTimer
     Enabled = False
     OnTimer = StartupTimerTimer
-    Left = 8
-    Top = 240
+    Left = 224
+    Top = 248
   end
   object WaitForReconnect: TTimer
     Enabled = False
     Interval = 10000
     OnTimer = WaitForReconnectTimer
-    Left = 48
-    Top = 240
+    Left = 256
+    Top = 248
   end
   object ConnectCheck: TTimer
     Enabled = False
-    Interval = 5000
+    Interval = 8000
     OnTimer = ConnectCheckTimer
-    Left = 80
-    Top = 240
+    Left = 288
+    Top = 248
   end
   object Ping1: TPing
     Size = 56
@@ -2229,6 +2211,13 @@ object Form1: TForm1
     TTL = 64
     Flags = 0
     Left = 384
-    Top = 232
+    Top = 248
+  end
+  object UPNPTimer: TTimer
+    Enabled = False
+    Interval = 15000
+    OnTimer = UPNPTimerTimer
+    Left = 224
+    Top = 312
   end
 end

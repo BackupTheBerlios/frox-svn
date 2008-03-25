@@ -127,14 +127,8 @@ type
     Fon32: TMenuItem;
     S01: TMenuItem;
     Tab4: TTabSheet;
-    Button2: TButton;
-    Button3: TButton;
     telnet: TTnCnx;
-    restarttelefon: TButton;
-    Button5: TButton;
-    TelnetLog: TMemo;
-    Label5: TLabel;
-    Label6: TLabel;
+    UPNPLog: TMemo;
     StartupTimer: TTimer;
     WaitForReconnect: TTimer;
     pbdelpicture: TMenuItem;
@@ -147,6 +141,12 @@ type
     Ping1: TPing;
     PBmobile: TLabeledEdit;
     PBwork: TLabeledEdit;
+    renewip: TButton;
+    currentip: TEdit;
+    UPNPTimer: TTimer;
+    currentipLabel: TLabel;
+    procedure UPNPTimerTimer(Sender: TObject);
+    procedure renewIPClick(Sender: TObject);
     procedure ConnectCheckTimer(Sender: TObject);
     procedure ToolButton6Click(Sender: TObject);
     procedure MessageEventHandler(var Msg: TMsg; var Handled: Boolean);
@@ -155,17 +155,13 @@ type
     procedure pbdelpictureClick(Sender: TObject);
     procedure WaitForReconnectTimer(Sender: TObject);
     procedure StartupTimerTimer(Sender: TObject);
-    procedure telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
-      Len: Integer);
     procedure PopupMenu2Popup(Sender: TObject);
-    procedure telnetSessionClosed(Sender: TTnCnx; Error: Word);
-    procedure telnetSendLoc(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
+    procedure UPNPDataAvailable(Sender: TTnCnx; Buffer: Pointer; Len: Integer);
+    procedure UPNPDisplay(Sender: TTnCnx; Str: string);
+    procedure UPNPSendLoc(Sender: TObject);
+    procedure UPNPSessionClosed(Sender: TTnCnx; Error: Word);
+    procedure UPNPSessionConnected(Sender: TTnCnx; Error: Word);
     procedure restarttelefonClick(Sender: TObject);
-    procedure telnetDisplay(Sender: TTnCnx; Str: string);
-    procedure telnetSessionConnected(Sender: TTnCnx; Error: Word);
-    procedure Button3Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
     procedure Fon12Click(Sender: TObject);
     procedure HangupbuttonClick(Sender: TObject);
     procedure Fon11Click(Sender: TObject);
@@ -269,6 +265,7 @@ var
   CallByCall         : TStringList;
   IncomingCall       : boolean;
   fbpassword         : string;
+  upnpaction         : string;
 
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
@@ -278,6 +275,32 @@ uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
 
 // Mute Sounds on WinXP/Vista
 function DoNirCmd (Command: String): Integer; stdcall; external 'NIRCMD.DLL';
+
+function GetResourceAsPointer(ResName: pchar; ResType: pchar; out Size: longword): pointer;
+var InfoBlock: HRSRC;
+    GlobalMemoryBlock: HGLOBAL;
+begin
+  InfoBlock := FindResource(hInstance, resname, restype);
+  if InfoBlock = 0 then
+  raise Exception.Create(SysErrorMessage(GetLastError));
+  size := SizeofResource(hInstance, InfoBlock);
+  if size = 0 then
+    raise Exception.Create(SysErrorMessage(GetLastError));
+  GlobalMemoryBlock := LoadResource(hInstance, InfoBlock);
+  if GlobalMemoryBlock = 0 then
+    raise Exception.Create(SysErrorMessage(GetLastError));
+  Result := LockResource(GlobalMemoryBlock);
+  if Result = nil then
+    raise Exception.Create(SysErrorMessage(GetLastError));
+end;
+
+function GetResourceAsString(ResName: pchar; ResType: pchar): string;
+var ResData: PChar;
+    ResSize: Longword;
+begin
+    ResData := GetResourceAsPointer(resname, restype, ResSize);
+    SetString(Result, ResData, ResSize);
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Funktion ermittelt die Versionsnummer einer Exe-Datei
@@ -429,7 +452,7 @@ begin
   HangupButton.Enabled := true;
   // password an Box senden
   if PWForm = nil then Application.CreateForm(TPWForm, PWForm);
-  // start telnet and load callerlist
+  // load callerlist
   StartupTimer.Enabled:= true;
   // start connection checker
   ConnectCheck.Enabled := true;
@@ -942,6 +965,7 @@ begin
 
   IncomingCall := false;
   unsaved_phonebook := false;
+  upnpaction := 'nothing';
 
   PBSelected        := -1;
   PBSort[0]         := 0;
@@ -1042,7 +1066,8 @@ begin
 
  tab2.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
  tab3.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
- tab4.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
+ // Tab versteckt; Kommentarzeichen entfernen für Debuggingzwecke.
+ //tab4.tabvisible:= sett.ReadBool('FritzBox','useMonitor',false);
 
  LoadPhonebookFromFile;
  LoadCallersFromFile();
@@ -1059,6 +1084,10 @@ begin
  MySocket.OnError      := SocketErr;
  MySocket.OnConnect    := SocketConn;
  MySocket.OnRead       := SocketMessage;
+
+ //UPNP Verbindung vorbereiten
+ Telnet.Host := sett.ReadString('FritzBox','IP','fritz.box');
+ Telnet.Port := '49000';
 
  // wait some time, then try to connect to Fritz!Box
  SocketConnect.Enabled := true;
@@ -1107,14 +1136,12 @@ end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-
   if telnet.isconnected then telnet.close;
   sett.Free;
   CallByCall.Free;
   MySocket.Free;
 //  Phonebookliste.Free;
 //  Callerliste.Free;
-
 end;
 
 procedure MakeArrowsBlink(diffIn, DiffOut: longint; threshold: integer);
@@ -2260,8 +2287,7 @@ begin
 
     Data:= '';
     cnt:= 0;
-    i:= 0;
-    For i:= 0 to length(Phonebook)-1 do
+    for i:= 0 to length(Phonebook)-1 do
     if (phonebook[i].short <> '') then
     begin
         if (strtoint(phonebook[i].short) < 10) and (Length(phonebook[i].short)<2) then // falls kurzwahl einstellig ist, ergänzen
@@ -2319,7 +2345,7 @@ end;
 
 procedure TForm1.WebsiteClick(Sender: TObject);
 begin
-Shellexecute( handle, nil, Pchar('http://www.mehrsurfen.de'), nil, nil, SW_SHOWMaximized);
+  Shellexecute( handle, nil, Pchar('http://www.mehrsurfen.de'), nil, nil, SW_SHOWMaximized);
 end;
 
 Procedure AddEntry(Entry: TPerson);
@@ -2613,10 +2639,7 @@ procedure TForm1.wakeupTimer(Sender: TObject);
 begin
   wakeup.enabled:= false;
   if sett.ReadBool('FritzBox','useMonitor',false) then
-  begin
     StartMySocket; //Fritz!Box Listener started
-    telnet.Connect;
-  end;
 end;
 
 procedure TForm1.ToolButton11Click(Sender: TObject);
@@ -2798,50 +2821,70 @@ begin
   status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
 end;
 
-procedure TForm1.Button2Click(Sender: TObject);
-var c: string;
-begin
-  try
-    c:= 'echo 7,2 >/var/led';
-    telnet.SendStr(c+#10);
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
-  except
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-  end;
-end;
-
-procedure TForm1.Button3Click(Sender: TObject);
-var c: string;
-begin
-  try
-    c:= 'echo 7,1 >/var/led';
-    telnet.SendStr(c+#10);
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
-  except
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-  end;
-end;
-
-procedure TForm1.telnetSessionConnected(Sender: TTnCnx; Error: Word);
+procedure TForm1.UPNPSessionConnected(Sender: TTnCnx; Error: Word);
 begin
   if error = 0 then
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session connected')
+    UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session connected')
   else
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session could not connect ('+inttostr(error)+')');
+    UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session could not connect ('+inttostr(error)+')');
 
-if error = 10061 then //telnet not active
-  begin
-    label5.caption:='Telnet: inactive';
-  end
-else
-  begin
-    label5.caption:='Telnet: active';
-  end
+  if upnpaction = 'renewip' then
+    telnet.SendStr(GetResourceAsString (PChar('RECONNECT'), RT_RCDATA));
+  if upnpaction = 'extip' then
+    telnet.SendStr(GetResourceAsString (PChar('EXTIP'), RT_RCDATA));
 end;
 
-procedure TForm1.telnetDisplay(Sender: TTnCnx; Str: string);
+procedure TForm1.UPNPDisplay(Sender: TTnCnx; Str: string);
 begin
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + str);
+  UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + str);
+end;
+
+procedure TForm1.UPNPSendLoc(Sender: TObject);
+begin
+  UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'send');
+end;
+
+procedure TForm1.UPNPSessionClosed(Sender: TTnCnx; Error: Word);
+begin
+  UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session closed ('+inttostr(error)+')');
+  if error = 0 then upnpaction := 'nothing';
+end;
+
+procedure TForm1.UPNPDataAvailable(Sender: TTnCnx; Buffer: Pointer; Len: Integer);
+var lString :String;
+    aus : string;
+    startstring, endstring : string;
+    startpos, endpos : integer;
+    ipstring : string;
+begin
+  SetLength(lString,Len);
+  Move(Buffer^,lString[1],Len);
+  aus:=aus+lString;
+  UPNPLog.lines.Add(aus);
+  // Anzahl der Logzeilen begrenzen
+  if UPNPLog.Lines.Count > 100 then
+  begin
+    UPNPLog.Lines.Strings[1] := '...';
+    repeat
+      UPNPLog.Lines.Delete(3);
+    until UPNPLog.Lines.Count < 100;
+  end;
+
+  // IP Rückmeldung auslesen
+  if upnpaction = 'extip' then
+  begin
+    startstring := '<NewExternalIPAddress>';
+    endstring   := '</NewExternalIPAddress>';
+    startpos := Pos(startstring, aus)+length(startstring);
+    endpos := Pos(endstring, aus);
+    ipstring := Copy(aus, startpos, endpos - startpos);
+    // offline oder IP noch nicht erneuert, 15 sek später erneut versuchen
+    if ipstring = '0.0.0.0' then
+      UPNPTimer.Enabled := true
+    else
+      currentip.Text := ipstring;
+    telnet.Close;
+  end;
 end;
 
 procedure TForm1.restarttelefonClick(Sender: TObject);
@@ -2852,76 +2895,27 @@ begin
   try //Fehler fangen
     c:= 'killall telefon';
     telnet.SendStr(c+#10);  //Telefondienst killen (beendet ALLE laufenden Gespraeche)
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+    UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
     c:= 'telefon a127.0.0.1';
     telnet.SendStr(c+#10);          //Telefondienst neu starten
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+    UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
     c:= 'echo 14,1 >/var/led'+#10+'echo 13,1 >/var/led';
     telnet.SendStr(c+#10);          //TelefonLEDs ausschalten
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
+    UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'sending: '+c);
   except
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
+    UPNPlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
   end;
   if assigned(CallIn) then CallIn.Close;  //Benachrichtigungsfenster schließen
     WaitForReconnect.Enabled:= true;
-end;
-
-procedure TForm1.Button5Click(Sender: TObject);
-begin
-  //Dsl-Daemon stoppen (alle Internet-Verbindungen werden getrennt
-  //2s warten
-  //dsld neu starten > Reconnect
-  try
-    telnet.sendstr('dsld -s' +#10+'sleep 2'+#10+'dsld'+#10);
-  except
-    telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-  end;
-end;
-
-procedure TForm1.telnetSendLoc(Sender: TObject);
-begin
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'send');
-end;
-
-procedure TForm1.telnetSessionClosed(Sender: TTnCnx; Error: Word);
-begin
-  telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'Session closed ('+inttostr(error)+')');
-end;
-
-procedure TForm1.telnetDataAvailable(Sender: TTnCnx; Buffer: Pointer;
-  Len: Integer);
-var
-  lString:String;
-  aus    : string;
-begin
-  SetLength(lString,Len);
-  Move(Buffer^,lString[1],Len);
-  aus:=aus+lString;
-  TelnetLog.lines.Add(aus);
-
-  if ansicontainsstr(aus, 'password') then //telnet.SendStr(pw+#10);
-   begin
-    PWForm.Tag:= 1;
-    try
-    PWForm.showmodal
-    except
-      telnetlog.Lines.Add(DateTimetoStr(now) + #9 + 'error');
-    end;
-   end;
 end;
 
 procedure TForm1.StartupTimerTimer(Sender: TObject);
 begin
   StartupTimer.Enabled:= false;
 
-  //Telnet verbinden
-  telnet.Host:= 'fritz.box';
-  telnet.Port:= '23';
-  try
-    if sett.ReadBool('FritzBox','useMonitor',false) then telnet.Connect;
-  except
-    status.SimpleText:= 'Telnet connection refused. Check your firewall.';
-  end;
+  //Externe IP feststellen
+  upnpaction := 'extip';
+  telnet.Connect;
 
   //Anrufliste laden
   if sett.ReadBool('FritzBox','LoadListAutomatically',false) then
@@ -2963,6 +2957,23 @@ begin
     StopMySocket;
     SocketConnect.Enabled := true;
   end;
+end;
+
+procedure TForm1.renewIPClick(Sender: TObject);
+begin
+  currentip.Text := 'detecting...';
+  upnpaction := 'renewip';
+  if telnet.IsConnected then telnet.Close;
+  telnet.Connect;
+  UPNPTimer.Enabled := true;
+end;
+
+procedure TForm1.UPNPTimerTimer(Sender: TObject);
+begin
+  UPNPTimer.Enabled := false;
+  if telnet.IsConnected then telnet.Close;
+  upnpaction := 'extip';
+  telnet.Connect;
 end;
 
 end.

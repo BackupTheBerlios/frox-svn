@@ -15,7 +15,6 @@ object PWForm: TPWForm
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel
@@ -69,7 +68,6 @@ object PWForm: TPWForm
     Default = True
     ModalResult = 1
     TabOrder = 3
-    OnClick = BitBtn2Click
     NumGlyphs = 2
   end
 end
