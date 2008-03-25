@@ -27,8 +27,8 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 27
-    Width = 448
-    Height = 322
+    Width = 456
+    Height = 324
     ActivePage = Tab2
     Align = alClient
     TabOrder = 0
@@ -36,8 +36,8 @@ object Form1: TForm1
     object Tab1: TTabSheet
       Caption = 'Traffic'
       DesignSize = (
-        440
-        294)
+        448
+        296)
       object Label8: TLabel
         Left = 96
         Top = 8
@@ -352,8 +352,8 @@ object Form1: TForm1
       object CallerList: TListView
         Left = 0
         Top = 0
-        Width = 440
-        Height = 294
+        Width = 448
+        Height = 296
         Align = alClient
         Anchors = [akLeft, akTop, akRight]
         Columns = <
@@ -624,8 +624,8 @@ object Form1: TForm1
       TabVisible = False
       object UPNPLog: TMemo
         Left = 0
-        Top = 0
-        Width = 440
+        Top = 2
+        Width = 448
         Height = 294
         Align = alBottom
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -640,7 +640,7 @@ object Form1: TForm1
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 448
+    Width = 456
     Height = 27
     ButtonHeight = 25
     ButtonWidth = 34
@@ -803,8 +803,8 @@ object Form1: TForm1
   end
   object Status: TStatusBar
     Left = 0
-    Top = 349
-    Width = 448
+    Top = 351
+    Width = 456
     Height = 19
     Panels = <>
     ParentShowHint = False

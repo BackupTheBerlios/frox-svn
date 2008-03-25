@@ -27,6 +27,7 @@ type
       short    : string;
       vanity   : string;
       No       : integer;
+      main     : short; // Hauptnummer
       important: boolean;
   end;
 
@@ -2266,8 +2267,9 @@ begin
 end;
 
 Procedure TForm1.UpdatePhonebook;
-var i, cnt: integer;
+var i, cnt, nr: integer;
     Data : String;
+    code: string;
 begin
    Form1.Phonebooklist.Cursor:= crHourGlass;
    Form1.Phonebooklist.Enabled:= false;
@@ -2292,20 +2294,45 @@ begin
     begin
         if (strtoint(phonebook[i].short) < 10) and (Length(phonebook[i].short)<2) then // falls kurzwahl einstellig ist, ergänzen
            phonebook[i].short:= '0'+phonebook[i].short;
-        Data := //Data +
+        nr:= 0;
+        Data := Data +
        //working
-               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Name='   + Phonebook[i].Name   + '&' +
-               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Type=home&' +
-               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Number=' + Phonebook[i].home + '&' +
-               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Code='   + Phonebook[i].short  + '&' +
-               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number/Vanity=' + Phonebook[i].vanity + '&';
-        Data:= Data + 'Submit=Submit';
-        httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Name='   + Phonebook[i].Name     + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Code='   + Phonebook[i].short    + '&'+
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Vanity='   + Phonebook[i].vanity + '&'+
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/DefaultNumber=0&';
+        if Phonebook[i].home <> '' then
+        begin
+        Data := Data +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Type=home&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Number=' + Phonebook[i].home + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Code='   + Phonebook[i].short  + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Vanity=' + Phonebook[i].vanity + '&';
+        inc(nr);
+        end;
+        if Phonebook[i].mobile <> '' then
+        begin
+        Data := Data +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Type=mobile&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Number=' + Phonebook[i].mobile + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Code='   + Phonebook[i].short  + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Vanity=' + Phonebook[i].vanity + '&';
+        inc(nr);
+        end;
+        if Phonebook[i].work <> '' then
+        begin
+        Data := Data +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Type=work&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Number=' + Phonebook[i].work + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Code='   + Phonebook[i].short  + '&' +
+               'telcfg:settings/Phonebook/Entry'+inttostr(cnt)+'/Number'+inttostr(nr)+'/Vanity=' + Phonebook[i].vanity + '&';
+        inc(nr);
+        end;
        inc(cnt);
     end;
-
-//   Data:= Data + 'Submit=Submit';
-//   httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
+//   showmessage(Data);
+   Data:= Data + 'Submit=Submit';
+   httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
    unsaved_phonebook:= false;
    status.SimpleText:= 'Phonebook update ... ready';
 
