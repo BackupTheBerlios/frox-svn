@@ -326,7 +326,8 @@ if sett.ReadBool('FritzBox','CloseTimer',false) then
   timer.Interval:= sett.ReadInteger('FritzBox','CloseTime',15) * 1000;
   timer.Enabled:= true;
  end;
-reject.Visible:= form1.telnet.IsConnected;
+ //reject.Visible:= form1.telnet.IsConnected;
+ reject.Visible := false;
 end;
 
 

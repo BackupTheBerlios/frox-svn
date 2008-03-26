@@ -27,17 +27,17 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 27
-    Width = 456
-    Height = 324
-    ActivePage = Tab2
+    Width = 448
+    Height = 322
+    ActivePage = Tab3
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
     object Tab1: TTabSheet
       Caption = 'Traffic'
       DesignSize = (
-        448
-        296)
+        440
+        294)
       object Label8: TLabel
         Left = 96
         Top = 8
@@ -352,8 +352,8 @@ object Form1: TForm1
       object CallerList: TListView
         Left = 0
         Top = 0
-        Width = 448
-        Height = 296
+        Width = 440
+        Height = 294
         Align = alClient
         Anchors = [akLeft, akTop, akRight]
         Columns = <
@@ -500,6 +500,7 @@ object Form1: TForm1
         ViewStyle = vsReport
         OnColumnClick = PhonebookListColumnClick
         OnCompare = PhonebookListCompare
+        OnMouseDown = PhoneBookListMouseDown
         OnSelectItem = PhoneBookListSelectItem
       end
       object GroupBox1: TGroupBox
@@ -549,7 +550,7 @@ object Form1: TForm1
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 1
         end
@@ -624,8 +625,8 @@ object Form1: TForm1
       TabVisible = False
       object UPNPLog: TMemo
         Left = 0
-        Top = 2
-        Width = 448
+        Top = 0
+        Width = 440
         Height = 294
         Align = alBottom
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -640,7 +641,7 @@ object Form1: TForm1
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 456
+    Width = 448
     Height = 27
     ButtonHeight = 25
     ButtonWidth = 34
@@ -803,8 +804,8 @@ object Form1: TForm1
   end
   object Status: TStatusBar
     Left = 0
-    Top = 351
-    Width = 456
+    Top = 349
+    Width = 448
     Height = 19
     Panels = <>
     ParentShowHint = False
@@ -889,6 +890,7 @@ object Form1: TForm1
     end
   end
   object PopupMenu2: TPopupMenu
+    AutoPopup = False
     OnPopup = PopupMenu2Popup
     Left = 352
     Top = 248
@@ -915,7 +917,7 @@ object Form1: TForm1
       Caption = '-'
     end
     object Dial2: TMenuItem
-      Caption = 'Dial'
+      Caption = 'Dial Home'
       object Fon12: TMenuItem
         Tag = 1
         Caption = 'Fon 1'
@@ -932,6 +934,52 @@ object Form1: TForm1
         OnClick = Fon12Click
       end
       object S01: TMenuItem
+        Tag = 50
+        Caption = 'S0'
+        OnClick = Fon12Click
+      end
+    end
+    object Dial3: TMenuItem
+      Caption = 'Dial Mobile'
+      object Fon13: TMenuItem
+        Tag = 1
+        Caption = 'Fon 1'
+        OnClick = Fon12Click
+      end
+      object Fon23: TMenuItem
+        Tag = 2
+        Caption = 'Fon 2'
+        OnClick = Fon12Click
+      end
+      object Fon33: TMenuItem
+        Tag = 3
+        Caption = 'Fon 3'
+        OnClick = Fon12Click
+      end
+      object S02: TMenuItem
+        Tag = 50
+        Caption = 'S0'
+        OnClick = Fon12Click
+      end
+    end
+    object Dial4: TMenuItem
+      Caption = 'Dial Work'
+      object Fon14: TMenuItem
+        Tag = 1
+        Caption = 'Fon 1'
+        OnClick = Fon12Click
+      end
+      object Fon24: TMenuItem
+        Tag = 2
+        Caption = 'Fon 2'
+        OnClick = Fon12Click
+      end
+      object Fon34: TMenuItem
+        Tag = 3
+        Caption = 'Fon 3'
+        OnClick = Fon12Click
+      end
+      object S03: TMenuItem
         Tag = 50
         Caption = 'S0'
         OnClick = Fon12Click

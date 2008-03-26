@@ -146,6 +146,18 @@ type
     currentip: TEdit;
     UPNPTimer: TTimer;
     currentipLabel: TLabel;
+    Dial3: TMenuItem;
+    Dial4: TMenuItem;
+    Fon13: TMenuItem;
+    Fon23: TMenuItem;
+    Fon33: TMenuItem;
+    S02: TMenuItem;
+    Fon14: TMenuItem;
+    Fon24: TMenuItem;
+    Fon34: TMenuItem;
+    S03: TMenuItem;
+    procedure PhoneBookListMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure UPNPTimerTimer(Sender: TObject);
     procedure renewIPClick(Sender: TObject);
     procedure ConnectCheckTimer(Sender: TObject);
@@ -267,6 +279,7 @@ var
   IncomingCall       : boolean;
   fbpassword         : string;
   upnpaction         : string;
+  clickedcolumn      : integer;
 
 implementation
 uses RegExpr, Unit2, statistics, settings, DateUtils, shellapi, tools, password,
@@ -301,6 +314,44 @@ var ResData: PChar;
 begin
     ResData := GetResourceAsPointer(resname, restype, ResSize);
     SetString(Result, ResData, ResSize);
+end;
+
+//-- Get the ListView's horizontal scroll-bar position --\\
+function  GetLvwHzScrolPos(Const lvwHwnd:Integer): Integer;
+var si:TScrollInfo;
+begin
+ si.cbSize := SizeOf(si);
+ si.fMask  := SIF_ALL;
+
+ if IsWindow(lvwHwnd) And GetScrollInfo(lvwHwnd, SB_HORZ, si) then
+   Result := si.nPos
+ else
+   Result := 0;
+end;
+
+//-- get the ListView's item and column on position xy --\\
+function GetItemAndColAt(ListView: TListView; X, Y: Integer; out Item: TListItem; out Col: Integer): Boolean;
+var i, xx, w: Integer;
+begin
+  Result := False;
+  Col := -1;
+  with ListView do
+  begin
+    Item := GetItemAt(X, Y);
+    if Item = nil then Exit;
+    x := x + GetLvwHzScrolPos (Listview.Handle);
+    xx := 0;
+    for i := 0 to Columns.Count - 1 do
+    begin
+      w := Columns[i].Width;
+      if (X >= xx) and (X < xx + w) then
+      begin
+        Col := i;
+        Result := True;
+        Exit;
+      end else Inc(xx, w);
+    end;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1816,7 +1867,7 @@ begin
 end;
 
 procedure TForm1.PopupMenu2Popup(Sender: TObject);
-var number: string;
+var number, home, mobile, work: string;
     name  : string;
     l     : TStringlist;
     index : integer;
@@ -1830,9 +1881,37 @@ begin
     Name  := PhoneBooklist.items[index].Caption;
     if name[1] = '!' then delete(name,1,1);
 
-    number:=Phonebooklist.Items[index].SubItems.strings[0];
-    dial2.caption := 'dial: ' + number;
-    dial2.visible := not (number ='');
+    // Falls der Mauszeiger über einer Spalte mit einer Telefonnummer stand,
+    // will der Benutzer vermutlich genau diese anrufen.
+    if clickedcolumn > 0 then
+      number := Phonebooklist.Items[index].SubItems.strings[clickedcolumn-1];
+    // Ist die Zelle leer, hat sich der Benutzer verklickt und seine Auswahl
+    // wird verworfen.
+    if number = '' then
+    begin
+      clickedcolumn := 0;
+      number := Phonebooklist.Items[index].SubItems.strings[0];
+    end;
+    // Der Benutzer hatte eine gültige Telefonnummer ausgewählt. Es wird nur
+    // diese als Menupunkt vorbereitet.
+    case clickedcolumn of
+      1: dial2.caption := 'dial: ' + number + ' (home)';
+      2: dial2.caption := 'dial: ' + number + ' (mobile)';
+      3: dial2.caption := 'dial: ' + number + ' (work)';
+    // Es wurde keine oder eine ungültige Vorauswahl durch den Benutzer getroffen.
+    // Deshalb werden jetzt alle gültigen Telefonnummern als Menupunkt vorbereitet.
+    else
+      home := Phonebooklist.Items[index].SubItems.strings[0];
+      dial2.caption := 'dial: ' + home + ' (home)';
+      mobile := Phonebooklist.Items[index].SubItems.strings[1];
+      dial3.caption := 'dial: ' + mobile + ' (mobile)';
+      work := Phonebooklist.Items[index].SubItems.strings[2];
+      dial4.caption := 'dial: ' + work + ' (work)';;
+    end;
+    // Alle vorbereiteten (mit einem Wert belegten) Menupunkte anzeigen.
+    dial2.visible := not (number = '');
+    dial3.visible := not (mobile = '');
+    dial4.visible := not (work = '');
 
     l:= TStringList.Create;
 
@@ -2269,7 +2348,6 @@ end;
 Procedure TForm1.UpdatePhonebook;
 var i, cnt, nr: integer;
     Data : String;
-    code: string;
 begin
    Form1.Phonebooklist.Cursor:= crHourGlass;
    Form1.Phonebooklist.Enabled:= false;
@@ -2795,8 +2873,7 @@ procedure TForm1.HangUpFritzBox();
 var Data: String;
 begin
   Data:= 'telcfg:settings/UseClickToDial=1&';
-  Data:= Data + 'telcfg:settings/DialPort=1&';
-  Data:= Data + 'telcfg:command/Hangup=2&';
+  Data:= Data + 'telcfg:command/Hangup&';
   Data:= Data + 'Submit=Submit';
 
   Form1.httppost('http://'+BoxAdress+'/cgi-bin/webcm', Data);
@@ -2830,10 +2907,26 @@ begin
 end;
 
 procedure TForm1.Fon12Click(Sender: TObject);
-var number: string;
+var itemname, number: string;
     index : integer;
     Port  : string;
 begin
+  // die Strings haben einen um 1 niedrigeren Index, als die Spalten
+  if clickedcolumn > 0 then dec (clickedcolumn);
+
+  // Name des Menupunktes ermitteln
+  itemname := (sender as TMenuItem).Name;
+
+  // keine Spalte vorausgewählt
+  if clickedcolumn = 0 then
+    // da der Benutzer erst im Kontextmenu entschieden hat, welche Nummer er wählen will, wird
+    // der Name des Menupunktes zur Bestimmung der (Stringposition der) Telefonnummer verwendet.
+    case itemname[length(itemname)] of
+      '4':clickedcolumn := 2; // work gewählt
+      '3':clickedcolumn := 1; // mobile gewählt
+      '2':clickedcolumn := 0; // home gewählt
+    end;
+
   case ((sender as TMenuItem).tag) of
     1: Port := 'Fon 1';
     2: Port := 'Fon 2';
@@ -2843,7 +2936,7 @@ begin
 
   hangupbutton.Visible:= true;
   index               := PhonebookList.ItemIndex;
-  Number              := Phonebooklist.items[index].SubItems.Strings[0];
+  Number              := Phonebooklist.items[index].SubItems.Strings[clickedcolumn];
   DialNumberFritzBox(number, inttostr((sender as TMenuItem).tag));
   status.SimpleText   := 'Dialing '+ number + ' ('+Port+')';
 end;
@@ -3001,6 +3094,24 @@ begin
   if telnet.IsConnected then telnet.Close;
   upnpaction := 'extip';
   telnet.Connect;
+end;
+
+procedure TForm1.PhoneBookListMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  li: TListItem;
+  p : TPoint;
+begin
+  // rechter Mausklick?
+  if (Button = mbRight) then
+  begin
+    // Spalte (Telefonnummer) bestimmen, über welcher der Mauszeiger beim
+    // Rechtsklicken stand
+    GetItemAndColAt(PhoneBookList, x, y, li, clickedcolumn);
+    // Kontextmenu aufrufen
+    GetCursorPos(p);
+    popupmenu2.Popup(p.x,p.y);
+  end;
 end;
 
 end.
