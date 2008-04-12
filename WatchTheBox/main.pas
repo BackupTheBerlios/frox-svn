@@ -1012,7 +1012,6 @@ procedure TForm1.FormCreate(Sender: TObject);
 var f: TFileStream;
     c: integer;
 begin
-
   Caption := Caption+' '+GetFileVersion(ParamStr(0));
 
   IncomingCall := false;
