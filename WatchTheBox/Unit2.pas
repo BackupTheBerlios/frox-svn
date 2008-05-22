@@ -151,7 +151,7 @@ end;
 procedure TCallIn.showCall(p: integer; setpos: integer);
 var image, MCEMessageParams, MCEMessagePath : string;
     top, right, left: integer;
-    result: boolean;
+    cres: boolean;
     e: extended;
 begin
       right:= 0;
@@ -166,14 +166,19 @@ begin
       date.caption    := ActiveCalls[p].date;
 
       number.Caption := '';
-      result := TextToFloat(PChar(ActiveCalls[p].name), e, fvExtended);
-      if not result then
-        if ActiveCalls[p].Cbc = '' then
+      if (ActiveCalls[p].Cbc = '') then
+      begin
+        cres := TextToFloat(PChar(ActiveCalls[p].name), e, fvExtended);
+        if not cres then
           number.Caption := 'Number: '+ ActiveCalls[p].Rufnummer
-        else
-          number.Caption := 'Number: '+ ActiveCalls[p].Klarnummer+' / Cbc: '+ActiveCalls[p].Cbc;
+      end else
+        number.Caption := 'Number: '+ ActiveCalls[p].Klarnummer+' / Cbc: '+ActiveCalls[p].Cbc;
 
-      if (info2.caption = '') then info2.caption:= 'unknown';
+      if (info2.caption = '') then
+      begin
+        info2.caption := 'unknown';
+        number.Caption := '';
+      end;
 
       if ActiveCalls[p].typ = 'outgoing call' then
          info3.caption   := ActiveCalls[p].Nebenstelle+'@'+ActiveCalls[p].MSN;

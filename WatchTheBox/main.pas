@@ -702,7 +702,7 @@ begin
    reverseAdress := sett.ReadString('FritzBox','reverse', '');
    enabled       := sett.ReadBool('FritzBox','reverse_enabled', true);
 
-   searchstring := Call.Rufnummer;
+   searchstring := filtercbc(Call.Rufnummer);
    if enabled and (reverseAdress <> '') then
      if (Call.Rufnummer <> '') and (Call.Name = Call.Rufnummer) then
        begin
