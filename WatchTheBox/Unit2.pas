@@ -153,6 +153,7 @@ var image, MCEMessageParams, MCEMessagePath : string;
     top, right, left: integer;
     cres: boolean;
     e: extended;
+    i : integer;
 begin
       right:= 0;
       if setpos = 0 then right := callin.left + callin.width;
@@ -180,6 +181,11 @@ begin
         number.Caption := '';
       end;
 
+      // Leider kommt es bei kurzen Namen oder Nummern immer zu einem Darstellungsfehler,
+      // also machen wir das Ganze dann einfach etwas länger.
+      for i := length(info2.Caption) to 17 do
+        info2.Caption := info2.Caption + ' ';
+
       if ActiveCalls[p].typ = 'outgoing call' then
          info3.caption   := ActiveCalls[p].Nebenstelle+'@'+ActiveCalls[p].MSN;
       duration.caption:= '';
@@ -197,7 +203,6 @@ begin
        image1.Visible:= true;
        image1.Width:= 102;
        callin.Width:= callin.Constraints.MinWidth + Image1.width;
-       panel.left := 104;
        info2.Left := 120;
        info3.left := 120;
        number.left := 120;
@@ -208,7 +213,6 @@ begin
        image1.Visible:= false;
        image1.Width:= 0;
        callin.Width := callin.Constraints.MinWidth;
-       panel.left := 2;
        info2.Left := 18;
        info3.left := 18;
        number.left := 18;
@@ -216,7 +220,8 @@ begin
       end;
 
       Callin.ClientWidth:= image1.Width + 50 + info2.Canvas.TextWidth(info2.Caption) + date.canvas.textwidth(date.caption);
-      panel.width:= Callin.ClientWidth - image1.width - 2;
+      panel.left := image1.width + 1;
+      panel.width:= Callin.ClientWidth - image1.width - 3;
 
       if setpos <> 0 then
       begin

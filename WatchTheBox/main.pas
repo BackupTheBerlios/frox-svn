@@ -686,8 +686,6 @@ begin
   begin
     Application.CreateForm(TCallIn, CallIn);
     Callin.ShowCall(0,1);
-    // Show last call
-    Callin.Bleft.Click;
     CallIn.Show;
   end;
 end;
