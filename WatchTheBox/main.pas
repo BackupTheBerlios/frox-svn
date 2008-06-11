@@ -2519,7 +2519,7 @@ begin
   begin
    index        := CallerList.ItemIndex;
 
-   NumberString := Callerlist.items[index].SubItems.Strings[7];
+   NumberString := filterCbc(Callerlist.items[index].SubItems.Strings[7]);
 
    if ((NumberString[1] <> '0') and (NumberString <> '+')) then NumberString:= Citycode+NumberString;
 
